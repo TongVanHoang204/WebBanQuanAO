@@ -1,7 +1,0 @@
-STATUS COUNTS:
-pending: 32
-paid: 16
-processing: 22
-shipped: 23
-completed: 16
-cancelled: 17
