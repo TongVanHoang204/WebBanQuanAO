@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* Force rebuild for dark mode */
+
+@layer base {
+  body {
+    @apply antialiased text-secondary-900 bg-white;
+  }
+
+  /* Dark Mode Base Styles */
+  .dark body {
+    @apply bg-secondary-900 text-white;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-8 py-3 rounded-full font-bold text-sm uppercase tracking-widest transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1;
+  }
+
+  /* Premium Black/White Theme */
+  .btn-primary {
+    @apply bg-black text-white border border-transparent hover:bg-gray-800 hover:shadow-xl hover:scale-105 active:scale-95 dark:bg-white dark:text-black dark:hover:bg-gray-200 dark:hover:shadow-white/20;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-black border border-gray-200 hover:border-black hover:bg-gray-50 hover:shadow-lg active:scale-95 dark:bg-transparent dark:text-white dark:border-gray-700 dark:hover:border-white;
+  }
+
+  .btn-outline {
+    @apply bg-transparent border border-black text-black hover:bg-black hover:text-white hover:shadow-lg dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black;
+  }
+
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .input {
+    @apply w-full rounded-full border-secondary-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:opacity-50 disabled:bg-secondary-50;
+  }
+
+  /* Dark mode inputs */
+  .dark .input {
+    @apply bg-secondary-800 border-secondary-700 text-white placeholder-secondary-400 focus:border-primary-500 focus:ring-primary-500;
+  }
+}
+
+@layer utilities {}
