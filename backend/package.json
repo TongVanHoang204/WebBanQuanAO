@@ -9,9 +9,9 @@
     "build": "tsc",
     "start": "node dist/src/server.js",
     "seed": "tsx prisma/seed.ts",
-    "prisma:generate": "prisma generate",
-    "prisma:push": "prisma db push",
-    "prisma:studio": "prisma studio"
+    "prisma:generate": "npx prisma generate",
+    "prisma:push": "npx prisma db push",
+    "prisma:studio": "npx prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
