@@ -10,6 +10,12 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  // Timeout settings for slow connections (Render/Cloud)
+  connectionTimeout: 10000, // 10s
+  greetingTimeout: 5000,    // 5s
+  socketTimeout: 15000,     // 15s
+  logger: true, // Log to console
+  debug: false, // Include SMTP traffic in logs
 });
 
 // Verify connection configuration ONLY if credentials are present
