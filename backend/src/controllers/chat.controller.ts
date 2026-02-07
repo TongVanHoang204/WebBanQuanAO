@@ -28,7 +28,7 @@ export const chat = async (
     }
 
     // Generate AI response using Enhanced AI Service
-    let aiResponse = { message: '', products: [] as any[], orders: [] as any[] };
+    let aiResponse: { message: string; products: any[]; orders: any[] } = { message: '', products: [], orders: [] };
     
     try {
       // Map history to ChatMessage format if needed, but AIService expects { role, content } which fits
