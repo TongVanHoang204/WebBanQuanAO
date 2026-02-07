@@ -64,14 +64,15 @@ BigInt.prototype.toJSON = function (): string | number {
   return int ?? this.toString();
 };
 
-// CORS Configuration
-const allowedOrigins = getAllowedOrigins();
+// CORS Configuration - TEMPORARILY ALLOW ALL for debugging
 const corsOptions: CorsOptions = {
-  origin: createOriginValidator(allowedOrigins),
+  origin: true, // Allow all origins temporarily
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id']
 };
+
+console.log('[CORS] Mode: ALLOW ALL (debug mode)');
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
@@ -80,7 +81,7 @@ app.options('*', cors(corsOptions));
 app.use((req, res, next) => {
   // Allow cross-origin window communication for OAuth and popups
   res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  // Note: COEP require-corp can break CORS, so we use credentialless or remove it
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   next();
 });
