@@ -7,8 +7,9 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "npx prisma generate && tsc",
-    "start": "npx prisma db push && node dist/src/server.js",
+    "start": "npx prisma db push && npx tsx prisma/seed_permissions.ts && node dist/src/server.js",
     "seed": "tsx prisma/seed.ts",
+    "seed:permissions": "tsx prisma/seed_permissions.ts",
     "prisma:generate": "npx prisma generate",
     "prisma:push": "npx prisma db push",
     "prisma:studio": "npx prisma studio"
