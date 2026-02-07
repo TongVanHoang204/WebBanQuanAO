@@ -6,8 +6,8 @@
   "main": "dist/src/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "npx prisma db push && tsc",
-    "start": "node dist/src/server.js",
+    "build": "npx prisma generate && tsc",
+    "start": "npx prisma db push && node dist/src/server.js",
     "seed": "tsx prisma/seed.ts",
     "prisma:generate": "npx prisma generate",
     "prisma:push": "npx prisma db push",
