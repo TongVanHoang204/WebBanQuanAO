@@ -76,6 +76,15 @@ const corsOptions: CorsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
+// Security Headers for Cross-Origin
+app.use((req, res, next) => {
+  // Allow cross-origin window communication for OAuth and popups
+  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+});
+
 // Body Parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
