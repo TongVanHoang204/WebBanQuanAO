@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { 
+import {
   Activity, 
   Filter,
   Clock,
@@ -7,6 +7,7 @@ import {
   Monitor
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { resolveApiUrl } from '../../../services/api';
 
 interface Log {
   id: string;
@@ -38,7 +39,7 @@ export default function ActivityLogPage() {
       if (actionFilter) params.action = actionFilter;
       if (dateFilter) params.start_date = dateFilter;
 
-      const res = await fetch(`/api/admin/logs?${new URLSearchParams(params)}`, {
+      const res = await fetch(resolveApiUrl(`/api/admin/logs?${new URLSearchParams(params)}`), {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       

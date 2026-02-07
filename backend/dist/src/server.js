@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { PrismaClient } from '@prisma/client';
 import { initializeSocket } from './socket.js';
 import { initializeScheduler } from './services/scheduler.service.js';
+import { createOriginValidator, getAllowedOrigins } from './config/cors.js';
 // Routes
 import authRoutes from './routes/auth.routes.js';
 import productRoutes from './routes/product.routes.js';
@@ -49,24 +50,15 @@ BigInt.prototype.toJSON = function () {
     return int ?? this.toString();
 };
 // CORS Configuration
-const allowedOrigins = [
-    'http://localhost:5173',
-    process.env.FRONTEND_URL,
-].filter(Boolean);
-app.use(cors({
-    origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin)
-            return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-        return callback(new Error('Not allowed by CORS'));
-    },
+const allowedOrigins = getAllowedOrigins();
+const corsOptions = {
+    origin: createOriginValidator(allowedOrigins),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id']
-}));
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 // Body Parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

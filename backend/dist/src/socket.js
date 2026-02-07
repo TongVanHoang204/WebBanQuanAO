@@ -1,6 +1,7 @@
 import { Server as SocketIOServer } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { prisma } from './server.js';
+import { createOriginValidator, getAllowedOrigins } from './config/cors.js';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 // Store active conversations in memory for quick access
 const activeConversations = new Map();
@@ -14,9 +15,10 @@ export function getIO() {
     return io;
 }
 export function initializeSocket(httpServer) {
+    const allowedOrigins = getAllowedOrigins();
     io = new SocketIOServer(httpServer, {
         cors: {
-            origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+            origin: createOriginValidator(allowedOrigins),
             methods: ['GET', 'POST'],
             credentials: true
         }

@@ -151,7 +151,7 @@ export default function App() {
 
       <Route path="/" element={<Layout />}>
         {/* Public Routes */}
-        <Route index element={<Navigate to="/shop" replace />} />
+        <Route index element={<HomePage />} />
         <Route path="shop" element={<ShopPage />} />
         <Route path="sale" element={<SalePage />} />
 

@@ -2,6 +2,7 @@ import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HttpServer } from 'http';
 import jwt from 'jsonwebtoken';
 import { prisma } from './server.js';
+import { createOriginValidator, getAllowedOrigins } from './config/cors.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -30,9 +31,11 @@ export function getIO() {
 }
 
 export function initializeSocket(httpServer: HttpServer) {
+  const allowedOrigins = getAllowedOrigins();
+
   io = new SocketIOServer(httpServer, {
     cors: {
-      origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+      origin: createOriginValidator(allowedOrigins),
       methods: ['GET', 'POST'],
       credentials: true
     }

@@ -16,6 +16,7 @@ import {
 import { toast } from 'react-hot-toast';
 import ConfirmModal from '../../../components/common/ConfirmModal';
 import { useAuth } from '../../../contexts/AuthContext';
+import { resolveApiUrl } from '../../../services/api';
 
 interface Staff {
   id: string;
@@ -90,7 +91,7 @@ export default function StaffListPage() {
       if (search) params.append('search', search);
       if (roleFilter !== 'all') params.append('role', roleFilter);
 
-      const res = await fetch(`/api/admin/staff?${params}`, {
+      const res = await fetch(resolveApiUrl(`/api/admin/staff?${params}`), {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -175,7 +176,7 @@ export default function StaffListPage() {
         ? { full_name: form.full_name, phone: form.phone, role: form.role, password: form.password || undefined }
         : form;
 
-      const res = await fetch(url, {
+      const res = await fetch(resolveApiUrl(url), {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -217,7 +218,7 @@ export default function StaffListPage() {
           const token = localStorage.getItem('token');
           const newStatus = staff.status === 'active' ? 'blocked' : 'active';
           
-          const res = await fetch(`/api/admin/staff/${staff.id}`, {
+          const res = await fetch(resolveApiUrl(`/api/admin/staff/${staff.id}`), {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',

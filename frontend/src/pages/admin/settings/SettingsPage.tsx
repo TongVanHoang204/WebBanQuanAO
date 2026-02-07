@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   Building2, Truck, Shield, Save, Upload, Loader2, Info, Plus, X, CreditCard, Globe
 } from 'lucide-react';
-import { adminAPI } from '../../../services/api';
+import { adminAPI, toMediaUrl } from '../../../services/api';
 import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
@@ -282,7 +282,7 @@ export default function SettingsPage() {
                       {settings.store_logo ? (
                         <div className="relative">
                           <img 
-                            src={`http://localhost:4000${settings.store_logo}`} 
+                            src={toMediaUrl(settings.store_logo)} 
                             alt="Store Logo" 
                             className="h-24 object-contain"
                           />

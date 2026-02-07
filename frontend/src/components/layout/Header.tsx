@@ -19,8 +19,9 @@ import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { useShop } from '../../hooks/useShop';
 import { useSettings } from '../../contexts/SettingsContext';
-import { Category, Product } from '../../types';
+import { Product } from '../../types';
 import { NotificationDropdown } from '../common/NotificationDropdown';
+import { toMediaUrl } from '../../services/api';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,12 +29,11 @@ export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { itemCount } = useCart();
   const { wishlist } = useWishlist();
-  const { fetchCategories, searchProducts } = useShop();
+  const { categories, fetchCategories, searchProducts } = useShop();
   const { settings } = useSettings();
   const navigate = useNavigate();
   
@@ -42,22 +42,7 @@ export default function Header() {
 
   useEffect(() => {
     fetchCategories().then(() => {});
-  }, []);
-
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const response = await fetch('/api/categories');
-        const data = await response.json();
-        if (data.success) {
-          setCategories(data.data);
-        }
-      } catch (error) {
-        console.error('Failed to load categories:', error);
-      }
-    };
-    loadCategories();
-  }, []);
+  }, [fetchCategories]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -145,7 +130,7 @@ export default function Header() {
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
             {settings?.store_logo ? (
-               <img src={`http://localhost:4000${settings.store_logo}`} alt={settings.store_name} className="h-10 object-contain" />
+               <img src={toMediaUrl(settings.store_logo)} alt={settings.store_name} className="h-10 object-contain" />
             ) : (
               <h1 className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                 {settings?.store_name || 'Fashion'}

@@ -42,6 +42,10 @@ export const errorHandler = (err, req, res, next) => {
         statusCode = 401;
         message = 'Token expired';
     }
+    // CORS errors should be explicit 403 instead of generic 500
+    if (message === 'Not allowed by CORS') {
+        statusCode = 403;
+    }
     res.status(statusCode).json({
         success: false,
         error: {

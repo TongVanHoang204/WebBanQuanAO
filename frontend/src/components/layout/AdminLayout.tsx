@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { adminAPI } from '../../services/api';
+import { adminAPI, toMediaUrl } from '../../services/api';
 import { NotificationDropdown } from '../common/NotificationDropdown';
 import AdminMessageDropdown from '../chat/AdminMessageDropdown';
 import AdminChatManager from '../chat/AdminChatManager';
@@ -156,7 +156,7 @@ export default function AdminLayout() {
           <div className="h-16 flex items-center px-6 border-b border-secondary-100 dark:border-secondary-700">
             <Link to="/admin/dashboard" className="flex items-center gap-2">
               {settings?.store_logo ? (
-                <img src={`http://localhost:4000${settings.store_logo}`} alt="Admin" className="h-8 object-contain" />
+                <img src={toMediaUrl(settings.store_logo)} alt="Admin" className="h-8 object-contain" />
               ) : (
                 <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold">
                   S

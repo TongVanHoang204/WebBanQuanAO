@@ -21,6 +21,7 @@ PORT=4000
 DATABASE_URL="mysql://user:password@host:3306/db_name"
 JWT_SECRET="your_jwt_secret_key"
 FRONTEND_URL="https://your-frontend-domain.com"
+CORS_ALLOWED_ORIGINS="https://your-frontend-domain.com,http://localhost:5173"
 
 # VNPay Config (Thanh toán)
 VNP_TMN_CODE="your_tmn_code"
@@ -93,7 +94,8 @@ VITE_API_URL="https://your-backend-domain.com/api"
 2. Root Directory: `backend`
 3. Build Command: `npm install && npm run build`
 4. Start Command: `npm start`
-5. **Environment Variables**: Thêm `DATABASE_URL`, `JWT_SECRET`, `VNP_...`.
+5. **Environment Variables**: Thêm `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `CORS_ALLOWED_ORIGINS`, `VNP_...`.
+6. **Security**: Nếu từng commit `.env`, hãy rotate ngay các khóa quan trọng (`DATABASE_URL`, `JWT_SECRET`, OAuth, SMTP, RapidAPI).
 
 ### Database (MySQL)
 - Sử dụng **Railway**, **PlanetScale**, hoặc **Aiven** để tạo MySQL Database miễn phí/giá rẻ.

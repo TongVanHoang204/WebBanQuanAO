@@ -15,6 +15,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { resolveApiUrl } from '../../../services/api';
 
 interface Banner {
   id: string;
@@ -82,7 +83,7 @@ export default function BannerListPage() {
       const params = new URLSearchParams({ include_inactive: 'true' });
       if (positionFilter) params.append('position', positionFilter);
 
-      const res = await fetch(`/api/admin/banners?${params}`, {
+      const res = await fetch(resolveApiUrl(`/api/admin/banners?${params}`), {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -146,7 +147,7 @@ export default function BannerListPage() {
         formData.append('file', files[i]);
 
         try {
-            const res = await fetch('/api/upload', {
+            const res = await fetch(resolveApiUrl('/api/upload'), {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` },
                 body: formData
@@ -214,7 +215,7 @@ export default function BannerListPage() {
       const url = editingId ? `/api/admin/banners/${editingId}` : '/api/admin/banners';
       const method = editingId ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await fetch(resolveApiUrl(url), {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -251,7 +252,7 @@ export default function BannerListPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/admin/banners/${id}`, {
+      const res = await fetch(resolveApiUrl(`/api/admin/banners/${id}`), {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -269,7 +270,7 @@ export default function BannerListPage() {
   const handleToggleActive = async (banner: Banner) => {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`/api/admin/banners/${banner.id}`, {
+      await fetch(resolveApiUrl(`/api/admin/banners/${banner.id}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

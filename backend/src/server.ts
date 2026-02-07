@@ -1,5 +1,5 @@
 import express from 'express';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import http from 'http';
@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { PrismaClient } from '@prisma/client';
 import { initializeSocket } from './socket.js';
 import { initializeScheduler } from './services/scheduler.service.js';
+import { createOriginValidator, getAllowedOrigins } from './config/cors.js';
 
 // Routes
 import authRoutes from './routes/auth.routes.js';
@@ -64,31 +65,16 @@ BigInt.prototype.toJSON = function (): string | number {
 };
 
 // CORS Configuration
-const allowedOrigins = [
-  'http://localhost:5173',
-  process.env.FRONTEND_URL,
-].filter(Boolean) as string[];
-
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    const normalizeUrl = (url: string) => url.replace(/\/$/, '');
-    const normalizedOrigin = normalizeUrl(origin);
-    const allowed = allowedOrigins.some(url => normalizeUrl(url) === normalizedOrigin);
-    
-    if (allowed) {
-      return callback(null, true);
-    }
-    
-    console.log('[CORS] Blocked origin:', origin);
-    return callback(new Error('Not allowed by CORS'));
-  },
+const allowedOrigins = getAllowedOrigins();
+const corsOptions: CorsOptions = {
+  origin: createOriginValidator(allowedOrigins),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id']
-}));
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Body Parser
 app.use(express.json());

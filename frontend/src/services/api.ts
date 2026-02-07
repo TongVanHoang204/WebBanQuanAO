@@ -1,6 +1,54 @@
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const ABSOLUTE_URL_PATTERN = /^https?:\/\//i;
+
+const stripTrailingSlash = (value: string): string => value.replace(/\/+$/, '');
+const isAbsoluteUrl = (value: string): boolean => ABSOLUTE_URL_PATTERN.test(value);
+
+export const getApiBaseUrl = (): string => API_BASE_URL;
+
+export const getApiOrigin = (): string => {
+  if (isAbsoluteUrl(API_BASE_URL)) {
+    return stripTrailingSlash(API_BASE_URL).replace(/\/api$/i, '');
+  }
+
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+
+  return '';
+};
+
+export const resolveApiUrl = (path: string): string => {
+  if (isAbsoluteUrl(path)) {
+    return path;
+  }
+
+  if (path.startsWith('/api/')) {
+    if (isAbsoluteUrl(API_BASE_URL)) {
+      return `${getApiOrigin()}${path}`;
+    }
+    return path;
+  }
+
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${stripTrailingSlash(API_BASE_URL)}${normalizedPath}`;
+};
+
+export const toMediaUrl = (path?: string | null): string => {
+  if (!path) {
+    return '';
+  }
+
+  if (isAbsoluteUrl(path) || path.startsWith('data:')) {
+    return path;
+  }
+
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const apiOrigin = getApiOrigin();
+  return apiOrigin ? `${apiOrigin}${normalizedPath}` : normalizedPath;
+};
 
 const api = axios.create({
   baseURL: API_BASE_URL,

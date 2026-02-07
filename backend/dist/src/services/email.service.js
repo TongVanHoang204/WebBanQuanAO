@@ -1,17 +1,17 @@
 import nodemailer from 'nodemailer';
 // Create reusable transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
+    host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+    port: parseInt(process.env.SMTP_PORT || '2525'), // Try 2525 if 587 fails
     secure: process.env.SMTP_SECURE === 'true',
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
     },
     // Timeout settings for slow connections (Render/Cloud)
-    connectionTimeout: 10000, // 10s
-    greetingTimeout: 5000, // 5s
-    socketTimeout: 15000, // 15s
+    connectionTimeout: 30000, // 30s
+    greetingTimeout: 15000, // 15s
+    socketTimeout: 30000, // 30s
     logger: true, // Log to console
     debug: false, // Include SMTP traffic in logs
 });

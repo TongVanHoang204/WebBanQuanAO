@@ -11,6 +11,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { resolveApiUrl } from '../../../services/api';
 
 interface ShippingMethod {
   id: string;
@@ -62,7 +63,7 @@ export default function ShippingPage() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/admin/shipping?include_inactive=true', {
+      const res = await fetch(resolveApiUrl('/api/admin/shipping?include_inactive=true'), {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -122,7 +123,7 @@ export default function ShippingPage() {
       const url = editingId ? `/api/admin/shipping/${editingId}` : '/api/admin/shipping';
       const method = editingId ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await fetch(resolveApiUrl(url), {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +153,7 @@ export default function ShippingPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/admin/shipping/${id}`, {
+      const res = await fetch(resolveApiUrl(`/api/admin/shipping/${id}`), {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
