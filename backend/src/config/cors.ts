@@ -1,4 +1,8 @@
-export const normalizeOrigin = (value: string): string => value.trim().replace(/\/+$/, '');
+export const normalizeOrigin = (value: string): string =>
+  value
+    .trim()
+    .replace(/^['"]|['"]$/g, '')
+    .replace(/\/+$/, '');
 
 const parseOriginList = (value?: string): string[] => {
   if (!value) {
