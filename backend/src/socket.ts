@@ -35,7 +35,7 @@ export function initializeSocket(httpServer: HttpServer) {
 
   io = new SocketIOServer(httpServer, {
     cors: {
-      origin: createOriginValidator(allowedOrigins),
+      origin: true, // Allow request origin (to support credentials)
       methods: ['GET', 'POST'],
       credentials: true
     }
