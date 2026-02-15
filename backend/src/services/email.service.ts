@@ -2,20 +2,23 @@ import nodemailer from 'nodemailer';
 import { logActivity } from './logger.service.js';
 
 // Create reusable transporter object using the default SMTP transport
+// Create reusable transporter object using the default SMTP transport
+const isResend = !!process.env.RESEND_API_KEY;
+
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-  port: parseInt(process.env.SMTP_PORT || '2525'), // Try 2525 if 587 fails
-  secure: process.env.SMTP_SECURE === 'true',
+  host: isResend ? 'smtp.resend.com' : (process.env.SMTP_HOST || 'smtp-relay.brevo.com'),
+  port: isResend ? 465 : parseInt(process.env.SMTP_PORT || '2525'),
+  secure: isResend ? true : (process.env.SMTP_SECURE === 'true'),
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: isResend ? 'resend' : process.env.SMTP_USER,
+    pass: isResend ? process.env.RESEND_API_KEY : process.env.SMTP_PASS,
   },
   // Timeout settings for slow connections (Render/Cloud)
-  connectionTimeout: 30000, // 30s
-  greetingTimeout: 15000,   // 15s
-  socketTimeout: 30000,     // 30s
-  logger: true, // Log to console
-  debug: false, // Include SMTP traffic in logs
+  connectionTimeout: 30000, 
+  greetingTimeout: 15000,   
+  socketTimeout: 30000,     
+  logger: true, 
+  debug: false, 
 });
 
 // Verify connection configuration ONLY if credentials are present
@@ -129,6 +132,7 @@ export const sendOrderConfirmationEmail = async (email: string, orderCode: strin
   `;
   return sendEmail({ to: email, subject, html });
 };
+
 
 export const sendOTP = async (email: string, otp: string) => {
   const subject = 'Mã xác thực 2 bước (2FA) - Fashion Store';

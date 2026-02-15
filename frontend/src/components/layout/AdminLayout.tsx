@@ -283,7 +283,7 @@ export default function AdminLayout() {
                                className="flex items-center gap-3 p-2 hover:bg-secondary-50 dark:hover:bg-secondary-700 rounded-md group transition-colors"
                              >
                                {product.product_images?.[0]?.url ? (
-                                 <img src={product.product_images[0].url} alt="" className="w-10 h-10 rounded object-cover bg-secondary-100 dark:bg-secondary-700" />
+                                 <img src={toMediaUrl(product.product_images[0].url)} alt="" className="w-10 h-10 rounded object-cover bg-secondary-100 dark:bg-secondary-700" />
                                ) : (
                                  <div className="w-10 h-10 rounded bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center">
                                    <Package className="w-5 h-5 text-secondary-400" />

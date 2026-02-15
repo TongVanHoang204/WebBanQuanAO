@@ -5,6 +5,7 @@ import { formatPrice, getDiscountPercent } from '../../hooks/useShop';
 import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { useState } from 'react';
+import { toMediaUrl } from '../../services/api';
 
 interface ProductCardProps {
   product: Product;
@@ -73,7 +74,7 @@ export default function ProductCard({ product, showQuickAdd = true }: ProductCar
         {/* Image Container */}
         <div className="relative aspect-square overflow-hidden bg-secondary-50 dark:bg-secondary-700">
           <img
-            src={primaryImage}
+            src={toMediaUrl(primaryImage)}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             referrerPolicy="no-referrer"

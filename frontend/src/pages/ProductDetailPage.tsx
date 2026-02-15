@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import SEO from '../components/common/SEO';
+import LoadingScreen from '../components/common/LoadingScreen';
 import { 
   Minus, 
   Plus, 
@@ -25,10 +26,13 @@ import { productsAPI } from '../services/api';
 import { formatPrice, getDiscountPercent } from '../hooks/useShop';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
+import { useAuth } from '../contexts/AuthContext';
+import { toMediaUrl } from '../services/api';
 
 
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
@@ -37,6 +41,7 @@ export default function ProductDetailPage() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const [activeTab, setActiveTab] = useState<'details' | 'specs' | 'shipping'>('details');
 
@@ -59,6 +64,11 @@ export default function ProductDetailPage() {
             relatedRes.data.data.products.filter((p: Product) => p.id !== productData.id)
           );
         }
+
+        // Auto-select if only 1 variant (Simple Product)
+        if (productData.product_variants?.length === 1) {
+          setSelectedVariant(productData.product_variants[0]);
+        }
       } catch (error) {
         console.error('Failed to load product:', error);
       } finally {
@@ -70,7 +80,19 @@ export default function ProductDetailPage() {
   }, [slug]);
 
   const handleAddToCart = async () => {
-    if (!selectedVariant) return;
+    // Check authentication
+    if (!isAuthenticated) {
+      toast.error('Vui lòng đăng nhập hoặc đăng ký để mua hàng');
+      navigate('/login');
+      return;
+    }
+
+    // Validate variant selection
+    if (!selectedVariant) {
+      toast.error('Vui lòng chọn phân loại sản phẩm (Màu sắc / Kích thước)');
+      // Optional: Scroll to variant selector or highlight it
+      return;
+    }
     
     setIsAddingToCart(true);
     try {
@@ -129,18 +151,7 @@ export default function ProductDetailPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="container-custom py-12">
-        <div className="grid lg:grid-cols-12 gap-12">
-          <div className="lg:col-span-7 aspect-square bg-secondary-100 rounded-xl animate-pulse" />
-          <div className="lg:col-span-5 space-y-6">
-            <div className="h-8 bg-secondary-100 rounded w-3/4 animate-pulse" />
-            <div className="h-6 bg-secondary-100 rounded w-1/3 animate-pulse" />
-            <div className="h-48 bg-secondary-100 rounded animate-pulse" />
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!product) {
@@ -165,10 +176,13 @@ export default function ProductDetailPage() {
 
   return (
     <>
-      <Helmet>
-        <title>{product.name} - Fashion Store</title>
-        <meta name="description" content={product.description?.slice(0, 160) || product.name} />
-      </Helmet>
+      <SEO 
+        title={product.name} 
+        description={product.description?.replace(/<[^>]*>/g, '').slice(0, 160) || product.name}
+        image={toMediaUrl(product.product_images?.[0]?.url)}
+        url={`/products/${product.slug}`}
+        type="product"
+      />
 
       <div className="container-custom py-8">
         {/* Breadcrumb */}
@@ -206,14 +220,37 @@ export default function ProductDetailPage() {
           {/* Right Column: Product Info */}
           <div className="lg:col-span-5 space-y-8">
             <div className="space-y-4">
-              {/* Rating */}
-              <div className="flex items-center gap-2">
-                <div className="flex text-yellow-400">
-                   {[1, 2, 3, 4, 5].map((s) => (
-                     <Star key={s} className="w-4 h-4 fill-current" />
-                   ))}
+              {/* Rating & Sold */}
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-1">
+                  <span className="font-bold text-secondary-900 underline underline-offset-4 decoration-primary-500 decoration-2">
+                    {product.rating_avg || 5.0}
+                  </span>
+                  <div className="flex text-yellow-400">
+                     {[1, 2, 3, 4, 5].map((s) => (
+                       <Star 
+                        key={s} 
+                        className={`w-4 h-4 ${s <= Math.round(product.rating_avg || 5) ? 'fill-current' : 'text-gray-300'}`} 
+                       />
+                     ))}
+                  </div>
                 </div>
-                <span className="text-sm font-medium text-secondary-600">4.8 (120 đánh giá)</span>
+                
+                <div className="w-px h-4 bg-secondary-300 dark:bg-secondary-700"></div>
+
+                <div className="text-secondary-600 dark:text-secondary-400">
+                  <span className="font-bold text-secondary-900 dark:text-white underline underline-offset-4 decoration-secondary-300 dark:decoration-secondary-600 decoration-2">
+                    {product.rating_count || 0}
+                  </span> đánh giá
+                </div>
+
+                <div className="w-px h-4 bg-secondary-300 dark:bg-secondary-700"></div>
+
+                <div className="text-secondary-600 dark:text-secondary-400">
+                  <span className="font-bold text-secondary-900 dark:text-white">
+                    {product.sold_count ? (product.sold_count > 1000 ? `${(product.sold_count / 1000).toFixed(1)}k` : product.sold_count) : 0}
+                  </span> đã bán
+                </div>
               </div>
 
               {/* Title */}
@@ -289,7 +326,7 @@ export default function ProductDetailPage() {
 
               <button
                 onClick={handleAddToCart}
-                disabled={!selectedVariant || isOutOfStock || isAddingToCart}
+                disabled={isOutOfStock || isAddingToCart}
                 className={`flex-1 min-h-[48px] btn btn-primary rounded-full flex items-center justify-center gap-3 font-bold transition-all ${
                   addedToCart ? 'bg-accent-green border-accent-green hover:bg-accent-green grayscale-0' : ''
                 } disabled:opacity-50 disabled:grayscale`}
@@ -415,7 +452,7 @@ export default function ProductDetailPage() {
                   <ul className="list-disc pl-5 space-y-2">
                     <li>Miễn phí vận chuyển cho đơn hàng trên 500,000đ.</li>
                     <li>Thời gian giao hàng: 2-3 ngày làm việc trong nội thành, 3-5 ngày khu vực khác.</li>
-                    <li>Đổi trả miễn phí trong vòng 30 ngày nếu phát hiện lỗi nhà sản xuất hoặc không vừa ý.</li>
+                    <li>Đổi trả miễn phí trong vòng 7 ngày nếu phát hiện lỗi nhà sản xuất hoặc không vừa ý.</li>
                   </ul>
                 </div>
              )}

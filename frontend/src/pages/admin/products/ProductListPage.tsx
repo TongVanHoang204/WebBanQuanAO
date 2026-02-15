@@ -20,7 +20,7 @@ import {
   Check,
   AlertTriangle
 } from 'lucide-react';
-import { adminAPI } from '../../../services/api';
+import { adminAPI, toMediaUrl } from '../../../services/api';
 import { Product } from '../../../types';
 import { formatPrice } from '../../../hooks/useShop';
 import toast from 'react-hot-toast';
@@ -207,13 +207,13 @@ export default function ProductListPage() {
           <table className="w-full">
             <thead className="bg-secondary-50 dark:bg-secondary-700/50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Sản phẩm</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider min-w-[300px]">Sản phẩm</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider min-w-[120px]">Trạng thái</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">SKU</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Danh mục</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Giá</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Kho</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Trạng thái</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Thao tác</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider min-w-[250px]">Kho & Biến thể</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider sticky right-0 bg-secondary-50 dark:bg-secondary-800 z-10 shadow-[-5px_0px_10px_rgba(0,0,0,0.05)] dark:shadow-[-5px_0px_10px_rgba(0,0,0,0.5)]">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700 bg-white dark:bg-secondary-800">
@@ -227,13 +227,13 @@ export default function ProductListPage() {
                 </tr>
               ) : products.length > 0 ? (
                 products.map((product) => (
-                  <tr key={product.id} className="hover:bg-secondary-50 dark:hover:bg-secondary-700/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <tr key={product.id} className="hover:bg-secondary-50 dark:hover:bg-secondary-700/50 transition-colors group">
+                    <td className="px-6 py-4">
                       <div className="flex items-center">
                         <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-secondary-100 dark:bg-secondary-700 overflow-hidden">
                           {product.product_images && product.product_images.length > 0 ? (
                             <img 
-                              src={product.product_images.find(i => i.is_primary)?.url || product.product_images[0].url} 
+                              src={toMediaUrl(product.product_images.find(i => i.is_primary)?.url || product.product_images[0].url)} 
                               alt={product.name} 
                               className="h-full w-full object-cover"
                               referrerPolicy="no-referrer"
@@ -245,23 +245,11 @@ export default function ProductListPage() {
                           )}
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-secondary-900 dark:text-white max-w-[200px] truncate" title={product.name}>
+                          <div className="text-sm font-medium text-secondary-900 dark:text-white line-clamp-2" title={product.name}>
                             {product.name}
                           </div>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-500 dark:text-secondary-400">
-                      {product.sku}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-500 dark:text-secondary-400">
-                      {product.category?.name || 'Chưa phân loại'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-secondary-900 dark:text-white">
-                      {formatPrice(product.base_price)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-500 dark:text-secondary-400">
-                       {(product as any)._count?.product_variants || 0} phiên bản
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -272,7 +260,37 @@ export default function ProductListPage() {
                         {product.is_active ? 'Đang bán' : 'Bản nháp'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-500 dark:text-secondary-400">
+                      {product.sku}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-500 dark:text-secondary-400">
+                      {product.category?.name || 'Chưa phân loại'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-secondary-900 dark:text-white">
+                      {formatPrice(product.base_price)}
+                    </td>
+                     <td className="px-6 py-4 text-sm text-secondary-500 dark:text-secondary-400">
+                       {product.product_variants && product.product_variants.length > 0 ? (
+                         <div className="flex flex-col gap-1 max-h-[120px] overflow-y-auto pr-2">
+                           {product.product_variants.map(v => (
+                             <div key={v.id} className="grid grid-cols-[1fr_80px] items-center gap-2 text-xs border-b border-secondary-100 dark:border-secondary-700/50 last:border-0 pb-1 last:pb-0">
+                               <span className="font-medium text-secondary-900 dark:text-secondary-200 truncate" title={v.variant_sku}>
+                                 {v.variant_sku}
+                               </span>
+                               
+                               <span className={`font-bold text-right ${v.stock_qty > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                 {v.stock_qty ?? 0}
+                               </span>
+                             </div>
+                           ))}
+                         </div>
+                       ) : (
+                         <span className="font-medium">
+                            Tổng: {product.product_variants?.reduce((acc, v) => acc + v.stock_qty, 0) || product.stock_qty || 0}
+                         </span>
+                       )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium sticky right-0 bg-white group-hover:bg-secondary-50 dark:bg-secondary-800 dark:group-hover:bg-secondary-700/50 transition-colors z-10 shadow-[-5px_0px_10px_rgba(0,0,0,0.05)] dark:shadow-[-5px_0px_10px_rgba(0,0,0,0.5)]">
                       <div className="flex justify-end gap-2">
                         <Link 
                           to={`/products/${product.slug}`} 

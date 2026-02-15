@@ -21,6 +21,8 @@ import { formatPrice } from '../hooks/useShop';
 import { Order } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { Banknote, QrCode, Building2, Wallet } from 'lucide-react';
+import { toMediaUrl } from '../services/api';
+import LoadingScreen from '../components/common/LoadingScreen';
 
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
@@ -54,12 +56,7 @@ export default function OrderDetailPage() {
   }, [orderId, isAuthenticated]);
 
   if (isLoading) {
-    return (
-      <div className="container-custom py-24 flex flex-col items-center justify-center">
-        <div className="w-12 h-12 border-4 border-secondary-100 border-t-primary-600 rounded-full animate-spin mb-4" />
-        <p className="text-secondary-500 dark:text-secondary-400 font-medium">Đang tải thông tin đơn hàng...</p>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!order) {
@@ -307,7 +304,7 @@ export default function OrderDetailPage() {
                          <div className="flex items-center gap-4">
                            <div className="w-16 h-16 bg-white dark:bg-secondary-700 rounded-2xl overflow-hidden border border-secondary-100 dark:border-transparent flex-shrink-0 transition-colors">
                              <img 
-                               src={item.product?.product_images?.[0]?.url || '/placeholder.jpg'} 
+                               src={toMediaUrl(item.product?.product_images?.[0]?.url || '/placeholder.jpg')} 
                                alt={item.name} 
                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                              />

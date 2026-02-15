@@ -92,6 +92,16 @@ export default {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-10px)' },
         },
+        'gradient-xy': {
+          '0%, 100%': {
+            'background-size': '400% 400%',
+            'background-position': 'left center'
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center'
+          }
+        }
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',
@@ -103,6 +113,7 @@ export default {
         'rubberBand': 'rubberBand 1s ease-in-out infinite',
         'tada': 'tada 1s ease-in-out infinite',
         'float': 'float 3s ease-in-out infinite',
+        'gradient-xy': 'gradient-xy 15s ease infinite',
       },
     },
   },

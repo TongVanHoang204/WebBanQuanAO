@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../contexts/AuthContext';
-import { authAPI, uploadAPI } from '../services/api';
+import { authAPI, uploadAPI, toMediaUrl } from '../services/api';
 import { 
   User, 
   Mail, 
@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import AddressSelector from '../components/common/AddressSelector';
+import LoadingScreen from '../components/common/LoadingScreen';
 
 interface ActivityLog {
   id: string;
@@ -49,6 +50,7 @@ interface Address {
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
@@ -108,6 +110,8 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Failed to fetch profile data', error);
       toast.error('Không thể tải dữ liệu cá nhân');
+    } finally {
+      setIsPageLoading(false);
     }
   };
 
@@ -286,7 +290,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (!user) return null;
+  if (!user || isPageLoading) return <LoadingScreen />;
 
   return (
     <>
@@ -343,7 +347,7 @@ export default function ProfilePage() {
                            <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
                          ) : user.avatar_url ? (
                            <img 
-                             src={user.avatar_url} 
+                             src={toMediaUrl(user.avatar_url)} 
                              alt={user.full_name || user.username} 
                              className="w-full h-full object-cover"
                            />

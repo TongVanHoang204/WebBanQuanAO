@@ -36,10 +36,12 @@ export const errorHandler = (
       statusCode = 409;
       // const target = (err.meta?.target as string[])?.join(', ') || 'field';
       message = `Generic unique constraint violation. One of the unique fields (e.g. SKU, Slug) already exists.`;
-      // Try to be more specific if possible
-       if (err.meta && err.meta.target) {
-           message = `Unique constraint failed on the fields: ${(err.meta.target as any).join(', ')}`;
-       }
+        if (err.meta?.target) {
+           const target = Array.isArray(err.meta.target)
+             ? err.meta.target.join(', ')
+             : String(err.meta.target);
+           message = `Unique constraint failed on the fields: ${target}`;
+        }
     }
     // Record not found
     if (err.code === 'P2025') {

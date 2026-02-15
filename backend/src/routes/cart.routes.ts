@@ -50,10 +50,10 @@ router.get('/', optionalAuth, getCart);
  *       200:
  *         description: Item added
  */
-router.post('/add', optionalAuth, addToCart);
-router.put('/update/:itemId', optionalAuth, updateCartItem);
-router.delete('/remove/:itemId', optionalAuth, removeCartItem);
-router.delete('/clear', optionalAuth, clearCart);
+router.post('/add', verifyToken, addToCart);
+router.put('/update/:itemId', verifyToken, updateCartItem);
+router.delete('/remove/:itemId', verifyToken, removeCartItem);
+router.delete('/clear', verifyToken, clearCart);
 router.post('/merge', verifyToken, mergeCart);
 
 export default router;

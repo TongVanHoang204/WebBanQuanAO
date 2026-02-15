@@ -1,7 +1,8 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
 import { getIO } from '../socket.js';
+import Logger from '../config/logger.js';
 
 const prisma = new PrismaClient();
 
@@ -22,6 +23,7 @@ interface NotificationData {
  * GET /api/admin/notifications
  */
 export const getNotifications = async (req: AuthRequest, res: Response) => {
+  Logger.info(`[NotificationDebug] getNotifications hit. userId=${req.user?.id}`);
   try {
     const userId = req.user?.id;
     
@@ -41,26 +43,30 @@ export const getNotifications = async (req: AuthRequest, res: Response) => {
     let notifications: NotificationData[];
     let total: number;
     
+    const isAdmin = ['admin', 'manager', 'staff'].includes(req.user?.role || '');
+    
     if (unread_only === 'true') {
       notifications = await prisma.$queryRaw<NotificationData[]>`
         SELECT * FROM notifications 
-        WHERE (user_id = ${userId} OR user_id IS NULL) AND is_read = false
+        WHERE (user_id = ${userId} ${isAdmin ? Prisma.raw('OR user_id IS NULL') : Prisma.raw('')}) AND is_read = false
         ORDER BY created_at DESC 
         LIMIT ${Number(limit)} OFFSET ${skip}
       `;
       const countResult = await prisma.$queryRaw<{count: bigint}[]>`
-        SELECT COUNT(*) as count FROM notifications WHERE (user_id = ${userId} OR user_id IS NULL) AND is_read = false
+        SELECT COUNT(*) as count FROM notifications 
+        WHERE (user_id = ${userId} ${isAdmin ? Prisma.raw('OR user_id IS NULL') : Prisma.raw('')}) AND is_read = false
       `;
       total = Number(countResult[0]?.count || 0);
     } else {
       notifications = await prisma.$queryRaw<NotificationData[]>`
         SELECT * FROM notifications 
-        WHERE (user_id = ${userId} OR user_id IS NULL)
+        WHERE (user_id = ${userId} ${isAdmin ? Prisma.raw('OR user_id IS NULL') : Prisma.raw('')})
         ORDER BY created_at DESC 
         LIMIT ${Number(limit)} OFFSET ${skip}
       `;
       const countResult = await prisma.$queryRaw<{count: bigint}[]>`
-        SELECT COUNT(*) as count FROM notifications WHERE (user_id = ${userId} OR user_id IS NULL)
+        SELECT COUNT(*) as count FROM notifications 
+        WHERE (user_id = ${userId} ${isAdmin ? Prisma.raw('OR user_id IS NULL') : Prisma.raw('')})
       `;
       total = Number(countResult[0]?.count || 0);
     }
@@ -84,7 +90,7 @@ export const getNotifications = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (error) {
-    console.error('Get notifications error:', error);
+    Logger.error('Get notifications error:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
@@ -94,6 +100,7 @@ export const getNotifications = async (req: AuthRequest, res: Response) => {
  * GET /api/admin/notifications/unread-count
  */
 export const getUnreadCount = async (req: AuthRequest, res: Response) => {
+  Logger.info(`[NotificationDebug] getUnreadCount hit. userId=${req.user?.id}`);
   try {
     const userId = req.user?.id;
     
@@ -109,7 +116,7 @@ export const getUnreadCount = async (req: AuthRequest, res: Response) => {
 
     res.json({ success: true, data: { count } });
   } catch (error) {
-    console.error('Get unread count error:', error);
+    Logger.error('Get unread count error:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
@@ -128,13 +135,19 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
     }
 
     const notificationId = BigInt(id as string);
+    Logger.info(`[NotificationDebug] Marking as read: id=${id}, userId=${userId}`);
 
-    // Check ownership
+    // Check ownership: allow if it's the user's notification OR if it's a system notification (user_id IS NULL)
     const existing = await prisma.$queryRaw<NotificationData[]>`
-      SELECT * FROM notifications WHERE id = ${notificationId} AND user_id = ${userId}
+      SELECT * FROM notifications 
+      WHERE id = ${notificationId} 
+      AND (user_id = ${userId} OR user_id IS NULL)
     `;
 
+    console.log(`[NotificationDebug] Query result length: ${existing.length}`);
+
     if (!existing.length) {
+      Logger.warn(`[NotificationDebug] Notification ${notificationId} NOT found for user ${userId}`);
       return res.status(404).json({ success: false, message: 'Notification not found' });
     }
 
@@ -163,6 +176,7 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
  * PATCH /api/admin/notifications/read-all
  */
 export const markAllAsRead = async (req: AuthRequest, res: Response) => {
+  console.log(`[NotificationDebug] markAllAsRead hit. userId=${req.user?.id}`);
   try {
     const userId = req.user?.id;
 
@@ -197,9 +211,11 @@ export const deleteNotification = async (req: AuthRequest, res: Response) => {
 
     const notificationId = BigInt(id as string);
 
-    // Check ownership
+    // Check ownership: allow if it's the user's notification OR if it's a system notification (user_id IS NULL)
     const existing = await prisma.$queryRaw<NotificationData[]>`
-      SELECT * FROM notifications WHERE id = ${notificationId} AND user_id = ${userId}
+      SELECT * FROM notifications 
+      WHERE id = ${notificationId} 
+      AND (user_id = ${userId} OR user_id IS NULL)
     `;
 
     if (!existing.length) {

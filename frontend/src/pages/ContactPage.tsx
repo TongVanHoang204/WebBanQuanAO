@@ -54,16 +54,16 @@ export default function ContactPage() {
           <div className="card p-6">
             <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert('Cảm ơn bạn đã liên hệ!'); }}>
               <div>
-                <label className="label">Họ và tên</label>
+                <label className="block text-sm font-medium mb-2 pl-2">Họ và tên</label>
                 <input type="text" className="input" placeholder="Nhập họ tên của bạn" required />
               </div>
               <div>
-                <label className="label">Email</label>
+                <label className="block text-sm font-medium mb-2 pl-2">Email</label>
                 <input type="email" className="input" placeholder="Nhập email của bạn" required />
               </div>
               <div>
-                <label className="label">Nội dung</label>
-                <textarea className="input rounded-2xl" rows={4} placeholder="Nhập nội dung cần hỗ trợ" required />
+                <label className="block text-sm font-medium mb-2 pl-2">Nội dung</label>
+                <textarea className="input !rounded-2xl px-4 py-3" rows={4} placeholder="Nhập nội dung cần hỗ trợ" required />
               </div>
               <button type="submit" className="btn btn-primary w-full rounded-full">Gửi tin nhắn</button>
             </form>

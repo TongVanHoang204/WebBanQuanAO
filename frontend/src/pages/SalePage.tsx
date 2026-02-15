@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Filter, X, ChevronDown, Grid3X3, LayoutGrid, Tag } from 'lucide-react';
 import ProductCard from '../components/common/ProductCard';
@@ -8,11 +8,12 @@ import { useShop } from '../hooks/useShop';
 import { Category } from '../types';
 import { categoriesAPI } from '../services/api';
 
-import { bannersAPI } from '../services/api';
+import { bannersAPI, toMediaUrl } from '../services/api';
 import { Banner } from '../types';
 
 export default function SalePage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { products, isLoading, pagination, fetchProducts } = useShop();
   const [categories, setCategories] = useState<Category[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -84,7 +85,7 @@ export default function SalePage() {
           <div className="aspect-[21/9] md:aspect-[3/1] w-full relative overflow-hidden">
             <a href={banner.link_url || '#'}>
                 <img 
-                src={banner.image_url} 
+                src={toMediaUrl(banner.image_url)} 
                 alt={banner.title} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
@@ -281,7 +282,7 @@ export default function SalePage() {
                 <p className="text-lg text-secondary-500 dark:text-secondary-400 mb-4">
                   Không có sản phẩm nào đang giảm giá
                 </p>
-                <button onClick={clearFilters} className="btn btn-primary">
+                <button onClick={() => navigate('/shop')} className="btn btn-primary">
                   Xem tất cả sản phẩm
                 </button>
               </div>

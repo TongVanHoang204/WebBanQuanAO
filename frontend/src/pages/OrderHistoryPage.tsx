@@ -19,11 +19,12 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { Order } from '../types';
-import { ordersAPI } from '../services/api';
+import { ordersAPI, toMediaUrl } from '../services/api';
 import { formatPrice } from '../hooks/useShop';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 import ConfirmModal from '../components/common/ConfirmModal';
+import LoadingScreen from '../components/common/LoadingScreen';
 
 type TabType = 'all' | 'ongoing' | 'completed' | 'cancelled';
 
@@ -158,20 +159,7 @@ export default function OrderHistoryPage() {
           </div>
 
           {isLoading ? (
-            <div className="space-y-6">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="bg-white dark:bg-secondary-800 border border-secondary-100 dark:border-secondary-700 rounded-3xl p-8 animate-pulse shadow-sm">
-                  <div className="h-6 bg-secondary-100 dark:bg-secondary-700 rounded w-1/4 mb-6" />
-                  <div className="flex gap-4">
-                    <div className="w-20 h-20 bg-secondary-100 dark:bg-secondary-700 rounded-xl" />
-                    <div className="flex-1 space-y-3">
-                      <div className="h-4 bg-secondary-100 dark:bg-secondary-700 rounded w-3/4" />
-                      <div className="h-4 bg-secondary-100 dark:bg-secondary-700 rounded w-1/2" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <LoadingScreen fullScreen={false} />
           ) : filteredOrders.length === 0 ? (
             <div className="bg-white dark:bg-secondary-800 border border-secondary-100 dark:border-secondary-700 rounded-3xl py-24 text-center shadow-sm">
               <div className="w-16 h-16 bg-secondary-50 dark:bg-secondary-700 rounded-full flex items-center justify-center mx-auto mb-6 text-secondary-300 dark:text-secondary-600">
@@ -218,7 +206,7 @@ export default function OrderHistoryPage() {
                         {order.order_items?.slice(0, 3).map((item, i) => (
                           <div key={item.id} className="w-20 h-20 bg-white dark:bg-secondary-700 rounded-2xl overflow-hidden border-4 border-white dark:border-secondary-800 shadow-sm relative" style={{ zIndex: 10 - i }}>
                             <img 
-                              src={item.product?.product_images?.[0]?.url || '/placeholder.jpg'} 
+                              src={toMediaUrl(item.product?.product_images?.[0]?.url || '/placeholder.jpg')} 
                               alt={item.name} 
                               className="w-full h-full object-cover"
                             />

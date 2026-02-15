@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../components/common/SEO';
 import { 
   ArrowRight,
   Search,
@@ -9,8 +9,9 @@ import {
 import ProductCard from '../components/common/ProductCard';
 import HeroSection from '../components/home/HeroSection';
 import CategoryGrid from '../components/home/CategoryGrid';
+import LoadingScreen from '../components/common/LoadingScreen';
 import { Product, Category, Banner } from '../types';
-import { productsAPI, bannersAPI } from '../services/api';
+import { productsAPI, bannersAPI, toMediaUrl } from '../services/api';
 
 export default function HomePage() {
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
@@ -96,12 +97,15 @@ export default function HomePage() {
 
   const featuredBanner = banners.length > 0 ? banners[0] : null;
 
+  if (isLoading) return <LoadingScreen />;
+
   return (
     <>
-      <Helmet>
-        <title>ShopEase - Effortless Sophistication</title>
-        <meta name="description" content="Discover curated fashion collections for the modern minimalist." />
-      </Helmet>
+      <SEO 
+        title="ShopEase - Effortless Sophistication" 
+        description="Discover curated fashion collections for the modern minimalist."
+        image="/logo_wordmark_serif.png"
+      />
 
       <div className="bg-white dark:bg-black min-h-screen transition-colors duration-300">
         
@@ -143,7 +147,7 @@ export default function HomePage() {
                                      -{Math.round(((Number(product.compare_at_price) - Number(product.base_price)) / Number(product.compare_at_price)) * 100)}%
                                  </span>
                                  <img 
-                                    src={product.product_images?.[0]?.url || 'https://placehold.co/600x600/e2e8f0/1e293b?text=No+Image'} 
+                                    src={toMediaUrl(product.product_images?.[0]?.url || 'https://placehold.co/600x600/e2e8f0/1e293b?text=No+Image')} 
                                     alt={product.name}
                                     onError={(e) => {
                                         (e.target as HTMLImageElement).src = 'https://placehold.co/600x600/e2e8f0/1e293b?text=No+Image';
@@ -193,7 +197,7 @@ export default function HomePage() {
                     <Link to={`/products/${product.slug}`} key={product.id} className="group cursor-pointer">
                         <div className="bg-secondary-50 dark:bg-secondary-800 aspect-[4/5] mb-4 relative overflow-hidden rounded-lg">
                              <img 
-                                src={product.product_images?.[0]?.url || 'https://placehold.co/400x500/e2e8f0/1e293b?text=No+Image'} 
+                                src={toMediaUrl(product.product_images?.[0]?.url || 'https://placehold.co/400x500/e2e8f0/1e293b?text=No+Image')} 
                                 alt={product.name}
                                 onError={(e) => {
                                     (e.target as HTMLImageElement).src = 'https://placehold.co/400x500/e2e8f0/1e293b?text=No+Image';
@@ -226,7 +230,7 @@ export default function HomePage() {
                      <input 
                         type="email" 
                         placeholder="Địa chỉ Email"
-                        className="w-full bg-secondary-50 dark:bg-secondary-800 border border-transparent focus:bg-white dark:focus:bg-secondary-900 py-4 px-6 rounded-full focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-colors placeholder-gray-400 dark:placeholder-gray-500 dark:text-white"
+                        className="w-full bg-secondary-50 dark:bg-secondary-800 border border-transparent focus:bg-white dark:focus:bg-secondary-900 py-4 pl-6 pr-32 rounded-full focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-colors placeholder-gray-400 dark:placeholder-gray-500 dark:text-white"
                      />
                      <button className="absolute right-0 top-1 btn btn-primary py-2 px-6 text-xs h-[calc(100%-8px)] mr-1">
                         Đăng Ký

@@ -305,8 +305,11 @@ export const adminAPI = {
   deleteUser: (id: string) => api.delete(`/admin/users/${id}`),
   
   // Analytics
-  getAnalytics: (params?: { startDate?: string; endDate?: string }) =>
+  getAnalytics: (params: { startDate: string; endDate: string }) =>
     api.get('/admin/analytics', { params }),
+    
+  exportRevenue: (params: { start_date: string; end_date: string }) =>
+    api.get('/admin/export/revenue', { params, responseType: 'blob' }),
 
   // Settings
   getSettings: () => api.get('/admin/settings'),
@@ -359,7 +362,9 @@ export const couponsAPI = {
 export const reviewsAPI = {
   getByProduct: (productId: string, params?: any) => 
     api.get(`/reviews/product/${productId}`, { params }),
-  create: (data: any) => api.post('/reviews', data)
+  create: (data: any) => api.post('/reviews', data),
+  markHelpful: (id: string) => api.post(`/reviews/${id}/helpful`),
+  unmarkHelpful: (id: string) => api.delete(`/reviews/${id}/helpful`)
 };
 
 // Public Settings API
@@ -392,7 +397,7 @@ export const placesAPI = {
   getDetails: (placeId: string) => 
     api.get(`/places/${encodeURIComponent(placeId)}`),
   search: (query: string, lat?: number, lng?: number) => 
-    api.post('/places/search', { query, lat, lng })
+    api.post('/places/search', { input: query, lat, lng })
 };
 
 export default api;

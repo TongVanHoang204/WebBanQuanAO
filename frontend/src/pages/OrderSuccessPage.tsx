@@ -20,7 +20,7 @@ import {
   XCircle,
   Building2
 } from 'lucide-react';
-import { ordersAPI, settingsAPI } from '../services/api';
+import { ordersAPI, settingsAPI, toMediaUrl } from '../services/api';
 import { formatPrice } from '../hooks/useShop';
 import { Order } from '../types';
 
@@ -44,7 +44,7 @@ export default function OrderSuccessPage() {
              ordersAPI.getByCode(orderCode),
              settingsAPI.getPublic()
         ]);
-        console.log("DEBUG ORDER:", orderRes.data.data); // Debug logging
+
         setOrder(orderRes.data.data);
         if (settingsRes.data.success) {
             setPaymentSettings(settingsRes.data.data);
@@ -410,7 +410,7 @@ export default function OrderSuccessPage() {
                     <div key={item.id} className="p-6 flex gap-4 items-center">
                       <div className="w-16 h-16 bg-white dark:bg-secondary-800 rounded-xl overflow-hidden flex-shrink-0 border border-secondary-100 dark:border-secondary-700 transition-colors">
                         <img 
-                          src={item.product?.product_images?.[0]?.url || '/placeholder.jpg'} 
+                          src={toMediaUrl(item.product?.product_images?.[0]?.url || '/placeholder.jpg')} 
                           alt={item.name} 
                           className="w-full h-full object-cover"
                         />

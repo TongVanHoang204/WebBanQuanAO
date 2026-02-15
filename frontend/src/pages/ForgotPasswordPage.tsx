@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
           {!isSuccess ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="label">Email đăng ký</label>
+                <label className="block text-sm font-medium mb-2 pl-2">Email đăng ký</label>
                 <input
                   type="email"
                   value={email}

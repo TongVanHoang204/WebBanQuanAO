@@ -242,7 +242,7 @@ export default function AddressSelector({ province = '', district = '', ward = '
           }
         }
         
-        console.log('📍 Place selected:', res.data.data.formattedAddress);
+
       }
     } catch (error) {
       console.error('Failed to get place details:', error);
@@ -303,40 +303,40 @@ export default function AddressSelector({ province = '', district = '', ward = '
       try {
           for (const query of queries) {
               try {
-                const res = await axios.get(`https://nominatim.openstreetmap.org/search`, {
-                    params: {
-                        q: query,
-                        format: 'json',
-                        limit: 1,
-                        countrycodes: 'vn', // Restrict to Vietnam
-                        addressdetails: 1
-                    }
-                    // Note: User-Agent removed - browsers don't allow setting it from client-side
-                });
-
-                if (res.data && res.data.length > 0) {
-                    const { lat, lon, display_name } = res.data[0];
-                    const newPos: [number, number] = [parseFloat(lat), parseFloat(lon)];
+                // Use Goong API via backend proxy
+                // 1. Search for place - Remove location bias for administrative searches to find places across Vietnam
+                const searchRes = await placesAPI.search(query);
+                
+                if (searchRes.data.success && searchRes.data.data.length > 0) {
+                    const firstPlace = searchRes.data.data[0];
                     
-                    // Validate result is roughly in Vietnam (lat 8-24, lon 102-110)
-                    if (!isNaN(newPos[0]) && 
-                        newPos[0] >= 8 && newPos[0] <= 24 && 
-                        newPos[1] >= 102 && newPos[1] <= 110) {
+                    // 2. Get details for lat/lng
+                    const detailRes = await placesAPI.getDetails(firstPlace.placeId);
+                    
+                    if (detailRes.data.success) {
+                        const { location, formattedAddress } = detailRes.data.data;
+                        const newPos: [number, number] = [location.lat, location.lng];
                         
-                        setMapCenter(newPos);
-                        setMarkerPosition(newPos);
-                        
-                        // Set zoom based on which query succeeded
-                        if (query.includes(selectedWard) && selectedWard) {
-                            setMapZoom(16); // Ward level
-                        } else if (query.includes(selectedDistrict) && selectedDistrict) {
-                            setMapZoom(14); // District level
-                        } else {
-                            setMapZoom(11); // Province level
+                        // Validate result is roughly in Vietnam (lat 8-24, lon 102-110)
+                        if (!isNaN(newPos[0]) && 
+                            newPos[0] >= 8 && newPos[0] <= 24 && 
+                            newPos[1] >= 102 && newPos[1] <= 110) {
+                            
+                            setMapCenter(newPos);
+                            setMarkerPosition(newPos);
+                            
+                            // Set zoom based on which query succeeded
+                            if (query.includes(selectedWard) && selectedWard) {
+                                setMapZoom(16); // Ward level
+                            } else if (query.includes(selectedDistrict) && selectedDistrict) {
+                                setMapZoom(14); // District level
+                            } else {
+                                setMapZoom(11); // Province level
+                            }
+                            
+
+                            break;
                         }
-                        
-                        console.log('Geocoded to:', display_name);
-                        break;
                     }
                 }
               } catch (innerErr) {
@@ -344,7 +344,7 @@ export default function AddressSelector({ province = '', district = '', ward = '
               }
           }
       } catch (error) {
-           console.error("Map update failed", error);
+          console.error("Map update failed", error);
       } finally {
           setIsLoadingMap(false);
       }
@@ -410,7 +410,7 @@ export default function AddressSelector({ province = '', district = '', ward = '
         {/* Google Places Autocomplete Search */}
         <div className="relative">
           <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
-            🔍 Tìm kiếm địa chỉ (Google Places)
+            🔍 Tìm kiếm địa chỉ
           </label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -527,7 +527,8 @@ export default function AddressSelector({ province = '', district = '', ward = '
                 scrollWheelZoom={true} 
                 className="w-full h-full"
             >
-                {/* OpenStreetMap France - More detailed for streets */}
+                {/* Goong Maps Tiles - Vietnam Specific */}
+                {/* OpenStreetMap France - Use as fallback */}
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.fr">OpenStreetMap France</a>'
                     url="https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png"

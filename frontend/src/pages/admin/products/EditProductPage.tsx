@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ChevronRight, Upload, X, Loader2, Save } from 'lucide-react';
-import { categoriesAPI, productsAPI, adminAPI, brandsAPI } from '../../../services/api';
+import { categoriesAPI, productsAPI, adminAPI, brandsAPI, toMediaUrl } from '../../../services/api';
 import RichTextEditor from '../../../components/common/RichTextEditor';
 import VariantManager from '../../../components/products/VariantManager';
 import toast from 'react-hot-toast';
@@ -150,7 +150,7 @@ export default function EditProductPage() {
                      name: Object.values(variantOptions).join(' / ') || 'Default',
                      sku: v.variant_sku,
                      price: v.price,
-                     stock: v.stock_qty,
+                     stock: v.stock_qty ?? 0,
                      options: variantOptions,
                      // existing fields
                      is_active: v.is_active
@@ -237,11 +237,11 @@ const handleSubmit = async (e: React.FormEvent) => {
         if (images.length > 0) {
             const { uploadAPI } = await import('../../../services/api');
             const uploadRes = await uploadAPI.multiple(images);
-            console.log('Upload Response:', uploadRes.data);
+
             // Access nested data: response.data = {success, data: {files, urls}}
             const uploadData = uploadRes.data.data || uploadRes.data;
             uploadedImageUrls = uploadData.urls || (uploadData.files?.map((f: any) => f.url)) || [];
-            console.log('Uploaded Image URLs:', uploadedImageUrls);
+
         }
 
         // 2. Combine Images
@@ -273,7 +273,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             images: combinedImages
         };
         
-        console.log('Updating Product:', productData);
+
         await adminAPI.updateProduct(id!, productData);
         
         toast.success('Cập nhật sản phẩm thành công');
@@ -410,7 +410,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
                         {existingImages.map((img, idx) => (
                             <div key={img.id || idx} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200">
-                                <img src={img.url} alt="Existing" className="w-full h-full object-cover" />
+                                <img src={toMediaUrl(img.url)} alt="Existing" className="w-full h-full object-cover" />
                                 <button 
                                     type="button"
                                     onClick={() => removeImage(idx, false)}

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatPrice } from '../hooks/useShop';
+import { toMediaUrl } from '../services/api';
 import { toast } from 'react-hot-toast';
 
 export default function WishlistPage() {
@@ -100,7 +101,7 @@ export default function WishlistPage() {
                   {/* Image Container */}
                   <div className="aspect-[4/5] overflow-hidden relative">
                     <img 
-                      src={item.image || '/placeholder.jpg'} 
+                      src={toMediaUrl(item.image || '/placeholder.jpg')} 
                       alt={item.name} 
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />

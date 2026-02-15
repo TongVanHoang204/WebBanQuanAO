@@ -5,10 +5,11 @@ import { Filter, X, ChevronDown, Grid3X3, LayoutGrid } from 'lucide-react';
 import ProductCard from '../components/common/ProductCard';
 import Pagination from '../components/common/Pagination';
 import { useShop } from '../hooks/useShop';
+import LoadingScreen from '../components/common/LoadingScreen';
 import { Category } from '../types';
 import { categoriesAPI } from '../services/api';
 
-import { bannersAPI } from '../services/api';
+import { bannersAPI, toMediaUrl } from '../services/api';
 import { Banner } from '../types';
 
 export default function ShopPage() {
@@ -84,7 +85,7 @@ export default function ShopPage() {
         <div className="mb-8 relative group">
           <div className="aspect-[21/9] md:aspect-[4/1] w-full relative overflow-hidden">
             <img 
-              src={banner.image_url} 
+              src={toMediaUrl(banner.image_url)} 
               alt={banner.title} 
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
@@ -357,17 +358,7 @@ export default function ShopPage() {
 
             {/* Products Grid */}
             {isLoading ? (
-              <div className={`grid grid-cols-2 md:grid-cols-${gridCols} gap-4 md:gap-6`}>
-                {[...Array(12)].map((_, i) => (
-                  <div key={i} className="card animate-pulse dark:bg-secondary-800">
-                    <div className="aspect-square bg-secondary-200 dark:bg-secondary-700" />
-                    <div className="p-4 space-y-3">
-                      <div className="h-4 bg-secondary-200 dark:bg-secondary-700 rounded w-3/4" />
-                      <div className="h-5 bg-secondary-200 dark:bg-secondary-700 rounded w-1/3" />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <LoadingScreen fullScreen={false} />
             ) : products.length === 0 ? (
               <div className="text-center py-16">
                 <p className="text-lg text-secondary-500 dark:text-secondary-400 mb-4">Không tìm thấy sản phẩm nào</p>
@@ -426,6 +417,27 @@ export default function ShopPage() {
                       >
                         {category.name}
                       </button>
+                      {category.children && category.children.length > 0 && (
+                        <ul className="ml-4 mt-1 space-y-1">
+                          {category.children.map(child => (
+                            <li key={child.id}>
+                              <button
+                                onClick={() => {
+                                  updateFilter('category', child.slug);
+                                  setIsSidebarOpen(false);
+                                }}
+                                className={`w-full text-left px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                                  currentCategory === child.slug 
+                                    ? 'bg-primary-100 text-primary-700 dark:bg-white dark:text-black' 
+                                    : 'text-secondary-600 dark:text-gray-400 hover:bg-secondary-100 dark:hover:bg-secondary-800'
+                                }`}
+                              >
+                                {child.name}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </li>
                   ))}
                 </ul>

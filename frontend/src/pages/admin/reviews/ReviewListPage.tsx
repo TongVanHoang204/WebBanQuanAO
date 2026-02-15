@@ -11,7 +11,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { resolveApiUrl } from '../../../services/api';
+import { resolveApiUrl, toMediaUrl } from '../../../services/api';
 
 interface Review {
   id: string;
@@ -371,7 +371,7 @@ export default function ReviewListPage() {
                   {/* Product Image */}
                   {review.product?.product_images?.[0]?.url ? (
                     <img
-                      src={review.product.product_images[0].url}
+                      src={toMediaUrl(review.product.product_images[0].url)}
                       alt=""
                       className="w-16 h-16 rounded-lg object-cover bg-secondary-100 dark:bg-secondary-700"
                     />

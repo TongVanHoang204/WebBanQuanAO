@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Headphones, X, Send, User, ArrowLeft, Minus } from 'lucide-react';
 import { useSocket } from '../../contexts/SocketContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { toMediaUrl } from '../../services/api';
 
 export default function SupportChatWidget() {
   const { user } = useAuth();
@@ -231,7 +232,7 @@ export default function SupportChatWidget() {
                     {msg.senderType === 'user' && (
                       <div className="w-8 h-8 rounded-full bg-secondary-200 dark:bg-secondary-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
                         {user?.avatar_url ? (
-                          <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                          <img src={toMediaUrl(user.avatar_url)} alt="" className="w-full h-full object-cover" />
                         ) : (
                           <User className="w-4 h-4 text-secondary-600 dark:text-secondary-300" />
                         )}

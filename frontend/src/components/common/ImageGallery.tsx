@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ProductImage } from '../../types';
+import { toMediaUrl } from '../../services/api';
 
 interface ImageGalleryProps {
   images: ProductImage[];
@@ -56,7 +57,7 @@ export default function ImageGallery({ images, productName }: ImageGalleryProps)
         className="relative aspect-square rounded-xl overflow-hidden bg-secondary-50 group"
       >
         <img
-          src={currentImage.url}
+          src={toMediaUrl(currentImage.url)}
           alt={currentImage.alt_text || productName}
           className="w-full h-full object-cover"
           referrerPolicy="no-referrer"
@@ -102,7 +103,7 @@ export default function ImageGallery({ images, productName }: ImageGalleryProps)
               }`}
             >
               <img
-                src={image.url}
+                src={toMediaUrl(image.url)}
                 alt={image.alt_text || `${productName} - ${index + 1}`}
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"

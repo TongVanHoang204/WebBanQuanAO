@@ -119,11 +119,22 @@ export default function VariantSelector({
         <div key={group.code}>
           <div className="flex justify-between items-center mb-3">
             <label className="text-sm font-bold text-secondary-900 uppercase tracking-wider">
-              {group.code === 'color' ? 'Màu sắc' : group.name}: <span className="font-normal text-secondary-500 normal-case ml-1">{selectedOptions[group.code]}</span>
+              {(() => {
+                const code = group.code.toLowerCase();
+                 // Normalize name for checking
+                const name = group.name.toLowerCase();
+                
+                if (code === 'color' || code.includes('mau') || name.includes('màu')) return 'Màu sắc';
+                if (code === 'size' || code.includes('kich') || name.includes('kích') || name.includes('size')) return 'Kích cỡ';
+                if (code === 'material' || name.includes('chất liệu')) return 'Chất liệu';
+                if (code === 'style' || name.includes('kiểu')) return 'Kiểu dáng';
+                
+                return group.name;
+              })()}: <span className="font-normal text-secondary-500 normal-case ml-1">{selectedOptions[group.code]}</span>
             </label>
-            {group.code !== 'color' && (
+            {/size|kích|kich/i.test(group.code) || /size|kích|kich/i.test(group.name) ? (
               <button className="text-xs font-semibold text-secondary-600 hover:text-secondary-900 hover:underline">Hướng dẫn chọn size</button>
-            )}
+            ) : null}
           </div>
           
           <div className="flex flex-wrap gap-3">

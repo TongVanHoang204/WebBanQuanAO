@@ -159,7 +159,7 @@ export default function AddProductPage() {
             }))
         };
 
-        console.log('Submitting Product:', productData);
+
         await adminAPI.createProduct(productData);
         
         toast.success('Sản phẩm đã được tạo thành công');

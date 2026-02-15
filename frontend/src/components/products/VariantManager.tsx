@@ -206,6 +206,30 @@ export default function VariantManager({ variants, setVariants, options, setOpti
                Thêm thuộc tính
              </button>
           </div>
+          
+          <div className="flex flex-wrap gap-2 items-center mt-3">
+             <span className="text-sm text-gray-500 mr-2">Gợi ý nhanh:</span>
+             {['Màu sắc', 'Kích cỡ', 'Chất liệu', 'Kiểu dáng'].map(name => (
+               <button
+                 key={name}
+                 type="button"
+                 onClick={() => {
+                    if (!options.some(o => o.name.toLowerCase() === name.toLowerCase())) {
+                       const newOption: Option = {
+                         id: Date.now().toString(),
+                         name: name,
+                         values: []
+                       };
+                       setOptions([...options, newOption]);
+                    }
+                 }}
+                 disabled={options.some(o => o.name.toLowerCase() === name.toLowerCase())}
+                 className="px-3 py-1.5 text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full border border-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+               >
+                 <Plus className="w-3 h-3" /> {name}
+               </button>
+             ))}
+          </div>
         </div>
       </div>
 

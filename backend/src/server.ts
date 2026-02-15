@@ -1,9 +1,14 @@
+import 'dotenv/config';
+
 import express from 'express';
 import cors, { CorsOptions } from 'cors';
-import dotenv from 'dotenv';
-import path from 'path';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+import Logger from './config/logger.js';
 import http from 'http';
 import { fileURLToPath } from 'url';
+import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import { initializeSocket } from './socket.js';
 import { initializeScheduler } from './services/scheduler.service.js';
@@ -36,11 +41,11 @@ import logRoutes from './routes/log.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 import wishlistRoutes from './routes/wishlist.routes.js';
 import placesRoutes from './routes/places.routes.js';
+import seoRoutes from './routes/seo.routes.js';
 
 // Middleware
 import { errorHandler } from './middlewares/error.middleware.js';
-
-dotenv.config();
+import { checkMaintenanceMode } from './middlewares/maintenance.middleware.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -75,16 +80,37 @@ const corsOptions: CorsOptions = {
 console.log('[CORS] Mode: ALLOW ALL (debug mode)');
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
-// Security Headers for Cross-Origin
-app.use((req, res, next) => {
-  // Allow cross-origin window communication for OAuth and popups
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
-  // Note: COEP require-corp can break CORS, so we use credentialless or remove it
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  next();
+// Security Middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginOpenerPolicy: { policy: "unsafe-none" }, // Required for Google OAuth
+}));
+
+// Logging Middleware
+app.use(morgan('combined', { 
+  stream: { write: (message) => Logger.http(message.trim()) },
+  skip: (req, res) => res.statusCode < 400 
+}));
+
+// Rate Limiting
+// Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Limit each IP to 100 requests per windowMs (1000 in dev)
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many requests from this IP, please try again later.'
 });
+app.use('/api', limiter);
+
+// robots.txt (Must be before other routes and NOT under /api for crawlers)
+app.use('/', seoRoutes);
+
+// Maintenance Mode Check (Apply to all /api routes)
+app.use('/api', checkMaintenanceMode);
+
+app.options('*', cors(corsOptions));
 
 // Body Parser
 app.use(express.json());
@@ -175,5 +201,9 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-main();
+if (process.env.NODE_ENV !== 'test') {
+  main();
+}
+
+export { app, httpServer };
 

@@ -16,6 +16,12 @@ export const initializeScheduler = () => {
     await cancelExpiredBankTransferOrders();
   });
 
+  // Check for low stock every day at 11:00 AM
+  cron.schedule('0 11 * * *', async () => {
+    console.log('⏰ Running Low Stock Audit...');
+    await checkLowStock();
+  });
+
   console.log('✅ Scheduler initialized');
 };
 
@@ -156,5 +162,49 @@ const checkAbandonedCarts = async () => {
 
   } catch (error) {
     console.error('Error checking abandoned carts:', error);
+  }
+};
+
+/**
+ * Audit all product variants and send notifications for low stock or out of stock.
+ * Runs daily to ensure admins are aware of inventory levels.
+ */
+const checkLowStock = async () => {
+  const LOW_STOCK_THRESHOLD = 10;
+  try {
+    const lowStockVariants = await prisma.product_variants.findMany({
+      where: {
+        stock_qty: { lte: LOW_STOCK_THRESHOLD }
+      },
+      include: {
+        product: { select: { name: true } }
+      }
+    });
+
+    if (lowStockVariants.length === 0) return;
+
+    for (const variant of lowStockVariants) {
+      if (variant.stock_qty <= 0) {
+        await createNotification({
+          user_id: null,
+          type: 'product_out_of_stock',
+          title: 'Hết hàng!',
+          message: `Sản phẩm "${variant.product.name}" (SKU: ${variant.variant_sku}) đã hết hàng.`,
+          link: `/admin/products`
+        });
+      } else {
+        await createNotification({
+          user_id: null,
+          type: 'product_low_stock',
+          title: 'Sắp hết hàng',
+          message: `Sản phẩm "${variant.product.name}" (SKU: ${variant.variant_sku}) chỉ còn ${variant.stock_qty} sản phẩm.`,
+          link: `/admin/products`
+        });
+      }
+    }
+    
+    console.log(`✅ Completed low stock audit. Notified about ${lowStockVariants.length} items.`);
+  } catch (error) {
+    console.error('Error auditing low stock:', error);
   }
 };

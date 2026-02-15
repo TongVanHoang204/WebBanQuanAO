@@ -9,9 +9,18 @@ services:
       MYSQL_ROOT_PASSWORD: hoang
       MYSQL_DATABASE: fashion_store
     ports:
-      - "8081:8080"
+      - "8081:3306" # Map internal 3306 to host 8081 (avoid 8080 conflict)
     volumes:
       - db_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  # Redis
+  redis:
+    image: redis:alpine
+    container_name: shopfeshen-redis
+    ports:
+      - "6379:6379"
     networks:
       - app-network
 
@@ -25,13 +34,18 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      DATABASE_URL: mysql://root:hoang@db:8080/fashion_store
+      DATABASE_URL: mysql://root:hoang@db:3306/fashion_store
       PORT: 4000
       JWT_SECRET: dev_secret_key_123
-      FRONTEND_URL: http://localhost
-      # Add other env vars here (Email, VNPay...)
+      FRONTEND_URL: http://localhost:8082 # Port 8082 mapped to 80
+      REDIS_URL: redis://redis:6379
+      SMTP_HOST: smtp-relay.brevo.com
+      SMTP_PORT: 587
+      SMTP_USER: "a14419001@smtp-brevo.com"
+      # SMTP_PASS will be read from .env file
     depends_on:
       - db
+      - redis
     networks:
       - app-network
 

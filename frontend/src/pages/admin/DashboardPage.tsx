@@ -27,6 +27,8 @@ import { adminAPI } from '../../services/api';
 import { formatPrice } from '../../hooks/useShop';
 import toast from 'react-hot-toast';
 import { LoadingScreen } from '../../components/common/LoadingScreen';
+import { NumberCounter } from '../../components/ui/number-counter';
+import { AdminBentoStats } from '../../components/admin/AdminBentoStats';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<any>(null);
@@ -67,82 +69,14 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Revenue */}
-        <div className="bg-white dark:bg-secondary-800 p-6 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm transition-colors">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm font-medium">Tổng doanh thu</p>
-              <h3 className="text-2xl font-bold text-secondary-900 dark:text-white mt-1">
-                {formatPrice(stats.totalRevenue)}
-              </h3>
-            </div>
-            <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-          <div className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-medium">
-            <ArrowUpRight className="w-3 h-3" />
-            <span>+15% so với tháng trước</span>
-          </div>
-        </div>
+      {/* NEW BENTO GRID STATS */}
+      <AdminBentoStats stats={stats} isLoading={isLoading} />
 
-        {/* Total Orders */}
-        <div className="bg-white dark:bg-secondary-800 p-6 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm transition-colors">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm font-medium">Tổng đơn hàng</p>
-              <h3 className="text-2xl font-bold text-secondary-900 dark:text-white mt-1">
-                {stats.totalOrders}
-              </h3>
-              <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">{stats.pendingOrders} đơn chờ xử lý</p>
-            </div>
-            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <ShoppingBag className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-        </div>
-
-        {/* Total Products */}
-        <div className="bg-white dark:bg-secondary-800 p-6 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm transition-colors">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm font-medium">Tổng sản phẩm</p>
-              <h3 className="text-2xl font-bold text-secondary-900 dark:text-white mt-1">
-                {stats.totalProducts}
-              </h3>
-            </div>
-            <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <Package className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-            </div>
-          </div>
-          <div className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-medium">
-            <ArrowUpRight className="w-3 h-3" />
-            <span>+12 mới tuần này</span>
-          </div>
-        </div>
-
-        {/* Total Customers */}
-        <div className="bg-white dark:bg-secondary-800 p-6 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm transition-colors">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <p className="text-secondary-500 dark:text-secondary-400 text-sm font-medium">Khách hàng</p>
-              <h3 className="text-2xl font-bold text-secondary-900 dark:text-white mt-1">
-                {stats.totalUsers}
-              </h3>
-            </div>
-            <div className="p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-              <Users className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-            </div>
-          </div>
-          <div className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-medium">
-            <ArrowUpRight className="w-3 h-3" />
-            <span>+8% tăng trưởng</span>
-          </div>
-        </div>
-      </div>
-
+      {/* OLD Stats Cards (Hidden or Removed - let's comment them out or keep for reference? 
+          User asked to "Add chart", implying maybe addition. 
+          But the Bento Grid essentially replaces the 4 summary cards. 
+          I will remove the old 4 cards grid-cols-4 block to avoid duplication.) 
+      */}
       {/* Quick Actions */}
       <div>
         <h2 className="text-lg font-bold text-secondary-900 dark:text-white mb-4">Thao tác nhanh</h2>

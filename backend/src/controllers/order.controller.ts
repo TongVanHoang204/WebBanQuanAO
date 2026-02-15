@@ -6,6 +6,10 @@ import { checkoutSchema, updateOrderStatusSchema } from '../validators/order.val
 import { logActivity } from '../services/logger.service.js';
 import { sendOrderConfirmationEmail } from '../services/email.service.js';
 import { createNotification } from './notificationController.js';
+import Logger from '../config/logger.js';
+import { notifications_type } from '@prisma/client';
+
+const LOW_STOCK_THRESHOLD = 10;
 
 // Helper to convert BigInt to string for JSON serialization
 const serializeOrder = (order: any) => {
@@ -97,16 +101,6 @@ export const checkout = async (
                        (!coupon.end_at || coupon.end_at >= now) &&
                        subtotal >= Number(coupon.min_subtotal);
 
-        // Check usage limit
-        if (isValid && coupon.usage_limit) {
-          const usageCount = await prisma.coupon_redemptions.count({
-            where: { coupon_id: coupon.id }
-          });
-          if (usageCount >= coupon.usage_limit) {
-            throw new ApiError(400, 'Mã giảm giá đã hết lượt sử dụng');
-          }
-        }
-
         if (isValid) {
           if (coupon.type === 'percent') {
             discountTotal = subtotal * (Number(coupon.value) / 100);
@@ -128,6 +122,20 @@ export const checkout = async (
 
     // Use transaction for checkout
     const order = await prisma.$transaction(async (tx) => {
+
+      // 0. Double check coupon usage limit INSIDE transaction (prevents race condition)
+      if (couponId && validatedData.coupon_code) {
+         const coupon = await tx.coupons.findUnique({ where: { id: couponId } });
+         if (coupon && coupon.usage_limit) {
+            const currentUsage = await tx.coupon_redemptions.count({
+               where: { coupon_id: couponId }
+            });
+            if (currentUsage >= coupon.usage_limit) {
+               throw new ApiError(400, 'Mã giảm giá đã hết lượt sử dụng (vừa hết)');
+            }
+         }
+      }
+
       // 1. Create order
       const newOrder = await tx.orders.create({
         data: {
@@ -172,14 +180,24 @@ export const checkout = async (
         });
 
         // Deduct stock
-        await tx.product_variants.update({
-          where: { id: item.variant_id },
+
+        // Deduct stock ATOMICALLY with check
+        // We use updateMany to allow filtering by stock_qty (prevent negative)
+        const updateResult = await tx.product_variants.updateMany({
+          where: { 
+             id: item.variant_id,
+             stock_qty: { gte: item.qty } // Ensure sufficient stock
+          },
           data: {
             stock_qty: {
               decrement: item.qty
             }
           }
         });
+
+        if (updateResult.count === 0) {
+           throw new ApiError(400, `Sản phẩm ${item.variant.product.name} vừa hết hàng hoặc không đủ số lượng.`);
+        }
 
         // Create inventory movement
         await tx.inventory_movements.create({
@@ -274,14 +292,60 @@ export const checkout = async (
         link: `/admin/orders/${order.id}`
       });
     }
+    
+    // Check for low stock or out of stock and notify admin
+    try {
+      if (fullOrder && fullOrder.order_items) {
+        for (const item of fullOrder.order_items) {
+          if (item.variant_id) {
+            const variant = await prisma.product_variants.findUnique({
+              where: { id: item.variant_id },
+              select: { stock_qty: true, variant_sku: true, product: { select: { name: true } } }
+            });
 
-    // Check for low stock...
+            if (variant) {
+              if (variant.stock_qty <= 0) {
+                await createNotification({
+                  user_id: null,
+                  type: 'product_out_of_stock',
+                  title: 'Hết hàng!',
+                  message: `Sản phẩm "${variant.product.name}" (SKU: ${variant.variant_sku}) đã hết hàng.`,
+                  link: `/admin/products`
+                });
+              } else if (variant.stock_qty <= LOW_STOCK_THRESHOLD) {
+                await createNotification({
+                  user_id: null,
+                  type: 'product_low_stock',
+                  title: 'Sắp hết hàng',
+                  message: `Sản phẩm "${variant.product.name}" (SKU: ${variant.variant_sku}) chỉ còn ${variant.stock_qty} sản phẩm.`,
+                  link: `/admin/products`
+                });
+              }
+            }
+          }
+        }
+      }
+    } catch (stockErr) {
+      Logger.error('[OrderController] Low stock notification failed:', stockErr);
+    }
 
     // Send confirmation email if user has email or provided one AND if COD
     // For Bank/QR, we send email only after payment.
+    // Send confirmation email 
     const recipientEmail = fullOrder?.user?.email || validatedData.email;
-    if (recipientEmail && fullOrder && validatedData.payment_method === 'cod') {
-      sendOrderConfirmationEmail(recipientEmail, fullOrder.order_code, Number(fullOrder.grand_total)).catch(console.error);
+    console.log('[OrderController] Checking email config:', { 
+       recipientEmail, 
+       payment_method: validatedData.payment_method,
+       hasFullOrder: !!fullOrder
+    });
+
+    if (recipientEmail && fullOrder) {
+      Logger.info(`[OrderController] Sending confirmation to ${recipientEmail}`);
+      sendOrderConfirmationEmail(recipientEmail, fullOrder.order_code, Number(fullOrder.grand_total)).catch(err => {
+         Logger.error('[OrderController] Email failed:', err);
+      });
+    } else {
+      Logger.info('[OrderController] Skipped email: missing recipient or order data');
     }
 
     res.status(201).json({
@@ -468,6 +532,11 @@ export const updateOrderStatus = async (
       await prisma.shipments.updateMany({
         where: { order_id: BigInt(id as string) },
         data: { status: 'delivered', delivered_at: new Date() }
+      });
+      // Also mark payment as paid if not already (e.g. COD completed)
+      await prisma.payments.updateMany({
+        where: { order_id: BigInt(id as string), status: { not: 'paid' } },
+        data: { status: 'paid', paid_at: new Date() }
       });
     }
 

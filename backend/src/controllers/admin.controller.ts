@@ -271,22 +271,121 @@ export const updateProduct = async (
         }
       });
 
-      // Handle variants
-      if (data.variants) {
-        // Delete removed variants
-        const variantIds = data.variants.filter(v => v.id).map(v => BigInt(v.id!));
-        await tx.product_variants.deleteMany({
-          where: {
-            product_id: BigInt(id as string),
-            id: { notIn: variantIds }
-          }
+      // 2. Handle Attributes (Options)
+      const optionMap = new Map<string, bigint>(); // "Color" -> OptionID
+      const valueMap = new Map<string, bigint>();  // "Color:Red" -> ValueID
+
+      if (data.attributes) {
+        // First, clear existing Product Attributes links
+        // We delete all links and re-create them. 
+        // Note: This does NOT delete Options/OptionValues, just the link to this product.
+        await tx.product_attributes.deleteMany({
+            where: { product_id: BigInt(id as string) }
         });
+
+        for (const attr of data.attributes) {
+             // Upsert Option
+             const code = attr.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+             
+             // Try to find by name OR code
+             let option = await tx.options.findFirst({ 
+                 where: { 
+                     OR: [
+                         { name: attr.name },
+                         { code: code }
+                     ]
+                 } 
+             });
+
+             if (!option) {
+                 try {
+                    option = await tx.options.create({ data: { name: attr.name, code } });
+                 } catch (e) {
+                    // Retry find in case of race condition
+                    option = await tx.options.findFirst({ 
+                        where: { 
+                             OR: [
+                                 { name: attr.name },
+                                 { code: code }
+                             ]
+                        } 
+                    });
+                 }
+             }
+             if (!option) throw new Error(`Could not create or find option ${attr.name}`);
+             optionMap.set(attr.name, option.id);
+
+             // Handle Values
+             for (const val of attr.values) {
+                 let optionValue = await tx.option_values.findFirst({
+                     where: { option_id: option.id, value: val }
+                 });
+                 if (!optionValue) {
+                     try {
+                         optionValue = await tx.option_values.create({
+                             data: { option_id: option.id, value: val }
+                         });
+                     } catch (e) {
+                          optionValue = await tx.option_values.findFirst({
+                             where: { option_id: option.id, value: val }
+                         });
+                     }
+                 }
+                 if (!optionValue) throw new Error(`Could not create value ${val}`);
+                 valueMap.set(`${attr.name}:${val}`, optionValue.id);
+
+                 // Link to Product
+                 await tx.product_attributes.create({
+                     data: {
+                         product_id: BigInt(id as string),
+                         option_id: option.id,
+                         option_value_id: optionValue.id
+                     }
+                 });
+             }
+        }
+      }
+
+      // 3. Handle Variants
+      if (data.variants) {
+        // 3. Handle Variants - Soft Delete if used
+            // Identify variants to be removed
+            const currentVariantIds = data.variants.filter(v => v.id).map(v => BigInt(v.id!));
+            const variantsToDelete = await tx.product_variants.findMany({
+                where: {
+                    product_id: BigInt(id as string),
+                    id: { notIn: currentVariantIds }
+                },
+                select: { id: true, variant_sku: true }
+            });
+
+            for (const v of variantsToDelete) {
+                // Check usage in Order Items or Cart Items
+                const inOrders = await tx.order_items.count({ where: { variant_id: v.id } });
+                const inCarts = await tx.cart_items.count({ where: { variant_id: v.id } });
+
+                if (inOrders > 0 || inCarts > 0) {
+                    // Soft Delete: Archive SKU to allow reuse and set inactive
+                    await tx.product_variants.update({
+                        where: { id: v.id },
+                        data: { 
+                            is_active: false,
+                            variant_sku: `${v.variant_sku}-ARCHIVED-${Date.now()}` // Prevent SKU collision if recreated
+                        }
+                    });
+                } else {
+                    // Hard Delete
+                    await tx.product_variants.delete({ where: { id: v.id } });
+                }
+            }
 
         // Upsert variants
         for (const v of data.variants) {
-          if (v.id) {
+          let variantId = v.id ? BigInt(v.id) : undefined;
+          
+          if (variantId) {
             await tx.product_variants.update({
-              where: { id: BigInt(v.id) },
+              where: { id: variantId },
               data: {
                 variant_sku: v.variant_sku,
                 price: v.price,
@@ -297,7 +396,7 @@ export const updateProduct = async (
               }
             });
           } else {
-            await tx.product_variants.create({
+            const newVariant = await tx.product_variants.create({
               data: {
                 product_id: BigInt(id as string),
                 variant_sku: v.variant_sku || v.sku || `${data.sku}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -308,6 +407,38 @@ export const updateProduct = async (
                 is_active: v.is_active ?? true
               }
             });
+            variantId = newVariant.id;
+          }
+
+          // Link Variant Option Values
+          if (variantId && v.options) {
+             // Delete existing links for this variant first (to ensure clean slate)
+             await tx.variant_option_values.deleteMany({
+                 where: { variant_id: variantId }
+             });
+
+             for (const [optName, optVal] of Object.entries(v.options)) {
+                 const valueKey = `${optName}:${optVal}`;
+                 // Try to get from map first (if attribute was passed in data.attributes)
+                 let valueId = valueMap.get(valueKey);
+
+                 if (!valueId) {
+                     const option = await tx.options.findFirst({ where: { name: optName } });
+                     if (option) {
+                         const optionValue = await tx.option_values.findFirst({ where: { option_id: option.id, value: optVal as string }});
+                         if (optionValue) valueId = optionValue.id;
+                     }
+                 }
+
+                 if (valueId) {
+                     await tx.variant_option_values.create({
+                         data: {
+                             variant_id: variantId,
+                             option_value_id: valueId
+                         }
+                     });
+                 }
+             }
           }
         }
       }
@@ -345,6 +476,12 @@ export const updateProduct = async (
     });
 
     const diff = getDiff(serialize(existingProduct), data);
+    
+    // Invalidate Cache
+    const { cacheService } = await import('../services/cache.service.js');
+    await cacheService.del(`product:id:${id}`);
+    if (existingProduct.slug) await cacheService.del(`product:slug:${existingProduct.slug}`);
+    if (data.slug && data.slug !== existingProduct.slug) await cacheService.del(`product:slug:${data.slug}`);
     
     await logActivity({
       user_id: BigInt(req.user?.id || 0),
@@ -406,6 +543,21 @@ export const getAdminProducts = async (
           },
           _count: {
              select: { product_variants: true }
+          },
+          product_variants: {
+             select: {
+               id: true,
+               variant_sku: true,
+               price: true,
+               stock_qty: true,
+               variant_option_values: {
+                 include: {
+                   option_value: {
+                     include: { option: true }
+                   }
+                 }
+               }
+             }
           }
         },
         skip: (page - 1) * limit,
@@ -1043,6 +1195,49 @@ export const updateUser = async (
     const { id } = req.params;
     const { status, role, full_name, phone, email, address_line1, address_line2, city, province, country } = req.body;
 
+    console.log(`[UPDATE_USER] Request by: ID=${req.user?.id} Role=${req.user?.role}`);
+    console.log(`[UPDATE_USER] Target ID: ${id}`);
+
+    // Fetch target user to check role
+    const targetUser = await prisma.users.findUnique({
+      where: { id: BigInt(id as string) },
+      select: { role: true, id: true }
+    });
+
+    if (!targetUser) {
+        return res.status(404).json({
+            success: false,
+            error: { message: 'Không tìm thấy người dùng' }
+        });
+    }
+
+    // PROTECT SUPER ADMIN (ID 1)
+    if (BigInt(targetUser.id) === BigInt(1)) {
+        return res.status(403).json({
+            success: false,
+            error: { message: 'Không thể thay đổi thông tin của Tài khoản Gốc (Super Admin)' }
+        });
+    }
+
+    // SAME-ROLE PROTECTION: Admin cannot update another admin
+    // Only Super Admin (ID 1 or 6) can update users of equal/higher role
+    const isSuperAdmin = req.user?.id && (BigInt(req.user.id) === BigInt(1) || BigInt(req.user.id) === BigInt(6));
+    const isSelf = req.user?.id && (BigInt(req.user.id) === targetUser.id);
+    const targetRole = (targetUser.role || '').toLowerCase();
+
+    console.log(`[UPDATE_USER] Target Role (DB): ${targetUser.role} -> Normalized: ${targetRole}`);
+    console.log(`[UPDATE_USER] isSuperAdmin: ${isSuperAdmin}, isSelf: ${isSelf}`);
+    console.log(`[UPDATE_USER] Checking condition: (targetRole=='admin' || targetRole=='manager') && !isSuperAdmin && !isSelf`);
+
+    // STRICT RULE: If target is Admin/Manager, only Super Admin (or Self) can touch it.
+    // This blocks Admin A from editing Admin B, regardless of Admin A's role name.
+    if ((targetRole === 'admin' || targetRole === 'manager') && !isSuperAdmin && !isSelf) {
+         return res.status(403).json({
+            success: false,
+            error: { message: 'Bạn không có quyền thay đổi thông tin của quản trị viên/quản lý khác.' }
+         });
+    }
+
     // Build update data dynamically
     const updateData: any = {};
     if (status !== undefined) updateData.status = status;
@@ -1381,15 +1576,13 @@ export const deleteUser = async (
       });
     }
 
-    // SAME-ROLE PROTECTION: Admin cannot delete another admin
-    // Only Super Admin (ID 1 or 6) can delete users of equal/higher role
-    const currentUserRole = req.user?.role;
+    // STRICT PROTECTION: Cannot delete Admin/Manager unless Super Admin
     const isSuperAdmin = req.user?.id && (BigInt(req.user.id) === BigInt(1) || BigInt(req.user.id) === BigInt(6));
     
-    if (!isSuperAdmin && currentUserRole === targetUser.role) {
+    if ((targetUser.role === 'admin' || targetUser.role === 'manager') && !isSuperAdmin) {
       return res.status(403).json({
         success: false,
-        error: { message: `Bạn không thể xóa người dùng cùng cấp (${targetUser.role}). Chỉ Super Admin mới có quyền này.` }
+        error: { message: `Bạn không thể xóa quản trị viên/quản lý (${targetUser.role}). Chỉ Super Admin mới có quyền này.` }
       });
     }
 

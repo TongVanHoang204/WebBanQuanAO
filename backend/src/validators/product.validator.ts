@@ -18,7 +18,7 @@ const variantSchema = z.object({
 });
 
 const imageSchema = z.object({
-  url: z.string().url('Invalid URL').max(1000),
+  url: z.string().min(1).max(1000),
   alt_text: z.string().max(255).optional(),
   is_primary: z.boolean().default(false),
   sort_order: z.number().int().nonnegative().default(0)

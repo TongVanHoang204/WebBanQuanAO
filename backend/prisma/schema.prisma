@@ -211,7 +211,7 @@ model product_attributes {
   option       options       @relation(fields: [option_id], references: [id], onDelete: Cascade)
   option_value option_values @relation(fields: [option_value_id], references: [id], onDelete: Cascade)
 
-  @@id([product_id, option_id])
+  @@id([product_id, option_id, option_value_id])
   @@index([option_id], map: "idx_pa_option")
   @@index([option_value_id], map: "idx_pa_option_value")
 }

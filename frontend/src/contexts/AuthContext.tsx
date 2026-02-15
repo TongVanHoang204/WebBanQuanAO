@@ -102,7 +102,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    // Clear potentially lingering session ID if desired, but token is key
+    // localStorage.removeItem('sessionId'); 
+
     setUser(null);
+    // Force a hard navigation to clear any in-memory state
+    window.location.href = '/login';
   };
 
   const updateUser = (updatedUser: User) => {

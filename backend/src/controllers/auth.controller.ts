@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../server.js';
 import { ApiError } from '../middlewares/error.middleware.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
-import { registerSchema, loginSchema } from '../validators/auth.validator.js';
+import { registerSchema, loginSchema, updateProfileSchema, addressSchema } from '../validators/auth.validator.js';
 import { logActivity } from '../services/logger.service.js';
 import { sendWelcomeEmail, sendResetPasswordEmail, sendOTP } from '../services/email.service.js';
 
@@ -451,7 +451,8 @@ export const updateProfile = async (
       throw new ApiError(401, 'Not authenticated');
     }
 
-    const { full_name, phone, address_line1, city, province, avatar_url } = req.body;
+    const validatedData = updateProfileSchema.parse(req.body);
+    const { full_name, phone, address_line1, city, province, avatar_url } = validatedData;
 
     const user = await prisma.users.update({
       where: { id: req.user.id },
@@ -690,7 +691,8 @@ export const addAddress = async (
   try {
     if (!req.user) throw new ApiError(401, 'Not authenticated');
     
-    const { full_name, phone, address_line1, city, province, type, is_default } = req.body;
+    const validatedData = addressSchema.parse(req.body);
+    const { full_name, phone, address_line1, city, province, type, is_default } = validatedData;
 
     // If making this default, unset others
     if (is_default) {
@@ -742,7 +744,8 @@ export const updateAddress = async (
   try {
     if (!req.user) throw new ApiError(401, 'Not authenticated');
     const { id } = req.params;
-    const { full_name, phone, address_line1, city, province, type, is_default } = req.body;
+    const validatedData = addressSchema.parse(req.body);
+    const { full_name, phone, address_line1, city, province, type, is_default } = validatedData;
 
     // Verify ownership
     const existing = await prisma.shipping_addresses.findUnique({

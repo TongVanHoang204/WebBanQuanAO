@@ -5,12 +5,14 @@ import { useChat } from '../../hooks/useChat';
 import { formatPrice } from '../../hooks/useShop';
 import { useAuth } from '../../contexts/AuthContext';
 import { ChatProduct, ChatOrder } from '../../types';
+import { LiquidMetalButton } from '../ui/liquid-metal-button';
 
 // Voice Recognition Setup
 const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
 export default function ChatWidget() {
   const { messages, isLoading, isOpen, sendMessage, toggleChat, clearMessages } = useChat();
+  console.log('ChatWidget rendering. isOpen:', isOpen); // Debug render
   const { user } = useAuth();
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -90,22 +92,14 @@ export default function ChatWidget() {
   return (
     <>
       {/* Chat Button */}
-      <button
+      <LiquidMetalButton
         onClick={handleToggle}
-        className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 ${
-          isOpen 
-            ? 'bg-secondary-800 rotate-0' 
-            : 'bg-primary-600 hover:bg-primary-700 animate-pulse-slow'
-        }`}
+        isOpen={isOpen}
+        viewMode="icon"
+        className="fixed bottom-6 right-6 z-50"
         aria-label={isOpen ? 'Close chat' : 'Open chat'}
         title="Chat với AI"
-      >
-        {isOpen ? (
-          <X className="w-6 h-6 text-white" />
-        ) : (
-          <MessageCircle className="w-6 h-6 text-white" />
-        )}
-      </button>
+      />
 
       {isOpen && (
         <div className="fixed bottom-24 right-6 z-[100] w-[380px] h-[500px] bg-white dark:bg-secondary-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-secondary-200 dark:border-secondary-700">

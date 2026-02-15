@@ -21,6 +21,9 @@ import ProfilePage from './pages/ProfilePage';
 import WishlistPage from './pages/WishlistPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import OrderPaymentPage from './pages/OrderPaymentPage';
+import MaintenancePage from './pages/MaintenancePage';
+import { adminAPI } from './services/api';
+import { useState, useEffect } from 'react';
 
 
 import AdminLayout from './components/layout/AdminLayout';
@@ -103,8 +106,40 @@ function RoleRoute({ children, allowedRoles }: { children: React.ReactNode, allo
 }
 
 export default function App() {
+  const [maintenance, setMaintenance] = useState<boolean | null>(null);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const checkMaintenance = async () => {
+      try {
+        const res = await adminAPI.getPublicSettings();
+        if (res.data.success) {
+          setMaintenance(res.data.data.maintenance_mode === 'true');
+        } else {
+          setMaintenance(false);
+        }
+      } catch (error) {
+        console.error('Failed to check maintenance mode:', error);
+        setMaintenance(false);
+      }
+    };
+    checkMaintenance();
+  }, []);
+
+  // If loading maintenance status, show nothing or small loader
+  if (maintenance === null) {
+    return <LoadingScreen message="Đang tải..." />;
+  }
+
   return (
     <Routes>
+      {/* Maintenance Page */}
+      <Route path="/maintenance" element={<MaintenancePage />} />
+
+      {/* Global Hack: If maintenance is ON and user is NOT an admin/staff, 
+          redirect almost everything to /maintenance.
+          Except /admin paths (so admins can still log in and turn it off).
+      */}
       {/* Admin Routes */}
       <Route
         path="/admin"
@@ -149,7 +184,16 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-      <Route path="/" element={<Layout />}>
+      <Route
+        path="/"
+        element={
+          maintenance && !['admin', 'manager', 'staff'].includes(user?.role || '') ? (
+            <Navigate to="/maintenance" replace />
+          ) : (
+            <Layout />
+          )
+        }
+      >
         {/* Public Routes */}
         <Route index element={<HomePage />} />
         <Route path="shop" element={<ShopPage />} />

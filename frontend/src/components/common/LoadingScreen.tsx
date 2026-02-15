@@ -1,6 +1,5 @@
 import React from 'react';
-import Lottie from 'lottie-react';
-import loadingAnimation from '../../assets/loading-animation.json';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 interface LoadingScreenProps {
   message?: string;
@@ -23,18 +22,17 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
         <div className="absolute inset-0 bg-gradient-to-r from-primary-400/20 via-pink-400/20 to-purple-400/20 rounded-full blur-2xl scale-150 animate-pulse"></div>
         
         {/* Lottie Animation */}
-        <div className="relative w-32 h-32">
-          <Lottie 
-            animationData={loadingAnimation}
-            loop={true}
-            autoplay={true}
-            style={{ width: '100%', height: '100%' }}
+        <div className="relative w-48 h-48">
+          <DotLottieReact
+            src="/lottie/running_cat.lottie"
+            loop
+            autoplay
           />
         </div>
       </div>
 
       {/* Loading text */}
-      <p className="mt-6 text-secondary-600 dark:text-secondary-400 text-sm font-medium animate-pulse">
+      <p className="mt-2 text-secondary-600 dark:text-secondary-400 text-sm font-medium animate-pulse">
         {message}
       </p>
 

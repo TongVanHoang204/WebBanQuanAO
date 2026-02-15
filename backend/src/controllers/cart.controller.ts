@@ -362,7 +362,11 @@ export const mergeCart = async (
 
     const guestCart = await prisma.carts.findFirst({
       where: { session_id: sessionId },
-      include: { cart_items: true }
+      include: {
+        cart_items: {
+          include: { variant: true }
+        }
+      }
     });
 
     if (!guestCart || guestCart.cart_items.length === 0) {
@@ -373,6 +377,8 @@ export const mergeCart = async (
 
     // Merge items
     for (const item of guestCart.cart_items) {
+      if (!item.variant) continue; // Skip if variant missing
+
       const existingItem = await prisma.cart_items.findUnique({
         where: {
           cart_id_variant_id: {
@@ -382,17 +388,40 @@ export const mergeCart = async (
         }
       });
 
+      const stockQty = item.variant.stock_qty;
+      let newQty = item.qty;
+
       if (existingItem) {
-        await prisma.cart_items.update({
-          where: { id: existingItem.id },
-          data: { qty: existingItem.qty + item.qty }
-        });
+        newQty += existingItem.qty;
+      }
+
+      // Cap at stock quantity
+      if (newQty > stockQty) {
+        newQty = stockQty;
+      }
+
+      // If stock is 0 or less, do not add/update (or delete if exists?)
+      if (newQty <= 0) {
+         if (existingItem) {
+            await prisma.cart_items.delete({ where: { id: existingItem.id } });
+         }
+         continue;
+      }
+
+      if (existingItem) {
+        // Only update if qty changed (and valid)
+        if (existingItem.qty !== newQty) {
+            await prisma.cart_items.update({
+            where: { id: existingItem.id },
+            data: { qty: newQty }
+            });
+        }
       } else {
         await prisma.cart_items.create({
           data: {
             cart_id: userCart.id,
             variant_id: item.variant_id,
-            qty: item.qty,
+            qty: newQty,
             price_at_add: item.price_at_add
           }
         });

@@ -13,7 +13,7 @@ import {
   Edit3,
   Save
 } from 'lucide-react';
-import { adminAPI } from '../../../services/api';
+import { adminAPI, toMediaUrl } from '../../../services/api';
 import { formatPrice } from '../../../hooks/useShop';
 import toast from 'react-hot-toast';
 
@@ -131,7 +131,7 @@ export default function OrderDetailPage() {
                   <div className="w-16 h-16 bg-secondary-100 dark:bg-secondary-700 rounded-lg overflow-hidden flex-shrink-0">
                     {item.product?.product_images?.[0]?.url ? (
                       <img 
-                        src={item.product.product_images[0].url} 
+                        src={toMediaUrl(item.product.product_images[0].url)} 
                         alt={item.name}
                         className="w-full h-full object-cover"
                       />

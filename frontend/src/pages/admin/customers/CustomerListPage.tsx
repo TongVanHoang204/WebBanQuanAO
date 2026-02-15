@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Download, Pencil, Trash2, Loader2, Eye, UserX, UserCheck } from 'lucide-react';
-import { adminAPI } from '../../../services/api';
+import { adminAPI, toMediaUrl } from '../../../services/api';
 import Pagination from '../../../components/common/Pagination';
 import CustomerModal from './CustomerModal';
 import ConfirmModal from '../../../components/common/ConfirmModal';
@@ -108,6 +108,12 @@ export default function CustomerListPage() {
     navigate(`/admin/customers/${customer.id}`);
   };
 
+  const handleExport = () => {
+    const token = localStorage.getItem('token');
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+    window.open(`${apiUrl}/admin/export/customers?token=${token}&search=${search}&role=customer`, '_blank');
+  };
+
   return (
     <div className="max-w-7xl mx-auto pb-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -168,7 +174,7 @@ export default function CustomerListPage() {
          </div>
          <div className="flex items-center gap-3">
              <button 
-                onClick={() => window.open(`/api/admin/export/customers?search=${search}&role=customer`, '_blank')}
+                onClick={handleExport}
                 className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-secondary-900 border border-gray-300 dark:border-secondary-600 rounded-lg hover:bg-gray-50 dark:hover:bg-secondary-700 text-gray-700 dark:text-secondary-300 transition-colors"
              >
                 <Download className="w-4 h-4" />
@@ -212,7 +218,7 @@ export default function CustomerListPage() {
                                    <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold overflow-hidden">
                                       {user.avatar_url ? (
                                         <img 
-                                          src={user.avatar_url} 
+                                          src={toMediaUrl(user.avatar_url)} 
                                           alt={user.full_name || 'User'} 
                                           className="w-full h-full object-cover"
                                           onError={(e) => {

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../server.js';
 import { ApiError } from '../middlewares/error.middleware.js';
 import { Prisma } from '@prisma/client';
+import { cacheService } from '../services/cache.service.js';
 
 // Helper to convert BigInt to string for JSON serialization
 const serializeProduct = (product: any) => {
@@ -221,6 +222,14 @@ export const getProducts = async (
     }
 
     // Get products with pagination (Standard Path)
+    // Try Cache
+    const cacheKey = `products:list:${JSON.stringify(req.query)}`;
+    const cachedData = await cacheService.get(cacheKey);
+
+    if (cachedData) {
+       return res.json({ success: true, data: cachedData });
+    }
+
     const [products, total] = await Promise.all([
       prisma.products.findMany({
         where,
@@ -249,17 +258,22 @@ export const getProducts = async (
       prisma.products.count({ where })
     ]);
 
+    const responseData = {
+      products: products.map(serializeProduct),
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum)
+      }
+    };
+
+    // Cache for 60 seconds
+    await cacheService.set(cacheKey, responseData, 60);
+
     res.json({
       success: true,
-      data: {
-        products: products.map(serializeProduct),
-        pagination: {
-          page: pageNum,
-          limit: limitNum,
-          total,
-          totalPages: Math.ceil(total / limitNum)
-        }
-      }
+      data: responseData
     });
   } catch (error) {
     next(error);
@@ -273,6 +287,14 @@ export const getProductBySlug = async (
 ) => {
   try {
     const { slug } = req.params;
+
+    // Try Cache
+    const cacheKey = `product:slug:${slug}`;
+    const cachedData = await cacheService.get(cacheKey);
+
+    if (cachedData) {
+       return res.json({ success: true, data: cachedData });
+    }
 
     const product = await prisma.products.findUnique({
       where: { slug: slug as string },
@@ -314,9 +336,39 @@ export const getProductBySlug = async (
       throw new ApiError(404, 'Product not available');
     }
 
+    // Fetch Stats
+    const [reviewStats, soldStats] = await Promise.all([
+      prisma.product_reviews.aggregate({
+        where: { 
+          product_id: product.id,
+          status: 'approved'
+        },
+        _avg: { rating: true },
+        _count: { id: true }
+      }),
+      prisma.order_items.aggregate({
+        where: {
+          product_id: product.id,
+          order: {
+            status: { in: ['paid', 'shipped', 'completed'] }
+          }
+        },
+        _sum: { qty: true }
+      })
+    ]);
+
+    const serialized = {
+      ...serializeProduct(product),
+      rating_avg: reviewStats._avg.rating ? Number(reviewStats._avg.rating.toFixed(1)) : 0,
+      rating_count: reviewStats._count.id || 0,
+      sold_count: soldStats._sum.qty || 0
+    };
+    
+    await cacheService.set(cacheKey, serialized, 300); // 5 minutes
+
     res.json({
       success: true,
-      data: serializeProduct(product)
+      data: serialized
     });
   } catch (error) {
     next(error);
@@ -330,6 +382,14 @@ export const getProductById = async (
 ) => {
   try {
     const { id } = req.params;
+
+    // Try Cache
+    const cacheKey = `product:id:${id}`;
+    const cachedData = await cacheService.get(cacheKey);
+
+    if (cachedData) {
+       return res.json({ success: true, data: cachedData });
+    }
 
     const product = await prisma.products.findUnique({
       where: { id: BigInt(id as string) },
@@ -362,9 +422,12 @@ export const getProductById = async (
       throw new ApiError(404, 'Product not found');
     }
 
+    const serialized = serializeProduct(product);
+    await cacheService.set(cacheKey, serialized, 300);
+
     res.json({
       success: true,
-      data: serializeProduct(product)
+      data: serialized
     });
   } catch (error) {
     next(error);

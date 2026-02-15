@@ -13,7 +13,7 @@ import { notificationService, NotificationItem } from '@/services/notification.s
 import { toast } from 'react-hot-toast';
 
 function NotificationPage() {
-  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'order' | 'inventory' | 'customer' | 'system'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'order' | 'inventory' | 'customer' | 'system' | 'priority' | '24h'>('all');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -67,9 +67,12 @@ function NotificationPage() {
       filtered = notifications.filter(n => ['product_low_stock', 'product_out_of_stock'].includes(n.type));
     } else if (activeTab === 'system') {
       filtered = notifications.filter(n => n.type === 'system');
+    } else if (activeTab === 'priority') {
+      filtered = notifications.filter(n => ['order_new', 'product_out_of_stock'].includes(n.type));
+    } else if (activeTab === '24h') {
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      filtered = notifications.filter(n => new Date(n.created_at) > oneDayAgo);
     }
-    // "customer" type assumption? If not in Enum, maybe 'system'? 
-    // Adapting to Schema: order_new, order_status, product_low_stock, product_out_of_stock, system
     return filtered;
   };
 
@@ -180,17 +183,21 @@ function NotificationPage() {
 
         {/* Filter Pills */}
         <div className="flex items-center gap-3 mb-8 overflow-x-auto no-scrollbar pb-2">
-          {['unread', 'priority', '24h'].map((filter) => (
+          {[
+            { id: 'unread', label: 'Chưa đọc' },
+            { id: 'priority', label: 'Ưu tiên' },
+            { id: '24h', label: '24h qua' }
+          ].map((filter) => (
             <button
-              key={filter}
-              onClick={() => filter === 'unread' && setActiveTab(activeTab === 'unread' ? 'all' : 'unread')}
+              key={filter.id}
+              onClick={() => setActiveTab(activeTab === filter.id ? 'all' : (filter.id as any))}
               className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all duration-300 border-2 ${
-                (filter === 'unread' && activeTab === 'unread')
+                activeTab === filter.id
                   ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-lg' 
                   : 'bg-white dark:bg-secondary-800 border-white dark:border-secondary-700 text-secondary-600 dark:text-secondary-400 hover:border-secondary-200 dark:hover:border-secondary-600'
               }`}
             >
-              {filter === 'unread' ? 'Chưa đọc' : filter === 'priority' ? 'Ưu tiên' : '24h qua'}
+              {filter.label}
             </button>
           ))}
         </div>

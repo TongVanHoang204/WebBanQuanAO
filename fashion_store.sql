@@ -37,9 +37,9 @@ CREATE TABLE IF NOT EXISTS `activity_logs` (
   KEY `idx_logs_action` (`action`),
   KEY `idx_logs_date` (`created_at`),
   CONSTRAINT `activity_logs_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=70 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.activity_logs: ~69 rows (approximately)
+-- Dumping data for table fashion_store.activity_logs: ~99 rows (approximately)
 INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `entity_type`, `entity_id`, `details`, `ip_address`, `user_agent`, `created_at`) VALUES
 	(1, 6, 'update_order_status', 'order', '19', '"Updated order status to processing"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-24 03:54:30.198'),
 	(2, 6, 'Cập nhật sản phẩm', 'product', '1', '{"diff":{"brand_id":{"from":null,"to":"1"},"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":1,"brand_id":"1","sku":"89","name":"Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short","slug":"set-bo-ao-thun-nu-form-rong-tay-lo","description":"<p>Chất liệu cotton su. and</p>","compare_at_price":65000,"is_active":true,"variants":[{"variant_sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang","sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang","price":75000,"stock_qty":0,"is_active":true,"options":{},"id":13}],"attributes":[],"images":[{"url":"http://localhost:4000/uploads/1769094301311-794242468.png","is_primary":true,"sort_order":0},{"url":"http://localhost:4000/uploads/1769094312782-549414451.webp","is_primary":false,"sort_order":1}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-26 03:21:21.297'),
@@ -109,7 +109,37 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `entity_type`, `entity_i
 	(66, 6, 'export_orders', 'report', NULL, '"Exported orders. Filters: {\\"token\\":\\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2IiwiZW1haWwiOiJob2FuZ0BnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzAyODgyNjgsImV4cCI6MTc3MDg5MzA2OH0.R-YJc9iRJifefyFBjLISCp1824bRuXRwSf6Egzh7Uyc\\",\\"status\\":\\"\\",\\"search\\":\\"\\"}"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-05 17:13:24.356'),
 	(67, 60, 'create_order', 'order', '148', '"Created order FS20260205-0070"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-05 17:51:11.577'),
 	(68, 6, 'create_order', 'order', '149', '"Created order FS20260205-3122"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-05 18:27:31.702'),
-	(69, 6, 'create_order', 'order', '150', '"Created order FS20260205-2703"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-05 18:33:09.246');
+	(69, 6, 'create_order', 'order', '150', '"Created order FS20260205-2703"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-05 18:33:09.246'),
+	(70, 60, 'create_order', 'order', '151', '"Created order FS20260211-9305"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 03:52:25.729'),
+	(71, 60, 'create_order', 'order', '152', '"Created order FS20260211-6379"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 04:03:05.555'),
+	(72, 60, 'create_order', 'order', '153', '"Created order FS20260211-8187"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 04:12:24.906'),
+	(73, 60, 'create_order', 'order', '154', '"Created order FS20260211-7176"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 04:17:40.827'),
+	(74, 62, 'create_order', 'order', '155', '"Created order FS20260211-5697"', '::1', 'axios/1.13.5', '2026-02-11 04:30:27.050'),
+	(75, 63, 'create_order', 'order', '156', '"Created order FS20260211-3320"', '::1', 'axios/1.13.5', '2026-02-11 04:31:17.328'),
+	(76, 64, 'create_order', 'order', '157', '"Created order FS20260211-6146"', '::1', 'axios/1.13.5', '2026-02-11 04:32:04.467'),
+	(77, 65, 'create_order', 'order', '158', '"Created order FS20260211-5688"', '::1', 'axios/1.13.5', '2026-02-11 04:32:36.284'),
+	(78, 67, 'create_order', 'order', '159', '"Created order FS20260211-0620"', '::1', 'axios/1.13.5', '2026-02-11 04:34:58.598'),
+	(79, 66, 'Tạo sản phẩm mới', 'product', '63', '{"name":"QA Auto Product 1770784498605","sku":"QA-SKU-1770784498605"}', '::1', 'axios/1.13.5', '2026-02-11 04:34:58.620'),
+	(80, 66, 'Cập nhật sản phẩm', 'product', '63', '{"diff":{"name":{"from":"QA Auto Product 1770784498605","to":"QA Auto Product 1770784498605 UPDATED"},"base_price":{"from":"500000","to":600000}},"updates":{"name":"QA Auto Product 1770784498605 UPDATED","base_price":600000}}', '::1', 'axios/1.13.5', '2026-02-11 04:34:58.638'),
+	(81, 66, 'update_order_status', 'order', '159', '"Updated order status to processing"', '::1', 'axios/1.13.5', '2026-02-11 04:34:58.660'),
+	(82, 66, 'Xóa sản phẩm', 'product', '63', NULL, '::1', 'axios/1.13.5', '2026-02-11 04:34:58.675'),
+	(83, 69, 'Tạo sản phẩm mới', 'product', '64', '{"name":"Debug Product 1770784559440","sku":"DBG-SKU-1770784559440"}', '::1', 'axios/1.13.5', '2026-02-11 04:35:59.453'),
+	(84, 69, 'Cập nhật sản phẩm', 'product', '64', '{"diff":{"name":{"from":"Debug Product 1770784559440","to":"Debug Product 1770784559440 UPDATED"},"base_price":{"from":"500000","to":600000}},"updates":{"name":"Debug Product 1770784559440 UPDATED","base_price":600000}}', '::1', 'axios/1.13.5', '2026-02-11 04:35:59.476'),
+	(85, 70, 'Tạo sản phẩm mới', 'product', '65', '{"name":"QA Auto Product 1770784609730","sku":"QA-SKU-1770784609730"}', '::1', 'axios/1.13.5', '2026-02-11 04:36:49.742'),
+	(86, 70, 'Cập nhật sản phẩm', 'product', '65', '{"diff":{"name":{"from":"QA Auto Product 1770784609730","to":"QA Auto Product 1770784609730 UPDATED"},"base_price":{"from":"500000","to":600000}},"updates":{"name":"QA Auto Product 1770784609730 UPDATED","base_price":600000}}', '::1', 'axios/1.13.5', '2026-02-11 04:36:49.757'),
+	(87, 70, 'Xóa sản phẩm', 'product', '65', NULL, '::1', 'axios/1.13.5', '2026-02-11 04:36:49.771'),
+	(88, 72, 'Tạo sản phẩm mới', 'product', '66', '{"name":"QA Auto Product 1770784638503","sku":"QA-SKU-1770784638503"}', '::1', 'axios/1.13.5', '2026-02-11 04:37:18.517'),
+	(89, 72, 'Cập nhật sản phẩm', 'product', '66', '{"diff":{"name":{"from":"QA Auto Product 1770784638503","to":"QA Auto Product 1770784638503 UPDATED"},"base_price":{"from":"500000","to":600000}},"updates":{"name":"QA Auto Product 1770784638503 UPDATED","base_price":600000}}', '::1', 'axios/1.13.5', '2026-02-11 04:37:18.537'),
+	(90, 72, 'Xóa sản phẩm', 'product', '66', NULL, '::1', 'axios/1.13.5', '2026-02-11 04:37:18.550'),
+	(91, 74, 'Tạo sản phẩm mới', 'product', '67', '{"name":"QA Auto Product 1770784702644","sku":"QA-SKU-1770784702644"}', '::1', 'axios/1.13.5', '2026-02-11 04:38:22.659'),
+	(92, 75, 'create_order', 'order', '160', '"Created order FS20260211-4853"', '::1', 'axios/1.13.5', '2026-02-11 04:38:23.402'),
+	(93, 74, 'Cập nhật sản phẩm', 'product', '67', '{"diff":{"name":{"from":"QA Auto Product 1770784702644","to":"QA Auto Product 1770784702644 UPDATED"},"base_price":{"from":"500000","to":600000}},"updates":{"name":"QA Auto Product 1770784702644 UPDATED","base_price":600000}}', '::1', 'axios/1.13.5', '2026-02-11 04:38:23.425'),
+	(94, 74, 'update_order_status', 'order', '160', '"Updated order status to processing"', '::1', 'axios/1.13.5', '2026-02-11 04:38:23.452'),
+	(95, 76, 'Tạo sản phẩm mới', 'product', '68', '{"name":"QA Auto Product 1770784727013","sku":"QA-SKU-1770784727013"}', '::1', 'axios/1.13.5', '2026-02-11 04:38:47.029'),
+	(96, 77, 'create_order', 'order', '161', '"Created order FS20260211-7611"', '::1', 'axios/1.13.5', '2026-02-11 04:38:47.773'),
+	(97, 76, 'Cập nhật sản phẩm', 'product', '68', '{"diff":{"name":{"from":"QA Auto Product 1770784727013","to":"QA Auto Product 1770784727013 UPDATED"},"base_price":{"from":"500000","to":600000}},"updates":{"name":"QA Auto Product 1770784727013 UPDATED","base_price":600000}}', '::1', 'axios/1.13.5', '2026-02-11 04:38:47.800'),
+	(98, 76, 'update_order_status', 'order', '161', '"Updated order status to processing"', '::1', 'axios/1.13.5', '2026-02-11 04:38:47.825'),
+	(99, 76, 'update_order_status', 'order', '161', '"Updated order status to cancelled"', '::1', 'axios/1.13.5', '2026-02-11 04:38:47.851');
 
 -- Dumping structure for table fashion_store.banners
 DROP TABLE IF EXISTS `banners`;
@@ -191,9 +221,9 @@ CREATE TABLE IF NOT EXISTS `carts` (
   KEY `idx_carts_user` (`user_id`),
   KEY `idx_carts_session` (`session_id`),
   CONSTRAINT `carts_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.carts: ~5 rows (approximately)
+-- Dumping data for table fashion_store.carts: ~17 rows (approximately)
 INSERT INTO `carts` (`id`, `user_id`, `session_id`, `created_at`, `updated_at`) VALUES
 	(1, 2, NULL, '2026-01-22 21:09:18.707', NULL),
 	(2, 3, NULL, '2026-01-22 21:09:18.707', NULL),
@@ -201,7 +231,17 @@ INSERT INTO `carts` (`id`, `user_id`, `session_id`, `created_at`, `updated_at`) 
 	(4, NULL, 'sess_1769175589975_62qeigcon', '2026-01-23 13:40:10.788', '2026-01-23 13:40:10.788'),
 	(5, 6, NULL, '2026-01-23 16:54:51.891', '2026-01-23 16:54:51.891'),
 	(6, 59, NULL, '2026-01-26 04:20:15.652', '2026-01-26 04:20:15.652'),
-	(7, 60, NULL, '2026-01-29 12:11:59.491', '2026-01-29 12:11:59.491');
+	(7, 60, NULL, '2026-01-29 12:11:59.491', '2026-01-29 12:11:59.491'),
+	(9, NULL, 'test-session-123', '2026-02-11 03:43:02.717', '2026-02-11 03:43:02.717'),
+	(10, 62, NULL, '2026-02-11 04:30:26.935', '2026-02-11 04:30:26.935'),
+	(11, 63, NULL, '2026-02-11 04:31:17.268', '2026-02-11 04:31:17.268'),
+	(12, 64, NULL, '2026-02-11 04:32:04.400', '2026-02-11 04:32:04.400'),
+	(13, 65, NULL, '2026-02-11 04:32:36.202', '2026-02-11 04:32:36.202'),
+	(14, 67, NULL, '2026-02-11 04:34:58.562', '2026-02-11 04:34:58.562'),
+	(15, 71, NULL, '2026-02-11 04:36:49.716', '2026-02-11 04:36:49.716'),
+	(16, 73, NULL, '2026-02-11 04:37:18.489', '2026-02-11 04:37:18.489'),
+	(17, 75, NULL, '2026-02-11 04:38:23.361', '2026-02-11 04:38:23.361'),
+	(18, 77, NULL, '2026-02-11 04:38:47.726', '2026-02-11 04:38:47.726');
 
 -- Dumping structure for table fashion_store.cart_items
 DROP TABLE IF EXISTS `cart_items`;
@@ -218,7 +258,7 @@ CREATE TABLE IF NOT EXISTS `cart_items` (
   KEY `idx_ci_variant` (`variant_id`),
   CONSTRAINT `cart_items_cart_id_fkey` FOREIGN KEY (`cart_id`) REFERENCES `carts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `cart_items_variant_id_fkey` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table fashion_store.cart_items: ~6 rows (approximately)
 INSERT INTO `cart_items` (`id`, `cart_id`, `variant_id`, `qty`, `price_at_add`, `created_at`) VALUES
@@ -227,7 +267,7 @@ INSERT INTO `cart_items` (`id`, `cart_id`, `variant_id`, `qty`, `price_at_add`, 
 	(3, 2, 6, 1, 109000.00, '2026-01-22 21:09:18.722'),
 	(4, 3, 12, 1, 59000.00, '2026-01-22 21:09:18.722'),
 	(38, 5, 1, 1, 99000.00, '2026-02-05 18:33:17.293'),
-	(39, 7, 7, 1, 249000.00, '2026-02-06 03:59:55.974');
+	(41, 9, 1, 1, 99000.00, '2026-02-11 03:43:02.723');
 
 -- Dumping structure for table fashion_store.categories
 DROP TABLE IF EXISTS `categories`;
@@ -290,7 +330,7 @@ CREATE TABLE IF NOT EXISTS `chat_messages` (
   CONSTRAINT `chat_messages_conversation_id_fkey` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.chat_messages: ~45 rows (approximately)
+-- Dumping data for table fashion_store.chat_messages: ~54 rows (approximately)
 INSERT INTO `chat_messages` (`id`, `conversation_id`, `sender_type`, `sender_id`, `content`, `is_read`, `created_at`) VALUES
 	(1, 1, 'user', NULL, 'xin chào ạ', 0, '2026-01-29 04:05:08.197'),
 	(2, 1, 'user', NULL, 'chào shop', 0, '2026-01-29 04:17:41.988'),
@@ -388,11 +428,11 @@ INSERT INTO `conversations` (`id`, `user_id`, `guest_name`, `guest_email`, `stat
 	(1, NULL, NULL, NULL, 'closed', 6, '2026-01-29 04:04:59.253', '2026-01-29 04:22:54.740', '2026-01-29 04:22:54.738'),
 	(2, 6, NULL, NULL, 'closed', 6, '2026-01-29 04:20:55.140', '2026-01-29 04:37:43.076', '2026-01-29 04:37:43.074'),
 	(3, 6, NULL, NULL, 'closed', 6, '2026-01-29 04:37:59.641', '2026-01-29 04:41:18.362', '2026-01-29 04:41:18.361'),
-	(4, 59, 'Hoang customer', NULL, 'active', 6, '2026-01-29 04:53:05.019', '2026-02-05 17:39:30.102', NULL),
+	(4, 59, 'Hoang customer', NULL, 'active', 6, '2026-01-29 04:53:05.019', '2026-02-10 16:36:27.327', NULL),
 	(5, 60, 'Tống Văn Hoàng', NULL, 'closed', 59, '2026-01-29 11:31:33.396', '2026-02-01 03:57:32.248', '2026-02-01 03:57:32.247'),
 	(6, 60, 'Tống Văn Hoàng', NULL, 'closed', 6, '2026-02-01 04:43:18.355', '2026-02-01 04:55:20.422', '2026-02-01 04:55:20.420'),
 	(7, 60, 'Tống Văn Hoàng', NULL, 'closed', 6, '2026-02-01 04:55:23.634', '2026-02-01 04:55:48.223', '2026-02-01 04:55:48.221'),
-	(8, 60, 'Tống Văn Hoàng', NULL, 'active', 6, '2026-02-01 04:56:01.557', '2026-02-05 17:39:19.260', NULL);
+	(8, 60, 'Tống Văn Hoàng', NULL, 'active', 6, '2026-02-01 04:56:01.557', '2026-02-10 16:36:24.271', NULL);
 
 -- Dumping structure for table fashion_store.coupons
 DROP TABLE IF EXISTS `coupons`;
@@ -452,9 +492,9 @@ CREATE TABLE IF NOT EXISTS `inventory_movements` (
   PRIMARY KEY (`id`),
   KEY `idx_im_variant` (`variant_id`),
   CONSTRAINT `inventory_movements_variant_id_fkey` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.inventory_movements: ~43 rows (approximately)
+-- Dumping data for table fashion_store.inventory_movements: ~54 rows (approximately)
 INSERT INTO `inventory_movements` (`id`, `variant_id`, `type`, `qty`, `note`, `created_at`) VALUES
 	(7, 1, 'out', 1, 'Order FS20260123-3439', '2026-01-23 13:40:29.981'),
 	(8, 1, 'out', 1, 'Order FS20260123-3617', '2026-01-23 16:55:08.733'),
@@ -498,7 +538,16 @@ INSERT INTO `inventory_movements` (`id`, `variant_id`, `type`, `qty`, `note`, `c
 	(46, 1, 'in', 1, 'Auto-cancelled expired order FS20260205-0478', '2026-02-05 17:59:00.135'),
 	(47, 3, 'in', 1, 'Auto-cancelled expired order FS20260205-0070', '2026-02-05 17:59:00.144'),
 	(48, 1, 'out', 1, 'Order FS20260205-3122', '2026-02-05 18:27:31.688'),
-	(49, 1, 'out', 1, 'Order FS20260205-2703', '2026-02-05 18:33:09.233');
+	(49, 1, 'out', 1, 'Order FS20260205-2703', '2026-02-05 18:33:09.233'),
+	(50, 7, 'out', 1, 'Order FS20260211-9305', '2026-02-11 03:52:25.691'),
+	(51, 1, 'out', 1, 'Order FS20260211-6379', '2026-02-11 04:03:05.530'),
+	(52, 1, 'out', 1, 'Order FS20260211-8187', '2026-02-11 04:12:24.874'),
+	(53, 1, 'out', 1, 'Order FS20260211-7176', '2026-02-11 04:17:40.810'),
+	(54, 13, 'out', 4, 'Order FS20260211-5697', '2026-02-11 04:30:27.022'),
+	(55, 13, 'out', 2, 'Order FS20260211-3320', '2026-02-11 04:31:17.320'),
+	(56, 13, 'out', 2, 'Order FS20260211-6146', '2026-02-11 04:32:04.456'),
+	(57, 13, 'out', 3, 'Order FS20260211-5688', '2026-02-11 04:32:36.273'),
+	(58, 13, 'out', 1, 'Order FS20260211-0620', '2026-02-11 04:34:58.586');
 
 -- Dumping structure for table fashion_store.notifications
 DROP TABLE IF EXISTS `notifications`;
@@ -516,9 +565,9 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   KEY `idx_notifications_read` (`is_read`),
   KEY `idx_notifications_created` (`created_at`),
   CONSTRAINT `notifications_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=60 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.notifications: ~24 rows (approximately)
+-- Dumping data for table fashion_store.notifications: ~50 rows (approximately)
 INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `link`, `is_read`, `created_at`) VALUES
 	(2, 6, 'order_new', 'Đơn hàng mới #ORD-123', 'Khách hàng Nguyễn Văn A vừa đặt đơn hàng trị giá 500.000đ', '/admin/orders/1', 1, '2026-01-26 03:37:09.484'),
 	(3, 6, 'product_low_stock', 'Sản phẩm sắp hết hàng', 'Áo thun Basic (Size M) chỉ còn 2 sản phẩm trong kho.', '/admin/products/5', 1, '2026-01-26 03:37:09.487'),
@@ -540,10 +589,36 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `link`
 	(26, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260204-0244 vừa được đặt bởi Tống Văn Hoàng.', '/admin/orders/143', 1, '2026-02-04 14:33:26.000'),
 	(27, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260204-2302 đã được đặt thành công.', '/orders/144', 1, '2026-02-04 14:46:24.000'),
 	(28, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260204-2302 vừa được đặt bởi Tống Văn Hoàng.', '/admin/orders/144', 1, '2026-02-04 14:46:24.000'),
-	(30, 6, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260205-3122 đã được đặt thành công.', '/orders/149', 0, '2026-02-06 01:27:31.000'),
+	(30, 6, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260205-3122 đã được đặt thành công.', '/orders/149', 1, '2026-02-06 01:27:31.000'),
 	(31, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260205-3122 vừa được đặt bởi Hoang ADMIN.', '/admin/orders/149', 1, '2026-02-06 01:27:31.000'),
-	(32, 6, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260205-2703 đã được đặt thành công.', '/orders/150', 0, '2026-02-06 01:33:09.000'),
-	(33, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260205-2703 vừa được đặt bởi Hoang ADMIN.', '/admin/orders/150', 1, '2026-02-06 01:33:09.000');
+	(32, 6, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260205-2703 đã được đặt thành công.', '/orders/150', 1, '2026-02-06 01:33:09.000'),
+	(33, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260205-2703 vừa được đặt bởi Hoang ADMIN.', '/admin/orders/150', 1, '2026-02-06 01:33:09.000'),
+	(34, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-9305 đã được đặt thành công.', '/orders/151', 0, '2026-02-11 10:52:25.000'),
+	(35, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-9305 vừa được đặt bởi Tống Văn Hoàng.', '/admin/orders/151', 0, '2026-02-11 10:52:25.000'),
+	(36, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-6379 đã được đặt thành công.', '/orders/152', 0, '2026-02-11 11:03:05.000'),
+	(37, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-6379 vừa được đặt bởi Tống Văn Hoàng.', '/admin/orders/152', 0, '2026-02-11 11:03:05.000'),
+	(38, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-8187 đã được đặt thành công.', '/orders/153', 0, '2026-02-11 11:12:24.000'),
+	(39, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-8187 vừa được đặt bởi Tống Văn Hoàng.', '/admin/orders/153', 0, '2026-02-11 11:12:24.000'),
+	(40, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-7176 đã được đặt thành công.', '/orders/154', 0, '2026-02-11 11:17:40.000'),
+	(41, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-7176 vừa được đặt bởi Tống Văn Hoàng.', '/admin/orders/154', 0, '2026-02-11 11:17:40.000'),
+	(42, 62, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-5697 đã được đặt thành công.', '/orders/155', 0, '2026-02-11 11:30:27.000'),
+	(43, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-5697 vừa được đặt bởi QA Test.', '/admin/orders/155', 0, '2026-02-11 11:30:27.000'),
+	(44, 63, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-3320 đã được đặt thành công.', '/orders/156', 0, '2026-02-11 11:31:17.000'),
+	(45, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-3320 vừa được đặt bởi QA Test.', '/admin/orders/156', 0, '2026-02-11 11:31:17.000'),
+	(46, 64, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-6146 đã được đặt thành công.', '/orders/157', 0, '2026-02-11 11:32:04.000'),
+	(47, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-6146 vừa được đặt bởi QA Test.', '/admin/orders/157', 0, '2026-02-11 11:32:04.000'),
+	(48, 65, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-5688 đã được đặt thành công.', '/orders/158', 0, '2026-02-11 11:32:36.000'),
+	(49, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-5688 vừa được đặt bởi QA Test.', '/admin/orders/158', 0, '2026-02-11 11:32:36.000'),
+	(50, 67, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-0620 đã được đặt thành công.', '/orders/159', 0, '2026-02-11 11:34:58.000'),
+	(51, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-0620 vừa được đặt bởi QA Test.', '/admin/orders/159', 0, '2026-02-11 11:34:58.000'),
+	(52, 67, 'order_status', 'Đơn hàng đã được xác nhận', 'Đơn hàng FS20260211-0620 của bạn đã được xác nhận và đang được xử lý.', '/orders/159', 0, '2026-02-11 11:34:58.000'),
+	(53, 75, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-4853 đã được đặt thành công.', '/orders/160', 0, '2026-02-11 11:38:23.000'),
+	(54, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-4853 vừa được đặt bởi QA Test.', '/admin/orders/160', 0, '2026-02-11 11:38:23.000'),
+	(55, 75, 'order_status', 'Đơn hàng đã được xác nhận', 'Đơn hàng FS20260211-4853 của bạn đã được xác nhận và đang được xử lý.', '/orders/160', 0, '2026-02-11 11:38:23.000'),
+	(56, 77, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-7611 đã được đặt thành công.', '/orders/161', 0, '2026-02-11 11:38:47.000'),
+	(57, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-7611 vừa được đặt bởi QA Test.', '/admin/orders/161', 0, '2026-02-11 11:38:47.000'),
+	(58, 77, 'order_status', 'Đơn hàng đã được xác nhận', 'Đơn hàng FS20260211-7611 của bạn đã được xác nhận và đang được xử lý.', '/orders/161', 0, '2026-02-11 11:38:47.000'),
+	(59, 77, 'order_status', 'Đơn hàng đã bị hủy', 'Đơn hàng FS20260211-7611 đã bị hủy.', '/orders/161', 0, '2026-02-11 11:38:47.000');
 
 -- Dumping structure for table fashion_store.options
 DROP TABLE IF EXISTS `options`;
@@ -633,9 +708,9 @@ CREATE TABLE IF NOT EXISTS `orders` (
   KEY `idx_orders_user` (`user_id`),
   KEY `idx_orders_status` (`status`),
   CONSTRAINT `orders_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=151 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=162 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.orders: ~136 rows (approximately)
+-- Dumping data for table fashion_store.orders: ~140 rows (approximately)
 INSERT INTO `orders` (`id`, `order_code`, `user_id`, `status`, `subtotal`, `discount_total`, `shipping_fee`, `grand_total`, `customer_name`, `customer_phone`, `ship_address_line1`, `ship_address_line2`, `ship_city`, `ship_province`, `ship_postal_code`, `ship_country`, `note`, `created_at`, `updated_at`, `admin_note`) VALUES
 	(1, 'FS20251213-0001', 2, 'paid', 277000.00, 0.00, 0.00, 282000.00, 'Khánh', '0900000002', '12 Nguyễn Trãi', NULL, 'Quận 1', 'TP.HCM', NULL, 'VN', NULL, '2026-01-22 21:09:18.630', NULL, NULL),
 	(2, 'FS20251213-0002', 3, 'processing', 109000.00, 0.00, 0.00, 134000.00, 'Minh', '0900000003', '45 Lê Lợi', NULL, 'Quận 1', 'TP.HCM', NULL, 'VN', NULL, '2026-01-22 21:09:18.630', NULL, NULL),
@@ -772,7 +847,11 @@ INSERT INTO `orders` (`id`, `order_code`, `user_id`, `status`, `subtotal`, `disc
 	(147, 'FS20260205-0478', 60, 'cancelled', 99000.00, 0.00, 35000.00, 134000.00, 'Tống Văn Hoàng', '0935818725', '187', '', 'Huyện Lục Nam', 'Tỉnh Bắc Giang', '', 'VN', '', '2026-02-05 08:39:36.135', '2026-02-05 17:59:00.136', NULL),
 	(148, 'FS20260205-0070', 60, 'cancelled', 89000.00, 0.00, 35000.00, 124000.00, 'Tống Văn Hoàng', '0935818725', '187', '', 'Huyện Thanh Sơn', 'Tỉnh Phú Thọ', '', 'VN', '', '2026-02-05 17:51:11.550', '2026-02-05 17:59:00.145', NULL),
 	(149, 'FS20260205-3122', 6, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang ADMIN', '0935818725', '187', '', 'Huyện Mèo Vạc', 'Tỉnh Hà Giang', '', 'VN', '', '2026-02-05 18:27:31.680', '2026-02-05 18:27:31.680', NULL),
-	(150, 'FS20260205-2703', 6, 'pending', 99000.00, 19800.00, 35000.00, 114200.00, 'Hoang ADMIN', '0935818725', '187', '', 'Huyện Thanh Sơn', 'Tỉnh Phú Thọ', '', 'VN', '', '2026-02-05 18:33:09.228', '2026-02-05 18:33:09.228', NULL);
+	(150, 'FS20260205-2703', 6, 'pending', 99000.00, 19800.00, 35000.00, 114200.00, 'Hoang ADMIN', '0935818725', '187', '', 'Huyện Thanh Sơn', 'Tỉnh Phú Thọ', '', 'VN', '', '2026-02-05 18:33:09.228', '2026-02-05 18:33:09.228', NULL),
+	(151, 'FS20260211-9305', 60, 'pending', 249000.00, 0.00, 35000.00, 284000.00, 'Tống Văn Hoàng', '0935818725', '53, hồ tùng mậu', '', 'Huyện Đăk Đoa', 'Tỉnh Gia Lai', '', 'VN', '', '2026-02-11 03:52:25.640', '2026-02-11 03:52:25.640', NULL),
+	(152, 'FS20260211-6379', 60, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Tống Văn Hoàng', '0935818725', '53, hồ tùng mậu', '', 'Quận Tây Hồ', 'Thành phố Hà Nội', '', 'VN', '', '2026-02-11 04:03:05.513', '2026-02-11 04:03:05.513', NULL),
+	(153, 'FS20260211-8187', 60, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Tống Văn Hoàng', '0935818725', '53, hồ tùng mậu', '', 'Quận 11', 'Thành phố Hồ Chí Minh', '', 'VN', '', '2026-02-11 04:12:24.852', '2026-02-11 04:12:24.852', NULL),
+	(154, 'FS20260211-7176', 60, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Tống Văn Hoàng', '0935818725', '53, hồ tùng mậu', '', 'Thành phố Sông Công', 'Tỉnh Thái Nguyên', '', 'VN', '', '2026-02-11 04:17:40.799', '2026-02-11 04:17:40.799', NULL);
 
 -- Dumping structure for table fashion_store.order_items
 DROP TABLE IF EXISTS `order_items`;
@@ -794,9 +873,9 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   CONSTRAINT `order_items_order_id_fkey` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `order_items_product_id_fkey` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON UPDATE CASCADE,
   CONSTRAINT `order_items_variant_id_fkey` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=294 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=305 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.order_items: ~265 rows (approximately)
+-- Dumping data for table fashion_store.order_items: ~301 rows (approximately)
 INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `variant_id`, `sku`, `name`, `options_text`, `unit_price`, `qty`, `line_total`) VALUES
 	(1, 1, 2, 1, 'TSHIRT-NU-001', 'Áo thun nữ oversize Basic', NULL, 99000.00, 2, 198000.00),
 	(2, 1, 6, 10, 'BAG-001', 'Túi tote canvas', NULL, 79000.00, 1, 79000.00),
@@ -1089,7 +1168,11 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `variant_id`, `sku`, 
 	(290, 147, 2, 1, 'TSHIRT-NU-001-BLACK-M', 'Áo thun nữ oversize Basic', 'Màu sắc: Đen, Màu sắc: Đỏ', 99000.00, 1, 99000.00),
 	(291, 148, 3, 3, 'SHORT-NU-001-BLACK-M', 'Quần short nữ lưng thun', 'Màu sắc: Đen, Màu sắc: Đỏ', 89000.00, 1, 89000.00),
 	(292, 149, 2, 1, 'TSHIRT-NU-001-BLACK-M', 'Áo thun nữ oversize Basic', 'Màu sắc: Đen, Màu sắc: Đỏ', 99000.00, 1, 99000.00),
-	(293, 150, 2, 1, 'TSHIRT-NU-001-BLACK-M', 'Áo thun nữ oversize Basic', 'Màu sắc: Đen, Màu sắc: Đỏ', 99000.00, 1, 99000.00);
+	(293, 150, 2, 1, 'TSHIRT-NU-001-BLACK-M', 'Áo thun nữ oversize Basic', 'Màu sắc: Đen, Màu sắc: Đỏ', 99000.00, 1, 99000.00),
+	(294, 151, 5, 7, 'JEAN-NAM-001-BLACK-M', 'Quần jean nam slimfit', '', 249000.00, 1, 249000.00),
+	(295, 152, 2, 1, 'TSHIRT-NU-001-BLACK-M', 'Áo thun nữ oversize Basic', 'Màu sắc: Đen, Màu sắc: Đỏ', 99000.00, 1, 99000.00),
+	(296, 153, 2, 1, 'TSHIRT-NU-001-BLACK-M', 'Áo thun nữ oversize Basic', 'Màu sắc: Đen, Màu sắc: Đỏ', 99000.00, 1, 99000.00),
+	(297, 154, 2, 1, 'TSHIRT-NU-001-BLACK-M', 'Áo thun nữ oversize Basic', 'Màu sắc: Đen, Màu sắc: Đỏ', 99000.00, 1, 99000.00);
 
 -- Dumping structure for table fashion_store.payments
 DROP TABLE IF EXISTS `payments`;
@@ -1105,9 +1188,9 @@ CREATE TABLE IF NOT EXISTS `payments` (
   PRIMARY KEY (`id`),
   KEY `idx_pay_order` (`order_id`),
   CONSTRAINT `payments_order_id_fkey` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.payments: ~29 rows (approximately)
+-- Dumping data for table fashion_store.payments: ~40 rows (approximately)
 INSERT INTO `payments` (`id`, `order_id`, `method`, `status`, `amount`, `transaction_ref`, `paid_at`, `created_at`) VALUES
 	(4, 122, 'cod', 'pending', 134000.00, NULL, NULL, '2026-01-23 16:55:08.734'),
 	(5, 123, 'momo', 'pending', 274000.00, NULL, NULL, '2026-01-26 03:54:22.043'),
@@ -1137,7 +1220,11 @@ INSERT INTO `payments` (`id`, `order_id`, `method`, `status`, `amount`, `transac
 	(29, 147, 'bank_transfer', 'pending', 134000.00, NULL, NULL, '2026-02-05 08:39:36.140'),
 	(30, 148, 'bank_transfer', 'pending', 124000.00, NULL, NULL, '2026-02-05 17:51:11.567'),
 	(31, 149, 'cod', 'pending', 134000.00, NULL, NULL, '2026-02-05 18:27:31.689'),
-	(32, 150, 'cod', 'pending', 114200.00, NULL, NULL, '2026-02-05 18:33:09.235');
+	(32, 150, 'cod', 'pending', 114200.00, NULL, NULL, '2026-02-05 18:33:09.235'),
+	(33, 151, 'cod', 'pending', 284000.00, NULL, NULL, '2026-02-11 03:52:25.695'),
+	(34, 152, 'cod', 'pending', 134000.00, NULL, NULL, '2026-02-11 04:03:05.533'),
+	(35, 153, 'cod', 'pending', 134000.00, NULL, NULL, '2026-02-11 04:12:24.880'),
+	(36, 154, 'cod', 'pending', 134000.00, NULL, NULL, '2026-02-11 04:17:40.813');
 
 -- Dumping structure for table fashion_store.permissions
 DROP TABLE IF EXISTS `permissions`;
@@ -1190,7 +1277,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   KEY `idx_products_brand` (`brand_id`),
   CONSTRAINT `products_brand_id_fkey` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `products_category_id_fkey` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=63 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table fashion_store.products: ~62 rows (approximately)
 INSERT INTO `products` (`id`, `category_id`, `sku`, `size`, `name`, `slug`, `description`, `base_price`, `compare_at_price`, `is_active`, `created_at`, `updated_at`, `brand_id`, `cost_price`, `height`, `length`, `meta_description`, `meta_keywords`, `meta_title`, `tags`, `tax_rate`, `weight`, `width`) VALUES
@@ -1417,23 +1504,23 @@ CREATE TABLE IF NOT EXISTS `product_variants` (
   UNIQUE KEY `product_variants_variant_sku_key` (`variant_sku`),
   KEY `idx_variants_product` (`product_id`),
   CONSTRAINT `product_variants_product_id_fkey` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=221 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=227 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.product_variants: ~220 rows (approximately)
+-- Dumping data for table fashion_store.product_variants: ~223 rows (approximately)
 INSERT INTO `product_variants` (`id`, `product_id`, `variant_sku`, `price`, `compare_at_price`, `cost`, `stock_qty`, `is_active`, `created_at`, `updated_at`, `height`, `image_url`, `length`, `weight`, `width`) VALUES
-	(1, 2, 'TSHIRT-NU-001-BLACK-M', 99000.00, 129000.00, NULL, 34, 1, '2026-01-22 21:09:18.601', '2026-02-05 18:33:09.232', NULL, NULL, NULL, NULL, NULL),
+	(1, 2, 'TSHIRT-NU-001-BLACK-M', 99000.00, 129000.00, NULL, 31, 1, '2026-01-22 21:09:18.601', '2026-02-11 04:17:40.804', NULL, NULL, NULL, NULL, NULL),
 	(2, 2, 'TSHIRT-NU-001-WHITE-L', 99000.00, 129000.00, NULL, 35, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:16:11.687', NULL, NULL, NULL, NULL, NULL),
 	(3, 3, 'SHORT-NU-001-BLACK-M', 89000.00, 119000.00, NULL, 101, 1, '2026-01-22 21:09:18.601', '2026-02-05 17:59:00.142', NULL, NULL, NULL, NULL, NULL),
 	(4, 3, 'SHORT-NU-001-GREY-L', 89000.00, 119000.00, NULL, 25, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:16:18.403', NULL, NULL, NULL, NULL, NULL),
 	(5, 4, 'TSHIRT-NAM-001-BLACK-L', 109000.00, 149000.00, NULL, 59, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:14:04.649', NULL, NULL, NULL, NULL, NULL),
 	(6, 4, 'TSHIRT-NAM-001-WHITE-XL', 109000.00, 149000.00, NULL, 30, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:14:04.650', NULL, NULL, NULL, NULL, NULL),
-	(7, 5, 'JEAN-NAM-001-BLACK-M', 249000.00, 299000.00, NULL, 10, 1, '2026-01-22 21:09:18.601', '2026-02-05 17:59:00.042', NULL, NULL, NULL, NULL, NULL),
+	(7, 5, 'JEAN-NAM-001-BLACK-M', 249000.00, 299000.00, NULL, 9, 1, '2026-01-22 21:09:18.601', '2026-02-11 03:52:25.682', NULL, NULL, NULL, NULL, NULL),
 	(8, 5, 'JEAN-NAM-001-GREY-L', 249000.00, 299000.00, NULL, 10, 1, '2026-01-22 21:09:18.601', '2026-02-05 16:32:39.014', NULL, NULL, NULL, NULL, NULL),
 	(9, 6, 'BAG-001-WHITE-M', 79000.00, 99000.00, NULL, 70, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:14:16.267', NULL, NULL, NULL, NULL, NULL),
 	(10, 6, 'BAG-001-BLACK-M', 79000.00, 99000.00, NULL, 55, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:14:16.268', NULL, NULL, NULL, NULL, NULL),
 	(11, 7, 'CAP-001-BLACK-M', 59000.00, 79000.00, NULL, 105, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:05:31.820', NULL, NULL, NULL, NULL, NULL),
 	(12, 7, 'CAP-001-WHITE-M', 59000.00, 79000.00, NULL, 65, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:05:31.822', NULL, NULL, NULL, NULL, NULL),
-	(13, 1, 'set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang', 75000.00, 94000.00, NULL, 100, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:16:03.295', NULL, NULL, NULL, NULL, NULL),
+	(13, 1, 'set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang', 75000.00, 94000.00, NULL, 88, 1, '2026-01-22 21:09:18.601', '2026-02-11 04:34:58.585', NULL, NULL, NULL, NULL, NULL),
 	(14, 8, 'DRESS-001-YELLOW-S', 350000.00, 450000.00, NULL, 10, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:08:58.673', NULL, NULL, NULL, NULL, NULL),
 	(15, 8, 'DRESS-001-YELLOW-M', 350000.00, 450000.00, NULL, 12, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:08:58.674', NULL, NULL, NULL, NULL, NULL),
 	(16, 9, 'JACKET-NAM-001-BLACK-L', 450000.00, 600000.00, NULL, 8, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:09:03.277', NULL, NULL, NULL, NULL, NULL),
@@ -1693,9 +1780,9 @@ CREATE TABLE IF NOT EXISTS `shipments` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `shipments_order_id_key` (`order_id`),
   CONSTRAINT `shipments_order_id_fkey` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.shipments: ~29 rows (approximately)
+-- Dumping data for table fashion_store.shipments: ~40 rows (approximately)
 INSERT INTO `shipments` (`id`, `order_id`, `carrier`, `tracking_code`, `status`, `shipped_at`, `delivered_at`, `created_at`) VALUES
 	(4, 122, NULL, NULL, 'pending', NULL, NULL, '2026-01-23 16:55:08.737'),
 	(5, 123, NULL, NULL, 'pending', NULL, NULL, '2026-01-26 03:54:22.044'),
@@ -1725,7 +1812,11 @@ INSERT INTO `shipments` (`id`, `order_id`, `carrier`, `tracking_code`, `status`,
 	(29, 147, NULL, NULL, 'pending', NULL, NULL, '2026-02-05 08:39:36.141'),
 	(30, 148, NULL, NULL, 'pending', NULL, NULL, '2026-02-05 17:51:11.568'),
 	(31, 149, NULL, NULL, 'pending', NULL, NULL, '2026-02-05 18:27:31.690'),
-	(32, 150, NULL, NULL, 'pending', NULL, NULL, '2026-02-05 18:33:09.236');
+	(32, 150, NULL, NULL, 'pending', NULL, NULL, '2026-02-05 18:33:09.236'),
+	(33, 151, NULL, NULL, 'pending', NULL, NULL, '2026-02-11 03:52:25.698'),
+	(34, 152, NULL, NULL, 'pending', NULL, NULL, '2026-02-11 04:03:05.536'),
+	(35, 153, NULL, NULL, 'pending', NULL, NULL, '2026-02-11 04:12:24.884'),
+	(36, 154, NULL, NULL, 'pending', NULL, NULL, '2026-02-11 04:17:40.815');
 
 -- Dumping structure for table fashion_store.shipping_addresses
 DROP TABLE IF EXISTS `shipping_addresses`;
@@ -1747,12 +1838,17 @@ CREATE TABLE IF NOT EXISTS `shipping_addresses` (
   PRIMARY KEY (`id`),
   KEY `idx_addr_user` (`user_id`),
   CONSTRAINT `shipping_addresses_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.shipping_addresses: ~2 rows (approximately)
+-- Dumping data for table fashion_store.shipping_addresses: ~7 rows (approximately)
 INSERT INTO `shipping_addresses` (`id`, `user_id`, `full_name`, `phone`, `address_line1`, `address_line2`, `city`, `province`, `country`, `postal_code`, `is_default`, `type`, `created_at`, `updated_at`) VALUES
 	(1, 59, 'Hoang customer', '0935818725', '321', NULL, '321', '123', 'VN', NULL, 1, 'Nhà riêng', '2026-01-29 08:12:58.937', '2026-01-29 09:29:21.083'),
-	(2, 59, 'bla', '0935818725', '321', NULL, '111', '111', 'VN', NULL, 0, 'Văn phòng', '2026-01-29 08:13:06.712', '2026-01-29 09:29:21.083');
+	(2, 59, 'bla', '0935818725', '321', NULL, '111', '111', 'VN', NULL, 0, 'Văn phòng', '2026-01-29 08:13:06.712', '2026-01-29 09:29:21.083'),
+	(3, 67, 'Receiver Name', '0909123456', '123 Test Street', NULL, 'Hanoi', 'Hanoi', 'VN', NULL, 1, 'Nhà riêng', '2026-02-11 04:34:58.337', '2026-02-11 04:34:58.337'),
+	(4, 71, 'Receiver Name', '0909123456', '123 Test Street', NULL, 'Hanoi', 'Hanoi', 'VN', NULL, 1, 'Nhà riêng', '2026-02-11 04:36:49.364', '2026-02-11 04:36:49.364'),
+	(5, 73, 'Receiver Name', '0909123456', '123 Test Street', NULL, 'Hanoi', 'Hanoi', 'VN', NULL, 1, 'Nhà riêng', '2026-02-11 04:37:18.086', '2026-02-11 04:37:18.086'),
+	(6, 75, 'Receiver Name', '0909123456', '123 Test Street', NULL, 'Hanoi', 'Hanoi', 'VN', NULL, 1, 'Nhà riêng', '2026-02-11 04:38:22.693', '2026-02-11 04:38:22.693'),
+	(7, 77, 'Receiver Name', '0909123456', '123 Test Street', NULL, 'Hanoi', 'Hanoi', 'VN', NULL, 1, 'Nhà riêng', '2026-02-11 04:38:47.065', '2026-02-11 04:38:47.065');
 
 -- Dumping structure for table fashion_store.shipping_methods
 DROP TABLE IF EXISTS `shipping_methods`;
@@ -1806,9 +1902,9 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `users_google_id_key` (`google_id`),
   KEY `idx_users_role` (`role`),
   CONSTRAINT `users_role_fkey` FOREIGN KEY (`role`) REFERENCES `permissions` (`name`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.users: ~57 rows (approximately)
+-- Dumping data for table fashion_store.users: ~74 rows (approximately)
 INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `full_name`, `phone`, `role`, `status`, `created_at`, `updated_at`, `address_line1`, `address_line2`, `city`, `country`, `province`, `avatar_url`, `google_id`, `two_factor_enabled`, `two_factor_expires`, `two_factor_otp`) VALUES
 	(2, 'khanh', 'khanh@example.com', '$2a$10$samplehashsamplehashsamplehashsamplehashsamplehashsampl', 'Khánh', '0900000002', 'customer', 'active', '2025-12-13 21:29:23.000', '2026-02-01 06:38:37.959', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 1, NULL, NULL),
 	(3, 'minh', 'minh@example.com', '$2a$10$samplehashsamplehashsamplehashsamplehashsamplehashsampl', 'Minh', '0900000003', 'customer', 'active', '2025-12-13 21:29:23.000', NULL, NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
@@ -1866,7 +1962,24 @@ INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `full_name`, `p
 	(55, 'user_49_7042', 'hung49@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Ngô Hùng', '0819943586', 'customer', 'active', '2025-04-28 14:14:05.631', '2026-01-23 05:03:37.052', '438 Nam Kỳ Khởi Nghĩa', 'Đống Đa', 'Bình Thạnh', 'VN', 'Hải Phòng', NULL, NULL, 0, NULL, NULL),
 	(56, 'user_50_7042', 'ha50@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Võ Hà', '0852308122', 'customer', 'active', '2025-04-20 18:03:45.701', '2026-01-23 05:03:37.052', '299 Pasteur', 'Tân Bình', 'Phú Nhuận', 'VN', 'Huế', NULL, NULL, 0, NULL, NULL),
 	(59, 'hoang1', 'hoangdra2004@gmail.com', '$2a$10$AzTRIS.cGb6JaQsZDPeRUeZAp9gGHDwFY3tjDBrYYWhWmDuLu4DqO', 'Hoang customer', '0935818725', 'staff', 'active', '2026-01-26 04:19:43.878', '2026-02-05 18:13:12.872', '321', NULL, '321', 'VN', '123', NULL, NULL, 0, NULL, NULL),
-	(60, 'tongvanhoang782004', 'tongvanhoang782004@gmail.com', NULL, 'Tống Văn Hoàng', '', 'customer', 'active', '2026-01-29 10:03:09.596', '2026-02-06 04:01:26.967', '', NULL, '', 'VN', '', 'http://localhost:4000/uploads/1769687593335-248426637.jpg', '113035088560920067892', 0, NULL, NULL);
+	(60, 'tongvanhoang782004', 'tongvanhoang782004@gmail.com', NULL, 'Tống Văn Hoàng', '', 'customer', 'active', '2026-01-29 10:03:09.596', '2026-02-06 04:01:26.967', '', NULL, '', 'VN', '', 'http://localhost:4000/uploads/1769687593335-248426637.jpg', '113035088560920067892', 0, NULL, NULL),
+	(61, 'qa_user_1770784173500', 'qa_1770784173500@example.com', '$2a$10$rGEcLc0Hs.ERH/BTx4NlNup92DtKO6S7F/9fSbBpyinWAnxzKEapi', 'QA Test User', NULL, 'customer', 'active', '2026-02-11 04:29:33.989', '2026-02-11 04:29:33.989', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(62, 'qa_user_1770784226678', 'qa_1770784226678@example.com', '$2a$10$CRsY0MczzqtphPWySdsW6ezEtwnd2abEmEyQD.cEEFmERVpCLinRS', 'QA Test User', NULL, 'customer', 'active', '2026-02-11 04:30:26.829', '2026-02-11 04:30:26.829', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(63, 'qa_user_1770784277092', 'qa_1770784277092@example.com', '$2a$10$2snqcTk5kdG4/NIb7OQ4M.hFB2oOP0JJlUJoOa/t6BMtwsYNfJcrO', 'QA Test User', NULL, 'customer', 'active', '2026-02-11 04:31:17.207', '2026-02-11 04:31:17.207', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(64, 'qa_user_1770784324212', 'qa_1770784324212@example.com', '$2a$10$/Ah/V7.Pnm89DCsLQ85/fO2EVo65qQ9XvFiNHZwhxP0t9eCyXRHVm', 'QA Test User', NULL, 'customer', 'active', '2026-02-11 04:32:04.336', '2026-02-11 04:32:04.336', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(65, 'qa_user_1770784356007', 'qa_1770784356007@example.com', '$2a$10$ykAO4crkQZvpWB78lG8ZBOMEoqixkXJzbvIXEvx3X.eqJT4nsBpBa', 'QA Test User', NULL, 'customer', 'active', '2026-02-11 04:32:36.143', '2026-02-11 04:32:36.143', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(66, 'qa_admin_1770784498046', 'qa_admin_1770784498046@example.com', '$2a$10$8kj61XTltIipIldAmsIPl.63thrhSRQj3WH1KBnXIJREC4mmuwLi.', 'QA Admin User', NULL, 'admin', 'active', '2026-02-11 04:34:58.176', '2026-02-11 04:34:58.192', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(67, 'qa_user_1770784498046', 'qa_1770784498046@example.com', '$2a$10$u8NIHGDg9L0AoQbGmxBiwubNWH54uSvIAZ5pw01aMfQR7G/TFF8bS', 'Receiver Name', '0909123456', 'customer', 'active', '2026-02-11 04:34:58.289', '2026-02-11 04:34:58.351', '123 Test Street', NULL, 'Hanoi', 'VN', 'Hanoi', NULL, NULL, 0, NULL, NULL),
+	(68, 'debug_user_1770784558699', 'debug_1770784558699@example.com', '$2a$10$p2NVNIFFYzdZGl1Nm9IsBOxBIOYKAAMXHIxwVZO3aHfzj02.wq65C', 'Debug User', NULL, 'customer', 'active', '2026-02-11 04:35:58.957', '2026-02-11 04:35:59.281', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(69, 'debug_admin_1770784558699', 'debug_admin_1770784558699@example.com', '$2a$10$jjd3sT.i9lwR3/1t4BqMc.sZbLfYhG4/GusfdJd9pGeCx3F6YTz/S', 'Debug Admin', NULL, 'admin', 'active', '2026-02-11 04:35:59.423', '2026-02-11 04:35:59.435', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(70, 'qa_admin_1770784609098', 'qa_admin_1770784609098@example.com', '$2a$10$5E9WsLfDZMKm0uXp7ikENOroCcXObdbIt/Fgxak0tmfhAGDRsTtPe', 'QA Admin User', NULL, 'admin', 'active', '2026-02-11 04:36:49.225', '2026-02-11 04:36:49.247', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(71, 'qa_user_1770784609098', 'qa_1770784609098@example.com', '$2a$10$V7O0rhO0pBp.xRqqsZkgveQMgQ65ZlYv44wTLgqNsMmPJhhsdt8Hu', 'Receiver Name', '0909123456', 'customer', 'active', '2026-02-11 04:36:49.329', '2026-02-11 04:36:49.525', '123 Test Street', NULL, 'Hanoi', 'VN', 'Hanoi', NULL, NULL, 0, NULL, NULL),
+	(72, 'qa_admin_1770784637750', 'qa_admin_1770784637750@example.com', '$2a$10$mzHPa5VJUmU3oENPxPaMAeEkHWwPkkV3z/PNuQJ6cu1ZuXEoXf3/K', 'QA Admin User', NULL, 'admin', 'active', '2026-02-11 04:37:17.915', '2026-02-11 04:37:17.944', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(73, 'qa_user_1770784637750', 'qa_1770784637750@example.com', '$2a$10$6TbCODO8YKUyW/VhlsRzCeKjcjXWWcRWC8cCr77XJEBm7Tc/eQaZe', 'Receiver Name', '0909123456', 'customer', 'active', '2026-02-11 04:37:18.041', '2026-02-11 04:37:18.289', '123 Test Street', NULL, 'Hanoi', 'VN', 'Hanoi', NULL, NULL, 0, NULL, NULL),
+	(74, 'qa_admin_1770784702225', 'qa_admin_1770784702225@example.com', '$2a$10$paEy6Z1rynfWrPM.CE3IOejkb/75cQ2jFxH6t6qYai6DNvq9qMOc.', 'QA Admin User', NULL, 'admin', 'active', '2026-02-11 04:38:22.422', '2026-02-11 04:38:22.439', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(75, 'qa_user_1770784702225', 'qa_1770784702225@example.com', '$2a$10$UBBKkjQRl9tcuuWf..nCIuu1lk1dCybOTIDwh7FeJBJEN4NdT5ZLi', 'Receiver Name', '0909123456', 'customer', 'active', '2026-02-11 04:38:22.612', '2026-02-11 04:38:23.023', '123 Test Street', NULL, 'Hanoi', 'VN', 'Hanoi', NULL, NULL, 0, NULL, NULL),
+	(76, 'qa_admin_1770784726616', 'qa_admin_1770784726616@example.com', '$2a$10$pWPoaimgiRgwRtoB3W3gEe5hZGahWguf2g8TuuEcL36lFLmdx6Tny', 'QA Admin User', NULL, 'admin', 'active', '2026-02-11 04:38:46.811', '2026-02-11 04:38:46.839', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(77, 'qa_user_1770784726616', 'qa_1770784726616@example.com', '$2a$10$0qOtwYQmLXBErkippt22D.KKF/PHhJIJOkOmVp.ML6fq9sFPkTvDG', 'Receiver Name', '0909123456', 'customer', 'active', '2026-02-11 04:38:46.987', '2026-02-11 04:38:47.380', '123 Test Street', NULL, 'Hanoi', 'VN', 'Hanoi', NULL, NULL, 0, NULL, NULL);
 
 -- Dumping structure for table fashion_store.variant_option_values
 DROP TABLE IF EXISTS `variant_option_values`;

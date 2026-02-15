@@ -124,13 +124,16 @@ export const importProducts = async (req: AuthRequest, res: Response, next: Next
     // @ts-ignore
     await workbook.xlsx.load(req.file.buffer);
 
-    const sheet = workbook.getWorksheet(1);
+    // Prefer the first worksheet tab
+    const sheet = workbook.worksheets[0];
     if (!sheet) {
       return res.status(400).json({
         success: false,
-        error: { message: 'File Excel không hợp lệ' }
+        error: { message: 'File Excel không có worksheet nào' }
       });
     }
+
+    console.log(`[Import] Processing sheet: "${sheet.name}". Workbook Sheet Count: ${workbook.worksheets.length}`);
 
     const results = {
       total: 0,
@@ -138,6 +141,8 @@ export const importProducts = async (req: AuthRequest, res: Response, next: Next
       updated: 0,
       errors: [] as { row: number; sku: string; error: string }[]
     };
+
+    console.log(`[Import] Starting import from file. Sheet count: ${workbook.worksheets.length}`);
 
     // Get all categories and brands for lookup
     const categories = await prisma.categories.findMany({ select: { id: true, name: true } });
@@ -155,40 +160,64 @@ export const importProducts = async (req: AuthRequest, res: Response, next: Next
       brandMap.set(String(b.id), b.id);
     });
 
-    // Process embedded images
+    // Process embedded images (Search ALL worksheets as fallback)
     const imageMap = new Map<number, string[]>();
-    const images = sheet.getImages();
     
-    if (images && images.length > 0) {
+    const allWorksheets = workbook.worksheets;
+    let totalImagesFound = 0;
+
+    for (const ws of allWorksheets) {
+      const images = (ws as any).getImages();
+      
+      if (!images || images.length === 0) continue;
+      
+      totalImagesFound += images.length;
+
       for (const image of images) {
         const imgId = parseInt(image.imageId, 10);
         const imgData = workbook.getImage(imgId);
         
         if (imgData && imgData.buffer) {
-           // Determine row number (nativeRow is 0-indexed, so +1 to match 1-based rowNumber)
-           // However, exceljs range might return slightly different structures depending on version.
-           // Usually range.tl.nativeRow is the way.
-           // @ts-ignore
-           const rowNumber = (image.range.tl?.nativeRow ?? -1) + 1;
+          const img: any = image;
+          let nativeRow = -1;
 
-           if (rowNumber > 1) { // Skip header row images
-             const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
-             const ext = imgData.extension || 'png';
-             const filename = `import-${uniqueSuffix}.${ext}`;
-             const filePath = path.join(uploadsDir, filename);
+          // Row detection - check all possible properties
+          if (img.range && img.range.tl && typeof img.range.tl.nativeRow === 'number') {
+            nativeRow = img.range.tl.nativeRow;
+          } else if (img.range && typeof img.range.nativeRow === 'number') {
+            nativeRow = img.range.nativeRow;
+          } else if (img.anchor && typeof img.anchor.nativeRow === 'number') {
+            nativeRow = img.anchor.nativeRow;
+          } else if (img.anchor && img.anchor.tl && typeof img.anchor.tl.nativeRow === 'number') {
+            nativeRow = img.anchor.tl.nativeRow;
+          }
 
-             fs.writeFileSync(filePath, Buffer.from(imgData.buffer));
+          if (nativeRow >= 0) {
+             const rowNumber = nativeRow + 1;
+             
+             if (rowNumber > 1) {
+               const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+               const ext = imgData.extension || 'png';
+               const filename = `import-${uniqueSuffix}.${ext}`;
+               const filePath = path.join(uploadsDir, filename);
 
-             const baseUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 4000}`;
-             const fileUrl = `${baseUrl}/uploads/${filename}`;
+               fs.writeFileSync(filePath, Buffer.from(imgData.buffer));
 
-             if (!imageMap.has(rowNumber)) {
-               imageMap.set(rowNumber, []);
+               const fileUrl = `/uploads/${filename}`;
+               console.log(`[Import] Saved embedded image for Row ${rowNumber}: ${fileUrl}`);
+
+               if (!imageMap.has(rowNumber)) {
+                 imageMap.set(rowNumber, []);
+               }
+               imageMap.get(rowNumber)?.push(fileUrl);
              }
-             imageMap.get(rowNumber)?.push(fileUrl);
-           }
+          }
         }
       }
+    }
+    
+    if (totalImagesFound > 0) {
+      console.log(`[Import] Total embedded images recognized: ${totalImagesFound}`);
     }
 
     // Skip header row
@@ -263,7 +292,7 @@ const getCellValue = (value: any): string => {
 
         // Check if product exists
         const existingProduct = await prisma.products.findFirst({
-          where: { sku }
+          where: { sku: { equals: sku } }
         });
 
         const productData = {
@@ -296,59 +325,48 @@ const getCellValue = (value: any): string => {
           results.created++;
         }
 
-        // Handle Images (Both generic URLs and embedded images)
         const embeddedImages = imageMap.get(rowNumber) || [];
         const stringImages = imagesStr ? imagesStr.split(',').map(url => url.trim()).filter(url => url) : [];
         const allImageUrls = [...stringImages, ...embeddedImages];
+        console.log(`[Import] Row ${rowNumber} (${sku}): Found ${embeddedImages.length} embedded images, ${stringImages.length} URL images`);
         
         if (allImageUrls.length > 0) {
-            let startSortOrder = 0;
+            // 1. DEDUPLICATE INPUT
+            const uniqueInputUrls = [...new Set(allImageUrls)];
 
+            // Helper to normalize URLs for comparison (remove protocol and host)
+            const normalizeUrl = (url: string) => {
+              if (!url) return '';
+              // For local uploads, strip domain for portability
+              if (url.includes('/uploads/')) {
+                  return url.substring(url.indexOf('/uploads/'));
+              }
+              // For external, just clean up trailing slash
+              return url.replace(/\/$/, '');
+            };
+
+            // SYNC LOGIC: If images are provided in Excel, we treat Excel as the source of truth.
+            // We delete existing images and replace them with the ones from the file.
             if (existingProduct) {
-              // 1. Get existing URLs to prevent duplicates
-              const existingImages = await prisma.product_images.findMany({
-                where: { product_id: productId },
-                select: { url: true }
+              await prisma.product_images.deleteMany({
+                where: { product_id: productId }
               });
-              const existingUrlSet = new Set(existingImages.map(img => img.url));
+            }
 
-              // 2. Filter out duplicates from input AND existing DB
-              const uniqueNewUrls = [...new Set(allImageUrls)].filter(url => !existingUrlSet.has(url));
-
-              if (uniqueNewUrls.length > 0) {
-                // Get current max sort order to append
-                const maxSortOrder = await prisma.product_images.aggregate({
-                  where: { product_id: productId },
-                  _max: { sort_order: true }
-                });
-                const startSortOrder = (maxSortOrder._max.sort_order ?? -1) + 1;
-                
-                await prisma.product_images.createMany({
-                  data: uniqueNewUrls.map((url, index) => ({
-                    product_id: productId,
-                    url: url,
-                    is_primary: false, // Appended images are never primary
-                    sort_order: startSortOrder + index
-                  }))
-                });
-              }
-            } else {
-              // For new products, just self-deduplicate
-              const uniqueUrls = [...new Set(allImageUrls)];
-              if (uniqueUrls.length > 0) {
-                await prisma.product_images.createMany({
-                  data: uniqueUrls.map((url, index) => ({
-                    product_id: productId,
-                    url: url,
-                    is_primary: index === 0,
-                    sort_order: index
-                  }))
-                });
-              }
+            if (uniqueInputUrls.length > 0) {
+              await prisma.product_images.createMany({
+                data: uniqueInputUrls.map((url, index) => ({
+                  product_id: productId,
+                  url: normalizeUrl(url),
+                  is_primary: index === 0,
+                  sort_order: index
+                }))
+              });
             }
         }
 
       } catch (rowError: any) {
+        console.error(`[Import] Error processing Row ${rowNumber} (SKU: ${values[1] || 'N/A'}):`, rowError);
         results.errors.push({ 
           row: rowNumber, 
           sku: String(values[1] || 'N/A'), 

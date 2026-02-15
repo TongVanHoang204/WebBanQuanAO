@@ -1,163 +1,100 @@
 import { Request, Response } from 'express';
 import fetch from 'node-fetch';
 
-const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || '';
-const RAPIDAPI_HOST = process.env.RAPIDAPI_HOST || 'google-map-places-new-v2.p.rapidapi.com';
-const BASE_URL = `https://${RAPIDAPI_HOST}`;
+const GOONG_BASE_URL = 'https://rsapi.goong.io';
 
-// Autocomplete - Get address suggestions
+// Autocomplete - Get address suggestions using Goong API
 export const autocomplete = async (req: Request, res: Response) => {
   try {
-    const { input, lat, lng } = req.body;
+    const { lat, lng } = req.body;
+    const input = req.body.input || req.body.query;
+    const apiKey = process.env.GOONG_API_KEY || '';
 
     if (!input || input.length < 2) {
       return res.status(400).json({ success: false, message: 'Input must be at least 2 characters' });
     }
 
-    const response = await fetch(`${BASE_URL}/v1/places:autocomplete`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-FieldMask': '*',
-        'x-rapidapi-host': RAPIDAPI_HOST,
-        'x-rapidapi-key': RAPIDAPI_KEY
-      },
-      body: JSON.stringify({
-        input: input,
-        locationBias: lat && lng ? {
-          circle: {
-            center: { latitude: lat, longitude: lng },
-            radius: 50000 // 50km radius
-          }
-        } : {
-          circle: {
-            center: { latitude: 10.8231, longitude: 106.6297 }, // Default: HCM
-            radius: 100000
-          }
-        },
-        includedRegionCodes: ['VN'], // Vietnam only
-        languageCode: 'vi',
-        regionCode: 'VN',
-        includeQueryPredictions: true
-      })
-    });
+    let url = `${GOONG_BASE_URL}/Place/AutoComplete?api_key=${apiKey}&input=${encodeURIComponent(input)}`;
+    if (lat && lng) {
+      url += `&location=${lat},${lng}&radius=50`; // 50km radius bias
+    }
 
-    const data = await response.json();
+    const response = await fetch(url);
+    const data = await response.json() as any;
+
+    if (data.status !== 'OK' && data.predictions === undefined) {
+         throw new Error(data.error_message || 'Goong API Error');
+    }
     
-    // Format response for frontend
-    const suggestions = (data as any).suggestions?.map((s: any) => ({
-      placeId: s.placePrediction?.placeId || s.placeId,
-      description: s.placePrediction?.text?.text || s.description || '',
-      mainText: s.placePrediction?.structuredFormat?.mainText?.text || '',
-      secondaryText: s.placePrediction?.structuredFormat?.secondaryText?.text || ''
-    })).filter((s: any) => s.placeId) || [];
+    // Format response for frontend to match previous Google Places structure
+    const suggestions = (data.predictions || []).map((s: any) => ({
+      placeId: s.place_id,
+      description: s.description,
+      mainText: s.structured_formatting.main_text,
+      secondaryText: s.structured_formatting.secondary_text
+    }));
 
     res.json({ success: true, data: suggestions });
   } catch (error: any) {
-    console.error('Places autocomplete error:', error);
+    console.error('Goong places autocomplete error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Get place details (lat/lng, formatted address)
+// Get place details (lat/lng, formatted address) using Goong API
 export const getPlaceDetails = async (req: Request, res: Response) => {
   try {
     const { placeId } = req.params;
+    const apiKey = process.env.GOONG_API_KEY || '';
 
     if (!placeId) {
       return res.status(400).json({ success: false, message: 'Place ID is required' });
     }
 
-    const response = await fetch(`${BASE_URL}/v1/places/${placeId}`, {
-      method: 'GET',
-      headers: {
-        'X-Goog-FieldMask': 'displayName,formattedAddress,location,addressComponents',
-        'x-rapidapi-host': RAPIDAPI_HOST,
-        'x-rapidapi-key': RAPIDAPI_KEY
-      }
-    });
-
+    const url = `${GOONG_BASE_URL}/Place/Detail?api_key=${apiKey}&place_id=${placeId}`;
+    const response = await fetch(url);
     const data = await response.json() as any;
 
-    // Extract address components
-    const addressComponents = data.addressComponents || [];
-    const getComponent = (type: string) => {
-      const comp = addressComponents.find((c: any) => c.types?.includes(type));
-      return comp?.longText || comp?.shortText || '';
-    };
+    if (data.status !== 'OK' && data.result === undefined) {
+         throw new Error(data.error_message || 'Goong API Error');
+    }
+
+    const result = data.result;
+
+    // Extract address components (Goong structure differs slightly but similar concept)
+    // Goong doesn't return nice address_components array in Detail API usually, mostly compound address.
+    // However, if it does, we map it best effort.
+    // Usually rely on formatted_address and name.
 
     res.json({
       success: true,
       data: {
         placeId,
-        name: data.displayName?.text || '',
-        formattedAddress: data.formattedAddress || '',
+        name: result.name || '',
+        formattedAddress: result.formatted_address || '',
         location: {
-          lat: data.location?.latitude || 0,
-          lng: data.location?.longitude || 0
+          lat: result.geometry?.location?.lat || 0,
+          lng: result.geometry?.location?.lng || 0
         },
+        // Goong might not provide detailed components in all tiers, pass what's available
+        // Frontend will use string matching for mapping if components missing
         components: {
-          streetNumber: getComponent('street_number'),
-          route: getComponent('route'),
-          ward: getComponent('sublocality_level_1') || getComponent('sublocality'),
-          district: getComponent('administrative_area_level_2'),
-          province: getComponent('administrative_area_level_1'),
-          country: getComponent('country'),
-          postalCode: getComponent('postal_code')
+            province: result.compound?.province || '',
+            district: result.compound?.district || '',
+            ward: result.compound?.commune || ''
         }
       }
     });
   } catch (error: any) {
-    console.error('Places details error:', error);
+    console.error('Goong places details error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Search places by text
+// Search places by text - Reusing Autocomplete for basic text search in Goong
 export const searchPlaces = async (req: Request, res: Response) => {
-  try {
-    const { query, lat, lng } = req.body;
-
-    if (!query) {
-      return res.status(400).json({ success: false, message: 'Query is required' });
-    }
-
-    const response = await fetch(`${BASE_URL}/v1/places:searchText`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location',
-        'x-rapidapi-host': RAPIDAPI_HOST,
-        'x-rapidapi-key': RAPIDAPI_KEY
-      },
-      body: JSON.stringify({
-        textQuery: query,
-        languageCode: 'vi',
-        regionCode: 'VN',
-        maxResultCount: 5,
-        locationBias: lat && lng ? {
-          circle: {
-            center: { latitude: lat, longitude: lng },
-            radius: 50000
-          }
-        } : undefined
-      })
-    });
-
-    const data = await response.json() as any;
-
-    const places = data.places?.map((p: any) => ({
-      name: p.displayName?.text || '',
-      formattedAddress: p.formattedAddress || '',
-      location: {
-        lat: p.location?.latitude || 0,
-        lng: p.location?.longitude || 0
-      }
-    })) || [];
-
-    res.json({ success: true, data: places });
-  } catch (error: any) {
-    console.error('Places search error:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
+    // Goong doesn't have a distinct "Text Search" like Google. 
+    // Autocomplete is the primary search method.
+    // For specific nearby search we could use /Place/Search but Autocomplete is usually enough for this UI.
+    return autocomplete(req, res);
 };

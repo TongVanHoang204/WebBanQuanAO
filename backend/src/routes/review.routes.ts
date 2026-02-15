@@ -7,44 +7,29 @@ import {
   deleteReview,
   bulkDeleteReviews,
   getPublicReviews,
-  createReview
+  createReview,
+  markHelpful,
+  unmarkHelpful
 } from '../controllers/review.controller.js';
 import { verifyToken, optionalAuth, authorize } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-// Public routes
-/**
- * @swagger
- * tags:
- *   name: Reviews
- *   description: Product reviews management
- */
+// Public route to view
+router.get('/product/:id', optionalAuth, getPublicReviews);
 
-/**
- * @swagger
- * /reviews/product/{id}:
- *   get:
- *     summary: Get product reviews
- *     tags: [Reviews]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: List of reviews
- */
-router.get('/product/:id', getPublicReviews);
+// Like/Unlike review (Require login)
+router.post('/:id/helpful', verifyToken, markHelpful);
+router.delete('/:id/helpful', verifyToken, unmarkHelpful);
 
 /**
  * @swagger
  * /reviews:
  *   post:
- *     summary: Create new review
+ *     summary: Create new review (Requires login and purchase)
  *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       content:
  *         application/json:
@@ -61,7 +46,7 @@ router.get('/product/:id', getPublicReviews);
  *       201:
  *         description: Review created
  */
-router.post('/', optionalAuth, createReview);
+router.post('/', verifyToken, createReview);
 
 // All admin routes require authentication
 router.use(verifyToken);

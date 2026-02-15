@@ -52,15 +52,17 @@ npm run dev
 
 ## 🐳 Docker Deployment
 
+Chi tiết xem tại [Hướng dẫn triển khai (Docker)](./README_DEPLOY.md).
+
 ```bash
 # Chạy toàn bộ stack
-docker-compose up -d
+docker-compose up --build -d
 
 # Xem logs
 docker-compose logs -f
 ```
 
-Truy cập: http://localhost:3000
+Truy cập: http://localhost:8082
 
 ## 📁 Project Structure
 

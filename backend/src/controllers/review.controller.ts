@@ -260,10 +260,23 @@ export const bulkDeleteReviews = async (req: AuthRequest, res: Response, next: N
  * Get public reviews for a product
  * GET /api/reviews/product/:id
  */
-export const getPublicReviews = async (req: Request, res: Response, next: NextFunction) => {
+export const getPublicReviews = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const { page = '1', limit = '10', sort = 'newest' } = req.query;
+
+    if (!req.user) {
+      return res.json({
+        success: true,
+        data: {
+          reviews: [],
+          requiresLogin: true,
+          pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
+          stats: { average: 0, total: 0, distribution: {} }
+        },
+        message: 'Vui lòng đăng nhập để xem đánh giá sản phẩm'
+      });
+    }
     
     const pageNum = Math.max(1, parseInt(page as string));
     const limitNum = Math.min(50, Math.max(1, parseInt(limit as string)));
@@ -357,8 +370,15 @@ export const getPublicReviews = async (req: Request, res: Response, next: NextFu
  */
 export const createReview = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { product_id, rating, title, content, author_name } = req.body;
-    const userId = req.user?.id; // Optional if we allow guest reviews, but better to enforce auth or require author_name
+    const { product_id, rating, title, content } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Vui lòng đăng nhập để đánh giá' }
+      });
+    }
 
     if (!product_id || !rating || !content) {
       return res.status(400).json({
@@ -367,19 +387,22 @@ export const createReview = async (req: AuthRequest, res: Response, next: NextFu
       });
     }
 
-    // If user is logged in, check if they purchased the product to mark verified
-    let is_verified = false;
-    if (userId) {
-      const purchase = await prisma.order_items.findFirst({
-        where: {
-          product_id: BigInt(product_id),
-          order: {
-            user_id: userId,
-            status: 'completed'
-          }
+    // Strictly check if user purchased the product
+    const purchase = await prisma.order_items.findFirst({
+      where: {
+        product_id: BigInt(product_id),
+        order: {
+          user_id: userId,
+          status: 'completed'
         }
+      }
+    });
+
+    if (!purchase) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Bạn chỉ có thể đánh giá sản phẩm đã mua và đơn hàng đã hoàn tất' }
       });
-      if (purchase) is_verified = true;
     }
 
     const review = await prisma.product_reviews.create({
@@ -389,9 +412,9 @@ export const createReview = async (req: AuthRequest, res: Response, next: NextFu
         rating: Number(rating),
         title,
         content,
-        author_name: author_name || req.user?.full_name || 'Khách hàng',
+        author_name: req.user?.full_name || 'Khách hàng',
         status: 'pending', // Default pending moderation
-        is_verified
+        is_verified: true
       }
     });
 
@@ -399,6 +422,57 @@ export const createReview = async (req: AuthRequest, res: Response, next: NextFu
       success: true,
       data: serialize(review),
       message: 'Cảm ơn đánh giá của bạn! Đánh giá sẽ hiển thị sau khi được duyệt.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+/**
+ * Mark review as helpful
+ * POST /api/reviews/:id/helpful
+ */
+export const markHelpful = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    // TODO: Ideally we should track who liked to allow toggling.
+    // For now, just increment.
+    const review = await prisma.product_reviews.update({
+      where: { id: BigInt(id as string) },
+      data: {
+        helpful_count: { increment: 1 }
+      }
+    });
+
+    res.json({
+      success: true,
+      data: { helpful_count: review.helpful_count },
+      message: 'Đã thích đánh giá'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Unmark review as helpful (Unlike)
+ * DELETE /api/reviews/:id/helpful
+ */
+export const unmarkHelpful = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    const review = await prisma.product_reviews.update({
+      where: { id: BigInt(id as string) },
+      data: {
+        helpful_count: { decrement: 1 }
+      }
+    });
+
+    res.json({
+      success: true,
+      data: { helpful_count: review.helpful_count },
+      message: 'Đã bỏ thích đánh giá'
     });
   } catch (error) {
     next(error);

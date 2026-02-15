@@ -16,6 +16,7 @@ import {
 import toast from 'react-hot-toast';
 import { useCart } from '../contexts/CartContext';
 import { formatPrice } from '../hooks/useShop';
+import { toMediaUrl } from '../services/api';
 
 export default function CartPage() {
   const { cart, updateQuantity, removeItem, clearCart } = useCart();
@@ -128,7 +129,7 @@ export default function CartPage() {
                       className="w-24 h-24 sm:w-32 sm:h-32 bg-secondary-50 dark:bg-secondary-800 rounded-xl overflow-hidden flex-shrink-0 border border-secondary-100 dark:border-secondary-700"
                     >
                       <img
-                        src={item.product?.image || '/placeholder.jpg'}
+                        src={toMediaUrl(item.product?.image || '/placeholder.jpg')}
                         alt={item.product?.name || 'Product'}
                         className="w-full h-full object-cover"
                       />

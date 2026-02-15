@@ -8,7 +8,11 @@ export interface Product {
   description: string | null;
   base_price: number;
   compare_at_price: number | null;
+  stock_qty: number;
   is_active: boolean;
+  rating_avg?: number;
+  rating_count?: number;
+  sold_count?: number;
   created_at: string;
   updated_at: string | null;
   category?: Category;

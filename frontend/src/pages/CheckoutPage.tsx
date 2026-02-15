@@ -5,7 +5,7 @@ import { Loader2, Check, CreditCard, Truck, MapPin, Building2, AlertTriangle } f
 import toast from 'react-hot-toast';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { authAPI, ordersAPI, paymentAPI, couponsAPI, settingsAPI } from '../services/api';
+import { authAPI, ordersAPI, paymentAPI, couponsAPI, settingsAPI, toMediaUrl } from '../services/api';
 import { formatPrice } from '../hooks/useShop';
 import AddressSelector from '../components/common/AddressSelector';
 
@@ -314,7 +314,7 @@ export default function CheckoutPage() {
                 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="label">Họ tên *</label>
+                    <label className="block text-sm font-medium mb-2 pl-2">Họ tên *</label>
                     <input
                       type="text"
                       name="customer_name"
@@ -325,7 +325,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="label">Email (để nhận đơn hàng)</label>
+                    <label className="block text-sm font-medium mb-2 pl-2">Email (để nhận đơn hàng)</label>
                     <input
                       type="email"
                       name="email"
@@ -336,7 +336,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="label">Số điện thoại *</label>
+                    <label className="block text-sm font-medium mb-2 pl-2">Số điện thoại *</label>
                     <input
                       type="tel"
                       name="customer_phone"
@@ -353,7 +353,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="label">Địa chỉ *</label>
+                    <label className="block text-sm font-medium mb-2 pl-2">Địa chỉ *</label>
                     <input
                       type="text"
                       name="ship_address_line1"
@@ -381,12 +381,12 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="label">Ghi chú</label>
+                    <label className="block text-sm font-medium mb-2 pl-2">Ghi chú</label>
                     <textarea
                       name="note"
                       value={formData.note}
                       onChange={handleChange}
-                      className="input"
+                      className="input !rounded-2xl px-4 py-3"
                       rows={3}
                       placeholder="Ghi chú cho đơn hàng (tùy chọn)"
                     />
@@ -518,7 +518,7 @@ export default function CheckoutPage() {
                   {cart.items.map((item) => (
                     <div key={item.id} className="flex gap-3">
                       <img
-                        src={item.product.image || '/placeholder.jpg'}
+                        src={toMediaUrl(item.product.image || '/placeholder.jpg')}
                         alt={item.product.name}
                         className="w-16 h-16 object-cover rounded"
                       />

@@ -169,7 +169,7 @@ export default function Header() {
                     className="flex items-center gap-3 p-3 hover:bg-secondary-50 dark:hover:bg-secondary-700 transition-colors"
                   >
                     <img
-                      src={product.product_images?.[0]?.url || '/placeholder.jpg'}
+                      src={toMediaUrl(product.product_images?.[0]?.url || '/placeholder.jpg')}
                       alt={product.name}
                       className="w-12 h-12 object-cover rounded"
                     />
@@ -255,7 +255,7 @@ export default function Header() {
               >
                 {user?.avatar_url ? (
                   <img 
-                    src={user.avatar_url} 
+                    src={toMediaUrl(user.avatar_url)} 
                     alt={user.full_name || user.username} 
                     className="w-6 h-6 rounded-full object-cover"
                   />
@@ -275,7 +275,7 @@ export default function Header() {
                       <div className="p-4 border-b dark:border-secondary-700 flex items-center gap-3">
                         {user?.avatar_url ? (
                           <img 
-                            src={user.avatar_url} 
+                            src={toMediaUrl(user.avatar_url)} 
                             alt={user?.full_name || user?.username} 
                             className="w-10 h-10 rounded-full object-cover border border-secondary-200 dark:border-secondary-600"
                           />

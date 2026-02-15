@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const checkoutSchema = z.object({
   customer_name: z.string().min(1, 'Customer name is required').max(200),
   email: z.string().email('Email is invalid').optional().or(z.literal('')),
-  customer_phone: z.string().min(1, 'Phone is required').max(30),
+  customer_phone: z.string().min(1, 'Phone is required').max(15).regex(/^(0|\+84)(3|5|7|8|9)[0-9]{8}$/, 'Số điện thoại không hợp lệ'),
   ship_address_line1: z.string().min(1, 'Address is required').max(255),
   ship_address_line2: z.string().max(255).optional(),
   ship_city: z.string().min(1, 'City is required').max(120),

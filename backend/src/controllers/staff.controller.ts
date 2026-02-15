@@ -144,6 +144,14 @@ export const createStaff = async (req: AuthRequest, res: Response, next: NextFun
       });
     }
 
+    // RESTRICTION: Only Admin can create new users (Staff/Manager/Admin)
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Chỉ có Admin mới có quyền thêm nhân viên mới' }
+      });
+    }
+
     // Check existing
     const existing = await prisma.users.findFirst({
       where: {
@@ -273,6 +281,20 @@ export const updateStaff = async (req: AuthRequest, res: Response, next: NextFun
       }
     }
 
+    // SAME-ROLE PROTECTION: Admin cannot update another admin
+    // Only Super Admin (ID 1 or 6) can update users of equal/higher role
+    const isSuperAdmin = req.user?.id && (BigInt(req.user.id) === BigInt(1) || BigInt(req.user.id) === BigInt(6));
+    const isSelf = req.user?.id && (BigInt(req.user.id) === existing.id);
+    const targetRole = (existing.role || '').toLowerCase();
+
+    // STRICT RULE: If target is Admin/Manager, only Super Admin (or Self) can touch it.
+    if ((targetRole === 'admin' || targetRole === 'manager') && !isSuperAdmin && !isSelf) {
+         return res.status(403).json({
+            success: false,
+            error: { message: 'Bạn không có quyền thay đổi thông tin của quản trị viên/quản lý khác.' }
+         });
+    }
+
     // Update password if provided
     if (password) {
       updateData.password_hash = await bcrypt.hash(password, 10);
@@ -360,15 +382,14 @@ export const deleteStaff = async (req: AuthRequest, res: Response, next: NextFun
       });
     }
 
-    // SAME-ROLE PROTECTION: Cannot delete staff with same role
-    // Only Super Admin (ID 1 or 6) can delete users of equal role
-    const currentUserRole = req.user?.role;
+    // STRICT PROTECTION: Cannot delete Admin/Manager unless Super Admin
     const isSuperAdmin = req.user?.id && (BigInt(req.user.id) === BigInt(1) || BigInt(req.user.id) === BigInt(6));
+    const targetRole = (staff.role || '').toLowerCase();
     
-    if (!isSuperAdmin && currentUserRole === staff.role) {
+    if ((targetRole === 'admin' || targetRole === 'manager') && !isSuperAdmin) {
       return res.status(403).json({
         success: false,
-        error: { message: `Bạn không thể xóa nhân viên cùng cấp (${staff.role}). Chỉ Super Admin mới có quyền này.` }
+        error: { message: `Bạn không thể xóa quản trị viên/quản lý (${staff.role}). Chỉ Super Admin mới có quyền này.` }
       });
     }
 
