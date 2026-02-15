@@ -7,7 +7,8 @@ import {
   Monitor
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { resolveApiUrl } from '../../../services/api';
+import { resolveApiUrl, adminAPI } from '../../../services/api';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 interface Log {
   id: string;
@@ -113,6 +114,52 @@ export default function ActivityLogPage() {
           Theo dõi các thay đổi trong hệ thống
         </p>
       </div>
+
+      {/* AI Anomaly Detection */}
+      <AIInsightPanel
+        title="🔍 AI Phân tích & Phát hiện bất thường"
+        cacheKey="log_anomaly"
+        onAnalyze={async () => {
+          const res = await adminAPI.aiLogAnalyze();
+          return res.data.data;
+        }}
+        type="custom"
+        renderContent={(data: any) => (
+          <div className="space-y-3">
+            {data.summary && <p className="text-sm text-secondary-700 dark:text-secondary-300">{data.summary}</p>}
+            {data.anomalies && data.anomalies.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-red-500 uppercase mb-1">⚠️ Bất thường phát hiện</p>
+                <ul className="space-y-1">
+                  {data.anomalies.map((a: any, i: number) => (
+                    <li key={i} className="text-sm text-red-600 dark:text-red-400 flex items-start gap-1">
+                      <span className="shrink-0">•</span> {typeof a === 'string' ? a : a.description || a.type || JSON.stringify(a)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {data.top_users && data.top_users.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-secondary-500 uppercase mb-1">Người dùng hoạt động nhiều nhất</p>
+                <div className="flex flex-wrap gap-2">
+                  {data.top_users.map((u: any, i: number) => (
+                    <span key={i} className="px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded text-xs">
+                      {u.name || u.username}: {u.count} thao tác
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {data.recommendations && (
+              <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-1">💡 Khuyến nghị</p>
+                <p className="text-sm text-secondary-700 dark:text-secondary-300">{typeof data.recommendations === 'string' ? data.recommendations : Array.isArray(data.recommendations) ? data.recommendations.map((r: any) => typeof r === 'string' ? r : r.description || r.text || JSON.stringify(r)).join(', ') : JSON.stringify(data.recommendations)}</p>
+              </div>
+            )}
+          </div>
+        )}
+      />
 
       {/* Filters */}
       <div className="bg-white dark:bg-secondary-800 rounded-xl p-4 shadow-sm border border-secondary-200 dark:border-secondary-700">

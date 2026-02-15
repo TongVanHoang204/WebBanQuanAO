@@ -15,7 +15,8 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { resolveApiUrl } from '../../../services/api';
+import { resolveApiUrl, adminAPI } from '../../../services/api';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 interface Banner {
   id: string;
@@ -303,6 +304,49 @@ export default function BannerListPage() {
           <button key={key} onClick={() => setPositionFilter(key)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${positionFilter === key ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-300'}`}>{label}</button>
         ))}
       </div>
+
+      {/* AI Banner Copy Generator */}
+      <AIInsightPanel
+        title="✨ AI Tạo nội dung Banner"
+        onAnalyze={async () => {
+          const res = await adminAPI.aiBannerCopy(positionFilter || undefined);
+          return res.data.data;
+        }}
+        type="custom"
+        renderContent={(data: any) => (
+          <div className="space-y-3">
+            {data.summary && <p className="text-sm text-secondary-700 dark:text-secondary-300 mb-2">{data.summary}</p>}
+            {data.variations && data.variations.length > 0 ? (
+              <div className="grid gap-3">
+                {data.variations.map((v: any, i: number) => (
+                  <div key={i} className="p-3 bg-white dark:bg-secondary-900 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                    <p className="font-bold text-secondary-900 dark:text-white text-lg">{v.headline}</p>
+                    <p className="text-secondary-500 dark:text-secondary-400 text-sm mt-1">{v.subtext}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="px-3 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-xs font-medium">
+                        {v.cta || 'Mua ngay'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${v.headline}\n${v.subtext}\n${v.cta || ''}`);
+                          toast.success('Đã copy nội dung');
+                        }}
+                        className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                      >
+                        📋 Copy
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-secondary-600 dark:text-secondary-300">{typeof data === 'string' ? data : JSON.stringify(data)}</p>
+            )}
+            {data.tips && <p className="text-xs text-secondary-400 italic mt-2">💡 {data.tips}</p>}
+          </div>
+        )}
+      />
 
       {/* Form Modal */}
       {showForm && (

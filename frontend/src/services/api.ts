@@ -337,6 +337,19 @@ export const adminAPI = {
   chat: (messages: { role: string; content: string }[]) => api.post('/admin/ai/chat', { messages }),
   generate: (prompt: string, type: 'product_description' | 'seo_meta' | 'chat_reply' = 'product_description') => 
     api.post('/admin/ai/generate', { prompt, type }),
+
+  // AI Analysis Features
+  aiDashboardInsight: () => api.post('/admin/ai/dashboard-insight'),
+  aiReviewAnalyze: (reviewIds?: string[]) => api.post('/admin/ai/review-analyze', { reviewIds }),
+  aiAnalyticsNarrative: (startDate: string, endDate: string) => api.post('/admin/ai/analytics-narrative', { startDate, endDate }),
+  aiCouponSuggest: () => api.post('/admin/ai/coupon-suggest'),
+  aiCustomerAnalyze: () => api.post('/admin/ai/customer-analyze'),
+  aiOrderAnalyze: (orderId: string) => api.post('/admin/ai/order-analyze', { orderId }),
+  aiLogAnalyze: (query?: string) => api.post('/admin/ai/log-analyze', { query }),
+  aiBannerCopy: (context?: string) => api.post('/admin/ai/banner-copy', { context }),
+  aiStaffAnalyze: () => api.post('/admin/ai/staff-analyze'),
+  aiProductContent: (name: string, category?: string, brand?: string, price?: number) =>
+    api.post('/admin/ai/product-content', { name, category, brand, price }),
 };
 
 // Notifications API (Common for all users)

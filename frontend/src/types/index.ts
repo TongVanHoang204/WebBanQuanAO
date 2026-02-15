@@ -228,6 +228,8 @@ export interface ChatMessage {
   content: string;
   products?: ChatProduct[];
   orders?: ChatOrder[];
+  quickReplies?: string[];
+  isTyping?: boolean;
   timestamp: Date;
 }
 
@@ -238,6 +240,8 @@ export interface ChatProduct {
   price: number;
   image: string | null;
   stock_qty: number;
+  category?: string;
+  is_new?: boolean;
 }
 
 export interface ChatOrder {
@@ -246,6 +250,7 @@ export interface ChatOrder {
   total: string; // Formatted price
   date: string;
   items: string;
+  timeline?: { step: string; completed: boolean; current: boolean }[];
 }
 
 // Banner Types

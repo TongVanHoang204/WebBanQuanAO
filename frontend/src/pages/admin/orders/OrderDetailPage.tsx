@@ -11,9 +11,12 @@ import {
   CheckCircle,
   XCircle,
   Edit3,
-  Save
+  Save,
+  ShieldAlert,
+  AlertTriangle
 } from 'lucide-react';
 import { adminAPI, toMediaUrl } from '../../../services/api';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 import { formatPrice } from '../../../hooks/useShop';
 import toast from 'react-hot-toast';
 
@@ -253,6 +256,59 @@ export default function OrderDetailPage() {
               ))}
             </div>
           </div>
+
+          {/* AI Fraud Detection */}
+          <AIInsightPanel
+            title="🛡️ AI Phát hiện gian lận"
+            cacheKey={`order_fraud_${id}`}
+            onAnalyze={async () => {
+              const res = await adminAPI.aiOrderAnalyze(id!);
+              return res.data.data;
+            }}
+            type="custom"
+            renderContent={(data: any) => (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${
+                    data.risk_level === 'high' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
+                    data.risk_level === 'medium' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                    'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                  }`}>
+                    {data.risk_level === 'high' ? <AlertTriangle className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-secondary-900 dark:text-white">
+                      Rủi ro: <span className={`uppercase ${
+                        data.risk_level === 'high' ? 'text-red-600 dark:text-red-400' :
+                        data.risk_level === 'medium' ? 'text-yellow-600 dark:text-yellow-400' :
+                        'text-green-600 dark:text-green-400'
+                      }`}>{data.risk_level}</span>
+                    </p>
+                    <p className="text-sm text-secondary-500">Điểm: {data.risk_score}/100</p>
+                  </div>
+                </div>
+                {data.flags && data.flags.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-secondary-500 uppercase mb-1">Cảnh báo</p>
+                    <ul className="space-y-1">
+                      {data.flags.map((flag: string, i: number) => (
+                        <li key={i} className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3 shrink-0" /> {flag}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {data.status_suggestion && (
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">Gợi ý trạng thái</p>
+                    <p className="text-sm text-secondary-700 dark:text-secondary-300">{data.status_suggestion}</p>
+                  </div>
+                )}
+                {data.summary && <p className="text-sm text-secondary-600 dark:text-secondary-300">{data.summary}</p>}
+              </div>
+            )}
+          />
 
           {/* Status Update */}
           <div className="bg-white dark:bg-secondary-800 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm overflow-hidden transition-colors">

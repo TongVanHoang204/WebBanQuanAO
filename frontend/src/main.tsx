@@ -9,6 +9,7 @@ import { CartProvider } from './contexts/CartContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { WishlistProvider } from './contexts/WishlistContext'
 import { SocketProvider } from './contexts/SocketContext'
+import { ChatProvider } from './contexts/ChatContext'
 import './index.css'
 
 import { GoogleOAuthProvider } from '@react-oauth/google'
@@ -26,10 +27,12 @@ createRoot(document.getElementById('root')!).render(
             <SocketProvider>
               <CartProvider>
                 <WishlistProvider>
-                  <ThemeProvider>
-                    <Toaster position="top-center" reverseOrder={false} />
-                    <App />
-                  </ThemeProvider>
+                  <ChatProvider>
+                    <ThemeProvider>
+                      <Toaster position="top-center" reverseOrder={false} />
+                      <App />
+                    </ThemeProvider>
+                  </ChatProvider>
                 </WishlistProvider>
               </CartProvider>
             </SocketProvider>

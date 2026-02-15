@@ -8,10 +8,12 @@ import {
   EyeOff,
   Trash2,
   Loader2,
-  MessageSquare
+  MessageSquare,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { resolveApiUrl, toMediaUrl } from '../../../services/api';
+import { resolveApiUrl, toMediaUrl, adminAPI } from '../../../services/api';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 interface Review {
   id: string;
@@ -265,6 +267,63 @@ export default function ReviewListPage() {
           </button>
         ))}
       </div>
+
+      {/* AI Review Analysis */}
+      <AIInsightPanel
+        title="🧠 AI Phân tích đánh giá"
+        cacheKey="review_analysis"
+        onAnalyze={async () => {
+          const res = await adminAPI.aiReviewAnalyze();
+          return res.data.data;
+        }}
+        renderContent={(data) => (
+          <div className="space-y-3">
+            {data.summary && <p className="font-medium">{data.summary}</p>}
+            {data.sentiment && (
+              <div className="flex gap-3 flex-wrap">
+                <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg text-xs">
+                  😊 Tích cực: {data.sentiment.positive}
+                </span>
+                <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-lg text-xs">
+                  😐 Trung lập: {data.sentiment.neutral}
+                </span>
+                <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg text-xs">
+                  😟 Tiêu cực: {data.sentiment.negative}
+                </span>
+              </div>
+            )}
+            {data.themes?.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {data.themes.map((t: string, i: number) => (
+                  <span key={i} className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-xs">{t}</span>
+                ))}
+              </div>
+            )}
+            {data.alerts?.length > 0 && (
+              <div className="space-y-1">
+                {data.alerts.map((a: string, i: number) => (
+                  <p key={i} className="text-xs text-amber-600 dark:text-amber-400">⚠️ {a}</p>
+                ))}
+              </div>
+            )}
+            {data.auto_actions?.length > 0 && (
+              <div className="mt-2">
+                <p className="text-xs font-semibold mb-1">Đề xuất hành động:</p>
+                {data.auto_actions.map((a: any, i: number) => (
+                  <div key={i} className="flex items-center gap-2 text-xs py-0.5">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                      a.suggested_action === 'approve' ? 'bg-green-100 text-green-700' :
+                      a.suggested_action === 'reject' ? 'bg-red-100 text-red-700' :
+                      'bg-yellow-100 text-yellow-700'
+                    }`}>{a.suggested_action}</span>
+                    <span className="text-secondary-600 dark:text-secondary-300">{a.reason}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      />
 
       {/* Filters & Actions */}
       <div className="bg-white dark:bg-secondary-800 rounded-xl p-4 shadow-sm border border-secondary-200 dark:border-secondary-700">

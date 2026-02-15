@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { adminAPI } from '../../../services/api';
 import { format, subDays, startOfMonth, startOfYear, endOfDay } from 'date-fns';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 // Simple formatter for currency
 const formatCurrency = (value: number) => 
@@ -112,7 +113,7 @@ export default function AnalyticsPage() {
   const { summary, charts, topProducts } = data;
 
   // Custom Toolkit for Charts
-  const CustomTooltip = ({ active, payload, label }: TooltipProps<any, any>) => {
+  const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white/90 dark:bg-secondary-800/95 backdrop-blur-sm p-4 rounded-xl border border-secondary-100 dark:border-secondary-700 shadow-xl ring-1 ring-black/5">
@@ -230,6 +231,19 @@ export default function AnalyticsPage() {
             colorClass="text-orange-600"
             trend={15.3}
          />
+      </div>
+
+      {/* AI Analytics Narrative */}
+      <div className="mb-8">
+        <AIInsightPanel
+          title="📊 AI Phân tích & Dự báo"
+          cacheKey="analytics_narrative"
+          onAnalyze={async () => {
+            const { start, end } = getDateRange();
+            const res = await adminAPI.aiAnalyticsNarrative(start.toISOString(), end.toISOString());
+            return res.data.data.narrative;
+          }}
+        />
       </div>
 
       {/* Main Charts Section */}
@@ -389,7 +403,7 @@ export default function AnalyticsPage() {
                         <h3 className="text-lg font-bold text-secondary-900 dark:text-white">Top Sản phẩm</h3>
                      </div>
                  </div>
-                 <span className="text-xs font-bold px-3 py-1 bg-amber-100/50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full border border-amber-200 dark:border-amber-700">Top 5</span>
+                 <span className="text-xs font-bold px-3 py-1 bg-amber-100/50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full border border-amber-200 dark:border-amber-700">Top 10</span>
               </div>
               <div className="flex-1 overflow-auto">
                  <table className="w-full text-left">

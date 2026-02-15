@@ -6,6 +6,7 @@ import Pagination from '../../../components/common/Pagination';
 import CustomerModal from './CustomerModal';
 import ConfirmModal from '../../../components/common/ConfirmModal';
 import toast from 'react-hot-toast';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 export default function CustomerListPage() {
   const navigate = useNavigate();
@@ -158,6 +159,52 @@ export default function CustomerListPage() {
                 <span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-full">+2%</span>
             </div>
          </div>
+      </div>
+
+      {/* AI Customer Segmentation */}
+      <div className="mb-8">
+        <AIInsightPanel
+          title="🎯 AI Phân tích khách hàng"
+          cacheKey="customer_analysis"
+          onAnalyze={async () => {
+            const res = await adminAPI.aiCustomerAnalyze();
+            return res.data.data;
+          }}
+          renderContent={(data) => (
+            <div className="space-y-3">
+              {data.summary && <p className="font-medium">{data.summary}</p>}
+              {data.segments?.length > 0 && (
+                <div className="grid grid-cols-2 gap-2">
+                  {data.segments.map((s: any, i: number) => (
+                    <div key={i} className="p-2 bg-white/60 dark:bg-black/20 rounded-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-xs">{s.name}</span>
+                        <span className="text-xs text-indigo-600 dark:text-indigo-400 font-bold">{s.count}</span>
+                      </div>
+                      <p className="text-[11px] text-secondary-500">{s.description}</p>
+                      {s.action && <p className="text-[11px] text-indigo-600 dark:text-indigo-400 mt-1">→ {s.action}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {data.insights?.length > 0 && (
+                <div className="space-y-1">
+                  {data.insights.map((ins: string, i: number) => (
+                    <p key={i} className="text-xs text-secondary-600 dark:text-secondary-400">💡 {ins}</p>
+                  ))}
+                </div>
+              )}
+              {data.recommendations?.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold">Đề xuất:</p>
+                  {data.recommendations.map((r: string, i: number) => (
+                    <p key={i} className="text-xs text-secondary-600 dark:text-secondary-400">✅ {r}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        />
       </div>
 
       {/* Filters */}

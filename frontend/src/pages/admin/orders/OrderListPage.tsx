@@ -74,6 +74,22 @@ export default function OrderListPage() {
     return () => clearTimeout(timer);
   }, [search, status, pagination.page]);
 
+  const getPageItems = (currentPage: number, totalPages: number): Array<number | 'ellipsis'> => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    if (currentPage <= 4) {
+      return [1, 2, 3, 4, 5, 'ellipsis', totalPages];
+    }
+
+    if (currentPage >= totalPages - 3) {
+      return [1, 'ellipsis', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+
+    return [1, 'ellipsis', currentPage - 1, currentPage, currentPage + 1, 'ellipsis', totalPages];
+  };
+
   const tabs = [
     { id: 'all', label: 'Tất cả' },
     { id: 'new', label: 'Mới' },
@@ -352,6 +368,28 @@ export default function OrderListPage() {
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
+                  {getPageItems(pagination.page, Math.max(1, pagination.totalPages)).map((item, index) =>
+                    item === 'ellipsis' ? (
+                      <span
+                        key={`ellipsis-${index}`}
+                        className="relative inline-flex items-center px-3 py-2 border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-sm text-secondary-500 dark:text-secondary-300"
+                      >
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={item}
+                        onClick={() => setPagination(prev => ({ ...prev, page: item }))}
+                        className={`relative inline-flex items-center px-3 py-2 border border-secondary-300 dark:border-secondary-600 text-sm font-medium transition-colors ${
+                          pagination.page === item
+                            ? 'z-10 bg-primary-600 text-white border-primary-600'
+                            : 'bg-white dark:bg-secondary-700 text-secondary-600 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-600'
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    )
+                  )}
                   <button
                     onClick={() => setPagination(prev => ({ ...prev, page: Math.min(pagination.totalPages, prev.page + 1) }))}
                     disabled={pagination.page >= pagination.totalPages}

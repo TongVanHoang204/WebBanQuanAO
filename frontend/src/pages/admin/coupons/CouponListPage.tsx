@@ -13,6 +13,8 @@ import { Link } from 'react-router-dom';
 import { couponService } from '../../../services/coupon.service';
 import { toast } from 'react-hot-toast';
 import ConfirmModal from '../../../components/common/ConfirmModal';
+import { adminAPI } from '../../../services/api';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 export default function CouponListPage() {
   const [coupons, setCoupons] = useState<any[]>([]);
@@ -100,6 +102,42 @@ export default function CouponListPage() {
           Tạo mã mới
         </Link>
       </div>
+
+      {/* AI Coupon Strategy */}
+      <AIInsightPanel
+        title="🎯 AI Chiến lược khuyến mãi"
+        cacheKey="coupon_strategy"
+        onAnalyze={async () => {
+          const res = await adminAPI.aiCouponSuggest();
+          return res.data.data;
+        }}
+        renderContent={(data) => (
+          <div className="space-y-3">
+            {data.strategy && <p className="font-medium">{data.strategy}</p>}
+            {data.suggestions?.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold">Gợi ý mã khuyến mãi:</p>
+                {data.suggestions.map((s: any, i: number) => (
+                  <div key={i} className="flex items-center gap-3 p-2 bg-white/60 dark:bg-black/20 rounded-lg">
+                    <span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded font-mono text-xs font-bold">{s.code}</span>
+                    <span className="text-xs">{s.type === 'percent' ? `${s.value}%` : `${Number(s.value).toLocaleString('vi-VN')}đ`}</span>
+                    {s.min_subtotal && <span className="text-xs text-secondary-500">Min: {Number(s.min_subtotal).toLocaleString('vi-VN')}đ</span>}
+                    <span className="text-xs text-secondary-500 ml-auto">{s.reason}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {data.tips?.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-semibold">Mẹo:</p>
+                {data.tips.map((t: string, i: number) => (
+                  <p key={i} className="text-xs text-secondary-600 dark:text-secondary-400">💡 {t}</p>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      />
 
       {/* Filters */}
       <div className="bg-white dark:bg-secondary-800 p-4 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm">

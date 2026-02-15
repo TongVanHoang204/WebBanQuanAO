@@ -16,7 +16,8 @@ import {
 import { toast } from 'react-hot-toast';
 import ConfirmModal from '../../../components/common/ConfirmModal';
 import { useAuth } from '../../../contexts/AuthContext';
-import { resolveApiUrl } from '../../../services/api';
+import { resolveApiUrl, adminAPI } from '../../../services/api';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 interface Staff {
   id: string;
@@ -302,6 +303,75 @@ export default function StaffListPage() {
           </select>
         </div>
       </div>
+
+      {/* AI Staff Performance */}
+      <AIInsightPanel
+        title="📊 AI Đánh giá hiệu suất nhân viên"
+        cacheKey="staff_performance"
+        onAnalyze={async () => {
+          const res = await adminAPI.aiStaffAnalyze();
+          return res.data.data;
+        }}
+        type="custom"
+        renderContent={(data: any) => (
+          <div className="space-y-3">
+            {data.summary && <p className="text-sm text-secondary-700 dark:text-secondary-300">{data.summary}</p>}
+            {data.staff_scores && data.staff_scores.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-secondary-500 uppercase mb-2">Bảng xếp hạng</p>
+                <div className="space-y-2">
+                  {data.staff_scores.map((s: any, i: number) => (
+                    <div key={i} className="flex items-center gap-3 p-2 bg-white dark:bg-secondary-900 rounded-lg border border-secondary-200 dark:border-secondary-700">
+                      <span className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold ${
+                        i === 0 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                        i === 1 ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' :
+                        i === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' :
+                        'bg-secondary-100 text-secondary-600 dark:bg-secondary-800 dark:text-secondary-400'
+                      }`}>
+                        {i + 1}
+                      </span>
+                      <div className="flex-1">
+                        <p className="font-medium text-secondary-900 dark:text-white text-sm">{s.name || s.username}</p>
+                        <p className="text-xs text-secondary-500">{s.role} • {s.action_count ?? 0} thao tác</p>
+                      </div>
+                      <div className="text-right">
+                        <span className={`text-lg font-bold ${
+                          (typeof s.score === 'number' ? s.score : 0) >= 80 ? 'text-green-600 dark:text-green-400' :
+                          (typeof s.score === 'number' ? s.score : 0) >= 50 ? 'text-yellow-600 dark:text-yellow-400' :
+                          'text-red-600 dark:text-red-400'
+                        }`}>
+                          {s.score}
+                        </span>
+                        {typeof s.score === 'number' && <p className="text-[10px] text-secondary-400">/100</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {(data.highlights || data.team_insights) && (data.highlights || data.team_insights).length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-secondary-500 uppercase mb-1">⭐ Điểm nổi bật</p>
+                <ul className="space-y-1">
+                  {(data.highlights || data.team_insights).map((h: any, i: number) => (
+                    <li key={i} className="text-sm text-secondary-600 dark:text-secondary-300">• {typeof h === 'string' ? h : h.description || JSON.stringify(h)}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {(data.suggestions || data.recommendations) && (data.suggestions || data.recommendations).length > 0 && (
+              <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">💡 Gợi ý cải thiện</p>
+                <ul className="space-y-1">
+                  {(data.suggestions || data.recommendations).map((s: any, i: number) => (
+                    <li key={i} className="text-sm text-secondary-700 dark:text-secondary-300">• {typeof s === 'string' ? s : s.description || JSON.stringify(s)}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      />
 
       {/* Form Modal */}
       {showForm && (

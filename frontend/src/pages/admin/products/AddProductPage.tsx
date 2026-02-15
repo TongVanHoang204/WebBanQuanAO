@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronRight, Upload, X, Loader2, Save } from 'lucide-react';
+import { ChevronRight, Upload, X, Loader2, Save, Sparkles } from 'lucide-react';
 import { categoriesAPI, productsAPI, adminAPI, brandsAPI } from '../../../services/api';
 import RichTextEditor from '../../../components/common/RichTextEditor';
 import VariantManager from '../../../components/products/VariantManager';
@@ -46,6 +46,37 @@ export default function AddProductPage() {
   const [brands, setBrands] = useState<any[]>([]);
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [isAIGenerating, setIsAIGenerating] = useState(false);
+
+  // AI Auto-fill product content
+  const handleAIGenerate = async () => {
+    if (!formData.name) {
+      toast.error('Vui lòng nhập tên sản phẩm trước khi dùng AI');
+      return;
+    }
+    setIsAIGenerating(true);
+    try {
+      const categoryName = categories.find((c: any) => String(c.id) === String(formData.category_id))?.name;
+      const brandName = brands.find((b: any) => String(b.id) === String(formData.brand_id))?.name;
+      const res = await adminAPI.aiProductContent(formData.name, categoryName, brandName, Number(formData.price) || undefined);
+      const data = res.data.data;
+      if (data) {
+        setFormData(prev => ({
+          ...prev,
+          description: data.description || prev.description,
+          meta_title: data.meta_title || prev.meta_title,
+          meta_description: data.meta_description || prev.meta_description,
+          meta_keywords: data.meta_keywords || prev.meta_keywords,
+          tags: data.tags || prev.tags,
+        }));
+        toast.success('AI đã tạo nội dung thành công!');
+      }
+    } catch (error: any) {
+      toast.error('AI tạo nội dung thất bại: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setIsAIGenerating(false);
+    }
+  };
 
   // Fetch Categories & Brands
   useEffect(() => {
@@ -223,7 +254,18 @@ export default function AddProductPage() {
             
             {/* General Info */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Thông tin chung</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900">Thông tin chung</h2>
+                  <button
+                    type="button"
+                    onClick={handleAIGenerate}
+                    disabled={isAIGenerating || !formData.name}
+                    className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-lg transition-all disabled:opacity-50 shadow-sm"
+                  >
+                    {isAIGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                    {isAIGenerating ? 'AI đang tạo...' : 'AI Tự động điền'}
+                  </button>
+                </div>
                 <div className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm</label>

@@ -1,12 +1,15 @@
 import express from 'express';
-import { chatWithAI, generateContent } from '../controllers/ai.controller.js';
+import { 
+  chatWithAI, generateContent,
+  analyzeDashboard, analyzeReviews, analyzeAnalytics, suggestCoupon,
+  analyzeCustomers, analyzeOrder, analyzeLogs, generateBannerCopy,
+  analyzeStaff, generateProductContent
+} from '../controllers/ai.controller.js';
 import { verifyToken, authorize } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-// Protect all AI routes
-// The global verifyToken middleware is being replaced by route-specific middleware.
-// router.use(verifyToken); // This line is commented out as per the change.
+const adminAuth = [verifyToken, authorize(['admin', 'manager', 'staff'])];
 
 /**
  * @swagger
@@ -15,27 +18,20 @@ const router = express.Router();
  *   description: AI Assistant capabilities
  */
 
-/**
- * @swagger
- * /admin/ai/chat:
- *   post:
- *     summary: Chat with AI Assistant (Internal)
- *     tags: [AI]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               message:
- *                 type: string
- *     responses:
- *       200:
- *         description: AI response
- */
+// Existing routes
 router.post('/chat', verifyToken, chatWithAI);
-router.post('/generate', verifyToken, authorize(['admin', 'manager', 'staff']), generateContent);
+router.post('/generate', ...adminAuth, generateContent);
+
+// New AI analysis routes
+router.post('/dashboard-insight', ...adminAuth, analyzeDashboard);
+router.post('/review-analyze', ...adminAuth, analyzeReviews);
+router.post('/analytics-narrative', ...adminAuth, analyzeAnalytics);
+router.post('/coupon-suggest', ...adminAuth, suggestCoupon);
+router.post('/customer-analyze', ...adminAuth, analyzeCustomers);
+router.post('/order-analyze', ...adminAuth, analyzeOrder);
+router.post('/log-analyze', ...adminAuth, analyzeLogs);
+router.post('/banner-copy', ...adminAuth, generateBannerCopy);
+router.post('/staff-analyze', ...adminAuth, analyzeStaff);
+router.post('/product-content', ...adminAuth, generateProductContent);
 
 export default router;
