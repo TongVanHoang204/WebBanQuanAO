@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { 
   Star, 
   Search, 
+  Filter,
+  ChevronDown,
   Check, 
   X, 
   Eye,
@@ -12,8 +14,12 @@ import {
   Sparkles
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { resolveApiUrl, toMediaUrl, adminAPI } from '../../../services/api';
+import { Link } from 'react-router-dom';
+import { adminAPI, toMediaUrl } from '../../../services/api';
 import AIInsightPanel from '../../../components/common/AIInsightPanel';
+import ConfirmModal from '../../../components/common/ConfirmModal';
+
+const ITEMS_PER_PAGE = 15;
 
 interface Review {
   id: string;
@@ -48,20 +54,33 @@ export default function ReviewListPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [ratingFilter, setRatingFilter] = useState<string>('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+
+  // ConfirmModal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    isDestructive?: boolean;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
 
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const params = new URLSearchParams();
-      if (search) params.append('search', search);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (ratingFilter) params.append('rating', ratingFilter);
+      const params: any = {};
+      if (search) params.search = search;
+      if (statusFilter !== 'all') params.status = statusFilter;
+      if (ratingFilter) params.rating = ratingFilter;
 
-      const res = await fetch(resolveApiUrl(`/api/admin/reviews?${params}`), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
+      const res = await adminAPI.getReviews(params);
+      const data = res.data;
       if (data.success) {
         setReviews(data.data.reviews);
         setStats(data.data.stats);
@@ -87,16 +106,8 @@ export default function ReviewListPage() {
 
   const handleUpdateStatus = async (id: string, status: string) => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(resolveApiUrl(`/api/admin/reviews/${id}/status`), {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ status })
-      });
-      const data = await res.json();
+      const res = await adminAPI.updateReviewStatus(id, status);
+      const data = res.data;
       
       if (data.success) {
         toast.success(data.message);
@@ -115,42 +126,36 @@ export default function ReviewListPage() {
       return;
     }
 
+    if (action === 'delete') {
+      setConfirmModal({
+        isOpen: true,
+        title: 'Xóa đánh giá?',
+        message: `Xóa ${selectedIds.length} đánh giá đã chọn? Thao tác này không thể hoàn tác.`,
+        confirmText: 'Xóa',
+        isDestructive: true,
+        onConfirm: async () => {
+          try {
+            const res = await adminAPI.bulkDeleteReviews(selectedIds);
+            if (res.data.success) {
+              toast.success(res.data.message);
+              setSelectedIds([]);
+              fetchReviews();
+            }
+          } catch (error) {
+            toast.error('Có lỗi xảy ra');
+          }
+        }
+      });
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('token');
-      
-      if (action === 'delete') {
-        if (!confirm(`Xóa ${selectedIds.length} đánh giá đã chọn?`)) return;
-        
-        const res = await fetch(resolveApiUrl('/api/admin/reviews/bulk'), {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ ids: selectedIds })
-        });
-        const data = await res.json();
-        if (data.success) {
-          toast.success(data.message);
-          setSelectedIds([]);
-          fetchReviews();
-        }
-      } else {
-        const statusMap = { approve: 'approved', reject: 'rejected', hide: 'hidden' };
-        const res = await fetch(resolveApiUrl('/api/admin/reviews/bulk-status'), {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ ids: selectedIds, status: statusMap[action] })
-        });
-        const data = await res.json();
-        if (data.success) {
-          toast.success(data.message);
-          setSelectedIds([]);
-          fetchReviews();
-        }
+      const statusMap = { approve: 'approved', reject: 'rejected', hide: 'hidden' };
+      const res = await adminAPI.bulkUpdateReviewStatus(selectedIds, statusMap[action]);
+      if (res.data.success) {
+        toast.success(res.data.message);
+        setSelectedIds([]);
+        fetchReviews();
       }
     } catch (error) {
       toast.error('Có lỗi xảy ra');
@@ -158,23 +163,24 @@ export default function ReviewListPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Xóa đánh giá này?')) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(resolveApiUrl(`/api/admin/reviews/${id}`), {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      
-      if (data.success) {
-        toast.success('Đã xóa đánh giá');
-        fetchReviews();
+    setConfirmModal({
+      isOpen: true,
+      title: 'Xóa đánh giá?',
+      message: 'Bạn có chắc chắn muốn xóa đánh giá này? Thao tác không thể hoàn tác.',
+      confirmText: 'Xóa',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          const res = await adminAPI.deleteReview(id);
+          if (res.data.success) {
+            toast.success('Đã xóa đánh giá');
+            fetchReviews();
+          }
+        } catch (error) {
+          toast.error('Lỗi xóa đánh giá');
+        }
       }
-    } catch (error) {
-      toast.error('Lỗi xóa đánh giá');
-    }
+    });
   };
 
   const toggleSelect = (id: string) => {
@@ -326,7 +332,7 @@ export default function ReviewListPage() {
       />
 
       {/* Filters & Actions */}
-      <div className="bg-white dark:bg-secondary-800 rounded-xl p-4 shadow-sm border border-secondary-200 dark:border-secondary-700">
+      <div className="bg-white dark:bg-secondary-800/80 rounded-2xl p-4 shadow-sm border border-secondary-200/80 dark:border-secondary-700/60">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
@@ -335,20 +341,24 @@ export default function ReviewListPage() {
               placeholder="Tìm kiếm đánh giá..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500"
+              className="w-full h-11 pl-10 pr-4 border border-secondary-200 dark:border-secondary-700 rounded-xl bg-secondary-50 dark:bg-secondary-900/70 text-secondary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500"
             />
           </div>
-          
-          <select
-            value={ratingFilter}
-            onChange={(e) => setRatingFilter(e.target.value)}
-            className="px-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500"
-          >
-            <option value="">Tất cả sao</option>
-            {[5, 4, 3, 2, 1].map(r => (
-              <option key={r} value={r}>{r} sao</option>
-            ))}
-          </select>
+
+          <div className="relative lg:w-52">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
+            <select
+              value={ratingFilter}
+              onChange={(e) => setRatingFilter(e.target.value)}
+              className="appearance-none w-full h-11 pl-10 pr-10 border border-secondary-200 dark:border-secondary-700 rounded-xl bg-secondary-50 dark:bg-secondary-900/70 text-secondary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500"
+            >
+              <option value="">Tất cả sao</option>
+              {[5, 4, 3, 2, 1].map(r => (
+                <option key={r} value={r}>{r} sao</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
+          </div>
 
           {selectedIds.length > 0 && (
             <div className="flex items-center gap-2">
@@ -417,7 +427,7 @@ export default function ReviewListPage() {
             </div>
 
             {/* Items */}
-            {reviews.map((review) => (
+            {reviews.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE).map((review) => (
               <div key={review.id} className="p-6 hover:bg-secondary-50 dark:hover:bg-secondary-900/50 transition-colors">
                 <div className="flex items-start gap-4">
                   <input
@@ -462,7 +472,7 @@ export default function ReviewListPage() {
                           <span>•</span>
                           <span>{new Date(review.created_at).toLocaleDateString('vi-VN')}</span>
                           <span>•</span>
-                          <span>Sản phẩm: {review.product?.name}</span>
+                          <Link to={`/admin/products/${review.product?.id}`} className="text-primary-600 dark:text-primary-400 hover:underline">Sản phẩm: {review.product?.name}</Link>
                         </div>
                       </div>
 
@@ -520,6 +530,49 @@ export default function ReviewListPage() {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {reviews.length > ITEMS_PER_PAGE && (
+        <div className="flex items-center justify-center gap-2 mt-4">
+          <button
+            disabled={page === 1}
+            onClick={() => setPage(p => p - 1)}
+            className="px-4 py-2 text-sm font-medium rounded-lg border border-secondary-200 dark:border-secondary-700 text-secondary-700 dark:text-secondary-300 disabled:opacity-50 hover:bg-secondary-50 dark:hover:bg-secondary-800 transition-colors"
+          >
+            Trước
+          </button>
+          {Array.from({ length: Math.ceil(reviews.length / ITEMS_PER_PAGE) }, (_, i) => i + 1).map(p => (
+            <button
+              key={p}
+              onClick={() => setPage(p)}
+              className={`w-10 h-10 text-sm font-medium rounded-lg transition-colors ${
+                page === p
+                  ? 'bg-primary-600 text-white'
+                  : 'border border-secondary-200 dark:border-secondary-700 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-800'
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+          <button
+            disabled={page === Math.ceil(reviews.length / ITEMS_PER_PAGE)}
+            onClick={() => setPage(p => p + 1)}
+            className="px-4 py-2 text-sm font-medium rounded-lg border border-secondary-200 dark:border-secondary-700 text-secondary-700 dark:text-secondary-300 disabled:opacity-50 hover:bg-secondary-50 dark:hover:bg-secondary-800 transition-colors"
+          >
+            Sau
+          </button>
+        </div>
+      )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        isDestructive={confirmModal.isDestructive}
+      />
     </div>
   );
 }

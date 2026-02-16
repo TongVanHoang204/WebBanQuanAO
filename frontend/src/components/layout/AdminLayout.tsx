@@ -117,6 +117,9 @@ export default function AdminLayout() {
     navigate('/login');
   };
 
+  const displayName = user?.full_name || user?.username || 'Quản trị viên';
+  const displayInitial = displayName.charAt(0).toUpperCase();
+
   const navItems = [
     { icon: LayoutDashboard, label: 'Tổng quan', path: '/admin/dashboard', roles: ['admin', 'manager'] },
     { icon: Package, label: 'Sản phẩm', path: '/admin/products', roles: ['admin', 'manager', 'staff'] },
@@ -162,7 +165,12 @@ export default function AdminLayout() {
                   S
                 </div>
               )}
-              <span className="text-xl font-bold text-secondary-900 dark:text-white">Quản Trị Viên</span>
+              <span
+                className="text-xl font-bold text-secondary-900 dark:text-white truncate max-w-[170px]"
+                title={displayName}
+              >
+                {displayName}
+              </span>
             </Link>
           </div>
 
@@ -191,11 +199,11 @@ export default function AdminLayout() {
           <div className="p-4 border-t border-secondary-100 dark:border-secondary-700">
             <div className="flex items-center gap-3 mb-4 px-2">
               <div className="w-10 h-10 rounded-full bg-secondary-200 dark:bg-secondary-700 flex items-center justify-center text-secondary-600 dark:text-secondary-300 font-bold">
-                {user?.full_name?.charAt(0) || 'A'}
+                {displayInitial}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-secondary-900 dark:text-white truncate">
-                  {user?.full_name || 'Admin User'}
+                  {displayName}
                 </p>
                 <p className="text-xs text-secondary-500 dark:text-secondary-400 truncate">Quản lý cửa hàng</p>
               </div>

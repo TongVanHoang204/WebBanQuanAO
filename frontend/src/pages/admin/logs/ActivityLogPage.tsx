@@ -2,13 +2,17 @@ import { useState, useEffect } from 'react';
 import {
   Activity, 
   Filter,
+  Search,
+  ChevronDown,
   Clock,
   User,
   Monitor
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { resolveApiUrl, adminAPI } from '../../../services/api';
+import { adminAPI } from '../../../services/api';
 import AIInsightPanel from '../../../components/common/AIInsightPanel';
+
+const ITEMS_PER_PAGE = 20;
 
 interface Log {
   id: string;
@@ -30,8 +34,10 @@ interface Log {
 export default function ActivityLogPage() {
   const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const [actionFilter, setActionFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
+  const [page, setPage] = useState(1);
 
   const fetchLogs = async () => {
     try {
@@ -40,11 +46,8 @@ export default function ActivityLogPage() {
       if (actionFilter) params.action = actionFilter;
       if (dateFilter) params.start_date = dateFilter;
 
-      const res = await fetch(resolveApiUrl(`/api/admin/logs?${new URLSearchParams(params)}`), {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      
-      const data = await res.json();
+      const res = await adminAPI.getLogs(params);
+      const data = res.data;
       if (data.success) {
         setLogs(data.data.logs);
       }
@@ -87,6 +90,39 @@ export default function ActivityLogPage() {
     settings: 'Cài đặt'
   };
 
+  const FIELD_MAP: Record<string, string> = {
+    name: 'Tên',
+    price: 'Giá',
+    compare_price: 'Giá so sánh',
+    status: 'Trạng thái',
+    description: 'Mô tả',
+    is_active: 'Hoạt động',
+    stock: 'Tồn kho',
+    quantity: 'Số lượng',
+    slug: 'Đường dẫn',
+    sort_order: 'Thứ tự',
+    category_id: 'Danh mục',
+    brand_id: 'Thương hiệu',
+    image: 'Hình ảnh',
+    email: 'Email',
+    phone: 'SĐT',
+    address: 'Địa chỉ',
+    role: 'Vai trò',
+    title: 'Tiêu đề',
+    content: 'Nội dung',
+    rating: 'Đánh giá',
+    code: 'Mã',
+    value: 'Giá trị',
+    type: 'Loại',
+    min_subtotal: 'Đơn tối thiểu',
+    start_at: 'Bắt đầu',
+    end_at: 'Kết thúc',
+    full_name: 'Họ tên',
+    username: 'Tên tài khoản',
+  };
+
+  const translateField = (field: string) => FIELD_MAP[field] || field;
+
   const formatAction = (action: string, entityType: string) => {
     // Try to find exact match first
     if (ACTION_MAP[action]) return ACTION_MAP[action];
@@ -102,6 +138,24 @@ export default function ActivityLogPage() {
   const formatEntity = (entity: string) => {
     return ENTITY_MAP[entity.toLowerCase()] || entity;
   };
+
+  // Filter logs by search text
+  const filteredLogs = search
+    ? logs.filter(log => {
+        const q = search.toLowerCase();
+        return (
+          (log.user?.full_name || '').toLowerCase().includes(q) ||
+          (log.user?.username || '').toLowerCase().includes(q) ||
+          log.action.toLowerCase().includes(q) ||
+          log.entity_type.toLowerCase().includes(q) ||
+          (log.details || '').toLowerCase().includes(q) ||
+          log.ip_address.toLowerCase().includes(q)
+        );
+      })
+    : logs;
+
+  const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE);
+  const paginatedLogs = filteredLogs.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   return (
     <div className="space-y-6">
@@ -162,14 +216,24 @@ export default function ActivityLogPage() {
       />
 
       {/* Filters */}
-      <div className="bg-white dark:bg-secondary-800 rounded-xl p-4 shadow-sm border border-secondary-200 dark:border-secondary-700">
+      <div className="bg-white dark:bg-secondary-800/80 rounded-2xl p-4 shadow-sm border border-secondary-200/80 dark:border-secondary-700/60">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo người dùng, hành động, IP..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="w-full h-11 pl-10 pr-4 border border-secondary-200 dark:border-secondary-700 rounded-xl bg-secondary-50 dark:bg-secondary-900/70 text-secondary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500"
+            />
+          </div>
+          <div className="relative sm:w-52">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
             <select
               value={actionFilter}
               onChange={(e) => setActionFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500"
+              className="appearance-none w-full h-11 pl-10 pr-10 border border-secondary-200 dark:border-secondary-700 rounded-xl bg-secondary-50 dark:bg-secondary-900/70 text-secondary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500"
             >
               <option value="">Tất cả hành động</option>
               <option value="create">Tạo mới</option>
@@ -178,13 +242,14 @@ export default function ActivityLogPage() {
               <option value="login">Đăng nhập</option>
               <option value="export">Xuất báo cáo</option>
             </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
           </div>
           <div>
             <input
               type="date"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="px-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500"
+              className="h-11 px-4 border border-secondary-200 dark:border-secondary-700 rounded-xl bg-secondary-50 dark:bg-secondary-900/70 text-secondary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500"
             />
           </div>
         </div>
@@ -201,7 +266,7 @@ export default function ActivityLogPage() {
           </div>
         ) : (
           <div className="divide-y divide-secondary-200 dark:divide-secondary-700">
-            {logs.map((log) => (
+            {paginatedLogs.map((log) => (
               <div key={log.id} className="p-4 hover:bg-secondary-50 dark:hover:bg-secondary-900/50 transition-colors">
                 <div className="flex items-start gap-4">
                   <div className={`p-2 rounded-lg shrink-0 ${getActionColor(log.action)}`}>
@@ -243,7 +308,7 @@ export default function ActivityLogPage() {
                               <div className="grid gap-2">
                                 {Object.entries(parsed.diff).map(([field, change]: [string, any]) => (
                                   <div key={field} className="flex flex-wrap items-center gap-2 text-xs">
-                                    <span className="font-medium text-secondary-700 dark:text-secondary-300 min-w-[100px]">{field}:</span>
+                                    <span className="font-medium text-secondary-700 dark:text-secondary-300 min-w-[100px]">{translateField(field)}:</span>
                                     <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded line-through decoration-red-500/50">
                                       {typeof change.from === 'object' ? JSON.stringify(change.from) : String(change.from)}
                                     </span>
@@ -284,6 +349,34 @@ export default function ActivityLogPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
+            <span className="text-sm text-secondary-500 dark:text-secondary-400">
+              Hiển thị {(page - 1) * ITEMS_PER_PAGE + 1}-{Math.min(page * ITEMS_PER_PAGE, filteredLogs.length)} / {filteredLogs.length} bản ghi
+            </span>
+            <div className="flex gap-2">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage(p => p - 1)}
+                className="px-3 py-1.5 text-sm rounded-lg border border-secondary-200 dark:border-secondary-700 text-secondary-700 dark:text-secondary-300 disabled:opacity-50 hover:bg-secondary-50 dark:hover:bg-secondary-800 transition-colors"
+              >
+                Trước
+              </button>
+              <span className="px-3 py-1.5 text-sm text-secondary-700 dark:text-secondary-300">
+                {page} / {totalPages}
+              </span>
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage(p => p + 1)}
+                className="px-3 py-1.5 text-sm rounded-lg border border-secondary-200 dark:border-secondary-700 text-secondary-700 dark:text-secondary-300 disabled:opacity-50 hover:bg-secondary-50 dark:hover:bg-secondary-800 transition-colors"
+              >
+                Sau
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -11,7 +11,8 @@ import {
   XCircle
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { resolveApiUrl } from '../../../services/api';
+import { adminAPI } from '../../../services/api';
+import ConfirmModal from '../../../components/common/ConfirmModal';
 
 interface ShippingMethod {
   id: string;
@@ -59,14 +60,26 @@ export default function ShippingPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(initialForm);
 
+  // ConfirmModal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    isDestructive?: boolean;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
   const fetchMethods = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const res = await fetch(resolveApiUrl('/api/admin/shipping?include_inactive=true'), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
+      const res = await adminAPI.getShippingMethods();
+      const data = res.data;
       if (data.success) {
         setMethods(data.data);
       }
@@ -119,20 +132,13 @@ export default function ShippingPage() {
 
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      const url = editingId ? `/api/admin/shipping/${editingId}` : '/api/admin/shipping';
-      const method = editingId ? 'PUT' : 'POST';
-
-      const res = await fetch(resolveApiUrl(url), {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(form)
-      });
-      
-      const data = await res.json();
+      let res;
+      if (editingId) {
+        res = await adminAPI.updateShippingMethod(editingId, form);
+      } else {
+        res = await adminAPI.createShippingMethod(form);
+      }
+      const data = res.data;
       
       if (data.success) {
         toast.success(editingId ? 'Đã cập nhật' : 'Đã tạo mới');
@@ -149,25 +155,27 @@ export default function ShippingPage() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Xóa phương thức "${name}"?`)) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(resolveApiUrl(`/api/admin/shipping/${id}`), {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      
-      if (data.success) {
-        toast.success('Đã xóa');
-        fetchMethods();
-      } else {
-        toast.error(data.error?.message || 'Không thể xóa');
+    setConfirmModal({
+      isOpen: true,
+      title: 'Xóa phương thức vận chuyển?',
+      message: `Xóa phương thức "${name}"? Thao tác không thể hoàn tác.`,
+      confirmText: 'Xóa',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          const res = await adminAPI.deleteShippingMethod(id);
+          const data = res.data;
+          if (data.success) {
+            toast.success('Đã xóa');
+            fetchMethods();
+          } else {
+            toast.error(data.error?.message || 'Không thể xóa');
+          }
+        } catch (error) {
+          toast.error('Có lỗi xảy ra');
+        }
       }
-    } catch (error) {
-      toast.error('Có lỗi xảy ra');
-    }
+    });
   };
 
   const formatCurrency = (amount: number) => {
@@ -449,6 +457,16 @@ export default function ShippingPage() {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        isDestructive={confirmModal.isDestructive}
+      />
     </div>
   );
 }

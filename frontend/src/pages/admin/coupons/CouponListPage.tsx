@@ -20,6 +20,7 @@ export default function CouponListPage() {
   const [coupons, setCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'upcoming' | 'disabled'>('all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; couponId: number | null }>({
@@ -51,6 +52,22 @@ export default function CouponListPage() {
     }, 500);
     return () => clearTimeout(timer);
   }, [page, searchQuery]);
+
+  // Client-side status filter (since backend pagination is already in place)
+  const filteredCoupons = statusFilter === 'all' ? coupons : coupons.filter(coupon => {
+    const now = new Date();
+    switch (statusFilter) {
+      case 'active':
+        return coupon.is_active && (!coupon.start_at || new Date(coupon.start_at) <= now) && (!coupon.end_at || new Date(coupon.end_at) >= now);
+      case 'expired':
+        return coupon.end_at && new Date(coupon.end_at) < now;
+      case 'upcoming':
+        return coupon.start_at && new Date(coupon.start_at) > now;
+      case 'disabled':
+        return !coupon.is_active;
+      default: return true;
+    }
+  });
 
   const handleDelete = async () => {
     if (!deleteModal.couponId) return;
@@ -140,16 +157,29 @@ export default function CouponListPage() {
       />
 
       {/* Filters */}
-      <div className="bg-white dark:bg-secondary-800 p-4 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
-          <input
-            type="text"
-            placeholder="Tìm kiếm theo mã..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-secondary-50 dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-700 rounded-lg focus:ring-2 focus:ring-primary-500 text-secondary-900 dark:text-white"
-          />
+      <div className="bg-white dark:bg-secondary-800/80 p-4 rounded-2xl border border-secondary-200/80 dark:border-secondary-700/60 shadow-sm">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo mã..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-11 pl-10 pr-4 bg-secondary-50 dark:bg-secondary-900/70 border border-secondary-200 dark:border-secondary-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 text-secondary-900 dark:text-white"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            className="h-11 px-4 bg-secondary-50 dark:bg-secondary-900/70 border border-secondary-200 dark:border-secondary-700 rounded-xl text-secondary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500"
+          >
+            <option value="all">Tất cả trạng thái</option>
+            <option value="active">Đang chạy</option>
+            <option value="expired">Hết hạn</option>
+            <option value="upcoming">Sắp diễn ra</option>
+            <option value="disabled">Đã tắt</option>
+          </select>
         </div>
       </div>
 
@@ -161,6 +191,7 @@ export default function CouponListPage() {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Mã / Loại</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Giá trị</th>
+                <th className="px-6 py-3 text-center text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Sử dụng</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Thời gian</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Trạng thái</th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Thao tác</th>
@@ -169,18 +200,18 @@ export default function CouponListPage() {
             <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center">
+                  <td colSpan={6} className="px-6 py-8 text-center">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary-500" />
                   </td>
                 </tr>
-              ) : coupons.length === 0 ? (
+              ) : filteredCoupons.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-secondary-500 dark:text-secondary-400">
+                  <td colSpan={6} className="px-6 py-8 text-center text-secondary-500 dark:text-secondary-400">
                     Chưa có mã giảm giá nào
                   </td>
                 </tr>
               ) : (
-                coupons.map((coupon) => (
+                filteredCoupons.map((coupon) => (
                   <tr key={coupon.id} className="hover:bg-secondary-50 dark:hover:bg-secondary-700/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
@@ -197,6 +228,12 @@ export default function CouponListPage() {
                       <div className="text-xs text-secondary-500 font-normal">
                         Min: {Number(coupon.min_subtotal).toLocaleString('vi-VN')}đ
                       </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="text-sm font-medium text-secondary-900 dark:text-white">
+                        {coupon.used_count ?? 0}{coupon.max_uses ? ` / ${coupon.max_uses}` : ''}
+                      </div>
+                      <div className="text-xs text-secondary-500">đã dùng</div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col text-sm text-secondary-500 dark:text-secondary-400">

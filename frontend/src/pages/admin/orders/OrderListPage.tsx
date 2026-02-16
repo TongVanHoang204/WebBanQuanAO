@@ -31,6 +31,8 @@ export default function OrderListPage() {
   // Filters
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all'); // all, new (pending), processing, delivering (shipped), completed
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -45,7 +47,9 @@ export default function OrderListPage() {
         page: pagination.page,
         limit: pagination.limit,
         status: status === 'all' ? undefined : status,
-        search: search || undefined
+        search: search || undefined,
+        start_date: startDate || undefined,
+        end_date: endDate || undefined
       });
       
       const data = response.data.data;
@@ -72,7 +76,7 @@ export default function OrderListPage() {
       fetchOrders();
     }, 300);
     return () => clearTimeout(timer);
-  }, [search, status, pagination.page]);
+  }, [search, status, startDate, endDate, pagination.page]);
 
   const getPageItems = (currentPage: number, totalPages: number): Array<number | 'ellipsis'> => {
     if (totalPages <= 7) {
@@ -113,7 +117,7 @@ export default function OrderListPage() {
           onClick={() => {
             const token = localStorage.getItem('token');
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
-            window.open(`${apiUrl}/admin/export/orders?token=${token}&status=${status === 'all' ? '' : status}&search=${search}`, '_blank');
+            window.open(`${apiUrl}/admin/export/orders?token=${token}&status=${status === 'all' ? '' : status}&search=${search}&start_date=${startDate}&end_date=${endDate}`, '_blank');
           }}
           className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-lg text-secondary-700 dark:text-secondary-300 text-sm font-medium hover:bg-secondary-50 dark:hover:bg-secondary-700 transition-colors"
         >
@@ -238,7 +242,7 @@ export default function OrderListPage() {
         </div>
 
         {/* Search Toolbar */}
-        <div className="p-4 border-b border-secondary-200 dark:border-secondary-700 bg-secondary-50/50 dark:bg-secondary-700/20 flex flex-col sm:flex-row justify-between gap-4">
+        <div className="p-4 border-b border-secondary-200 dark:border-secondary-700 bg-secondary-50/40 dark:bg-secondary-700/20 flex flex-col sm:flex-row justify-between gap-4">
            <div className="relative flex-1 max-w-lg">
              <Search className="w-5 h-5 text-secondary-400 absolute left-3 top-1/2 -translate-y-1/2" />
              <input
@@ -246,10 +250,40 @@ export default function OrderListPage() {
                placeholder="Tìm kiếm mã đơn, khách hàng..."
                value={search}
                onChange={(e) => setSearch(e.target.value)}
-               className="w-full pl-10 pr-4 py-2 bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-700 rounded-lg text-sm text-secondary-900 dark:text-white placeholder-secondary-400 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+               className="w-full h-11 pl-10 pr-4 bg-white dark:bg-secondary-900/70 border border-secondary-200 dark:border-secondary-700 rounded-xl text-sm text-secondary-900 dark:text-white placeholder-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 transition-colors"
              />
            </div>
-           {/* Add Date Filter if needed later */}
+           <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setPagination((prev) => ({ ...prev, page: 1 }));
+                }}
+                className="h-11 px-3 border border-secondary-200 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-900/70 text-secondary-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500" />
+              <span className="text-secondary-400">—</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setPagination((prev) => ({ ...prev, page: 1 }));
+                }}
+                className="h-11 px-3 border border-secondary-200 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-900/70 text-secondary-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500" />
+              <button
+                type="button"
+                onClick={() => {
+                  setStartDate('');
+                  setEndDate('');
+                  setPagination((prev) => ({ ...prev, page: 1 }));
+                }}
+                disabled={!startDate && !endDate}
+                className="h-11 px-3 border border-secondary-200 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-900/70 text-secondary-700 dark:text-secondary-300 text-sm font-medium hover:bg-secondary-50 dark:hover:bg-secondary-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Xóa bộ lọc ngày
+              </button>
+           </div>
         </div>
 
         {/* Table */}
@@ -261,7 +295,7 @@ export default function OrderListPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Ngày đặt</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Khách hàng</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Tổng tiền</th>
-                {/* <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">Thanh toán</th> */}
+                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Thanh toán</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Trạng thái</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Thao tác</th>
               </tr>
@@ -294,13 +328,16 @@ export default function OrderListPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-secondary-900 dark:text-white">
                        {formatPrice(order.grand_total)}
                     </td>
-                    {/* <td className="px-6 py-4 whitespace-nowrap">
-                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                          order.payments?.[0]?.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    <td className="px-6 py-4 whitespace-nowrap">
+                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full ${
+                          order.payments?.[0]?.status === 'paid' 
+                            ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/10 dark:bg-emerald-900/30 dark:text-emerald-300' 
+                            : 'bg-secondary-100 text-secondary-600 dark:bg-secondary-700 dark:text-secondary-300'
                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${order.payments?.[0]?.status === 'paid' ? 'bg-emerald-500' : 'bg-secondary-400'}`} />
                           {order.payments?.[0]?.status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
                        </span>
-                    </td> */}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                          order.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :

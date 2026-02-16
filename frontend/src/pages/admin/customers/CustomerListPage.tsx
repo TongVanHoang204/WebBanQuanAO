@@ -137,7 +137,6 @@ export default function CustomerListPage() {
             <h3 className="text-sm font-medium text-gray-500 dark:text-secondary-400">Tổng khách hàng</h3>
             <div className="flex items-end justify-between mt-2">
                 <span className="text-3xl font-bold text-gray-900 dark:text-white">{stats.total}</span>
-                <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-full">+5%</span>
             </div>
          </div>
          <div className="bg-white dark:bg-secondary-800 p-6 rounded-xl border border-gray-200 dark:border-secondary-700 shadow-sm transition-colors">
@@ -156,7 +155,6 @@ export default function CustomerListPage() {
             <h3 className="text-sm font-medium text-gray-500 dark:text-secondary-400">Mới tuần này</h3>
             <div className="flex items-end justify-between mt-2">
                 <span className="text-3xl font-bold text-gray-900 dark:text-white">{stats.new_this_week}</span>
-                <span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-full">+2%</span>
             </div>
          </div>
       </div>
@@ -208,13 +206,13 @@ export default function CustomerListPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-secondary-800 p-4 rounded-xl border border-gray-200 dark:border-secondary-700 shadow-sm mb-6 flex flex-col sm:flex-row gap-4 justify-between transition-colors">
+      <div className="bg-white dark:bg-secondary-800/80 p-4 rounded-2xl border border-gray-200 dark:border-secondary-700/60 shadow-sm mb-6 flex flex-col sm:flex-row gap-4 justify-between transition-colors">
          <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-secondary-500" />
             <input 
                type="text"
                placeholder="Tìm kiếm theo tên, email hoặc số điện thoại..."
-               className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-secondary-600 bg-white dark:bg-secondary-900 text-gray-900 dark:text-white rounded-lg focus:ring-primary-500 focus:border-primary-500 transition-colors"
+            className="w-full h-11 pl-10 pr-4 border border-gray-300 dark:border-secondary-600 bg-secondary-50 dark:bg-secondary-900/70 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 transition-colors"
                value={search}
                onChange={(e) => setSearch(e.target.value)}
             />
@@ -222,7 +220,7 @@ export default function CustomerListPage() {
          <div className="flex items-center gap-3">
              <button 
                 onClick={handleExport}
-                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-secondary-900 border border-gray-300 dark:border-secondary-600 rounded-lg hover:bg-gray-50 dark:hover:bg-secondary-700 text-gray-700 dark:text-secondary-300 transition-colors"
+             className="flex items-center gap-2 h-11 px-4 bg-white dark:bg-secondary-900/70 border border-gray-300 dark:border-secondary-600 rounded-xl hover:bg-gray-50 dark:hover:bg-secondary-700 text-gray-700 dark:text-secondary-300 transition-colors"
              >
                 <Download className="w-4 h-4" />
                 <span>Xuất file</span>

@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { 
   Building2, Truck, Shield, Save, Upload, Loader2, Info, Plus, X, CreditCard, Globe
 } from 'lucide-react';
-import { adminAPI, toMediaUrl } from '../../../services/api';
+import { adminAPI, uploadAPI, toMediaUrl } from '../../../services/api';
 import toast from 'react-hot-toast';
+import ConfirmModal from '../../../components/common/ConfirmModal';
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -46,6 +47,7 @@ export default function SettingsPage() {
   const [editingPermission, setEditingPermission] = useState<any>(null);
   const [newPermission, setNewPermission] = useState({ name: '', description: '' });
   const [processingPerm, setProcessingPerm] = useState(false);
+  const [deletePermModal, setDeletePermModal] = useState<{ isOpen: boolean; id: number | null; name: string }>({ isOpen: false, id: null, name: '' });
 
   // Fetch settings on load
   useEffect(() => {
@@ -159,10 +161,14 @@ export default function SettingsPage() {
     }
   };
 
-  const handleDeletePermission = async (id: number) => {
-    if (!confirm('Bạn có chắc muốn xóa quyền này?')) return;
+  const handleDeletePermission = async (id: number, name: string) => {
+    setDeletePermModal({ isOpen: true, id, name });
+  };
+
+  const confirmDeletePermission = async () => {
+    if (!deletePermModal.id) return;
     try {
-      await adminAPI.deletePermission(id);
+      await adminAPI.deletePermission(deletePermModal.id);
       toast.success('Xóa quyền thành công');
       fetchPermissions();
     } catch (error) {
@@ -556,16 +562,69 @@ export default function SettingsPage() {
                        </div>
 
                        {settings.payment_momo_enabled === 'true' && (
-                           <div>
-                             <label className="block text-sm font-medium text-gray-700 dark:text-secondary-300 mb-1">Link ảnh QR Code MoMo</label>
-                             <input
+                           <div className="space-y-4">
+                             <div>
+                               <label className="block text-sm font-medium text-gray-700 dark:text-secondary-300 mb-2">Ảnh QR Code MoMo</label>
+                               <div className="border-2 border-dashed border-gray-300 dark:border-secondary-600 rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 dark:bg-secondary-900 hover:bg-gray-100 dark:hover:bg-secondary-800 transition-colors cursor-pointer relative group">
+                                 <input
+                                   type="file"
+                                   accept="image/*"
+                                   onChange={async (e) => {
+                                     const file = e.target.files?.[0];
+                                     if (!file) return;
+                                     if (file.size > 2 * 1024 * 1024) {
+                                       toast.error('File quá lớn (max 2MB)');
+                                       return;
+                                     }
+                                     const formData = new FormData();
+                                     formData.append('file', file);
+                                     try {
+                                       const toastId = toast.loading('Đang tải ảnh QR...');
+                                       const res = await uploadAPI.single(formData);
+                                       toast.dismiss(toastId);
+                                       if (res.data.success || res.data.data?.url) {
+                                         setSettings({ ...settings, payment_momo_qrcode: res.data.data.url });
+                                         toast.success('Upload QR MoMo thành công');
+                                       }
+                                     } catch (error) {
+                                       console.error(error);
+                                       toast.error('Lỗi khi upload ảnh QR');
+                                     }
+                                   }}
+                                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                 />
+                                 {settings.payment_momo_qrcode ? (
+                                   <div className="relative">
+                                     <img
+                                       src={toMediaUrl(settings.payment_momo_qrcode)}
+                                       alt="MoMo QR"
+                                       className="h-40 object-contain rounded"
+                                     />
+                                     <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded">
+                                       <span className="text-white text-sm font-medium">Thay đổi</span>
+                                     </div>
+                                   </div>
+                                 ) : (
+                                   <div className="text-center py-4">
+                                     <div className="mx-auto h-12 w-12 text-gray-400 dark:text-secondary-500 flex items-center justify-center rounded-full bg-gray-100 dark:bg-secondary-800 mb-3">
+                                       <Upload className="w-6 h-6" />
+                                     </div>
+                                     <p className="text-sm font-medium text-gray-900 dark:text-white">Upload ảnh QR MoMo</p>
+                                     <p className="text-xs text-gray-500 dark:text-secondary-400 mt-1">PNG, JPG (max 2MB)</p>
+                                   </div>
+                                 )}
+                               </div>
+                             </div>
+                             <div>
+                               <label className="block text-sm font-medium text-gray-700 dark:text-secondary-300 mb-1">Hoặc dán link ảnh QR</label>
+                               <input
                                  type="text"
                                  value={settings.payment_momo_qrcode || ''}
                                  onChange={e => setSettings({...settings, payment_momo_qrcode: e.target.value})}
                                  placeholder="https://example.com/my-momo-qr.jpg"
                                  className="w-full border border-gray-300 dark:border-secondary-600 bg-white dark:bg-secondary-900 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                             />
-                             <p className="text-xs text-gray-500 mt-2">Bạn có thể upload ảnh QR lên host khác và dán link vào đây, hoặc tính năng upload sẽ được cập nhật sau.</p>
+                               />
+                             </div>
                            </div>
                        )}
                     </div>
@@ -701,7 +760,7 @@ export default function SettingsPage() {
                                 Sửa
                               </button>
                               <button
-                                onClick={() => handleDeletePermission(perm.id)}
+                                onClick={() => handleDeletePermission(perm.id, perm.name)}
                                 className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded"
                               >
                                 Xóa
@@ -784,6 +843,17 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={deletePermModal.isOpen}
+        onClose={() => setDeletePermModal({ isOpen: false, id: null, name: '' })}
+        onConfirm={confirmDeletePermission}
+        title="Xác nhận xóa quyền"
+        message={`Bạn có chắc muốn xóa quyền "${deletePermModal.name}"? Thao tác này không thể hoàn tác.`}
+        confirmText="Xóa quyền"
+        cancelText="Hủy bỏ"
+        isDestructive={true}
+      />
     </div>
   );
 }

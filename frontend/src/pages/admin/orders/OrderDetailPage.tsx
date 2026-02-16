@@ -13,7 +13,10 @@ import {
   Edit3,
   Save,
   ShieldAlert,
-  AlertTriangle
+  AlertTriangle,
+  Printer,
+  FileText,
+  StickyNote
 } from 'lucide-react';
 import { adminAPI, toMediaUrl } from '../../../services/api';
 import AIInsightPanel from '../../../components/common/AIInsightPanel';
@@ -37,6 +40,7 @@ export default function OrderDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [adminNote, setAdminNote] = useState('');
 
   useEffect(() => {
     fetchOrder();
@@ -49,6 +53,7 @@ export default function OrderDetailPage() {
       const response = await adminAPI.getOrderById(id);
       setOrder(response.data.data);
       setSelectedStatus(response.data.data.status);
+      setAdminNote(response.data.data.admin_note || '');
     } catch (error) {
       toast.error('Không thể tải thông tin đơn hàng');
       navigate('/admin/orders');
@@ -117,6 +122,13 @@ export default function OrderDetailPage() {
         <span className={`px-4 py-2 text-sm font-semibold rounded-full ${statusBadge.color}`}>
           {statusBadge.label}
         </span>
+        <button
+          onClick={() => window.print()}
+          className="flex items-center gap-2 px-4 py-2 bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-700 rounded-full transition-colors text-sm font-medium print:hidden"
+        >
+          <Printer className="w-4 h-4" />
+          In hóa đơn
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -187,8 +199,71 @@ export default function OrderDetailPage() {
           {/* Customer Note */}
           {order.note && (
             <div className="bg-white dark:bg-secondary-800 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm p-4 transition-colors">
-              <h3 className="font-semibold text-secondary-900 dark:text-white mb-2">Ghi chú của khách hàng</h3>
+              <h3 className="font-semibold text-secondary-900 dark:text-white mb-2 flex items-center gap-2">
+                <StickyNote className="w-4 h-4 text-secondary-500" />
+                Ghi chú của khách hàng
+              </h3>
               <p className="text-secondary-600 dark:text-secondary-300 text-sm">{order.note}</p>
+            </div>
+          )}
+
+          {/* Admin Notes */}
+          <div className="bg-white dark:bg-secondary-800 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm p-4 transition-colors">
+            <h3 className="font-semibold text-secondary-900 dark:text-white mb-2 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-secondary-500" />
+              Ghi chú nội bộ (admin)
+            </h3>
+            <textarea
+              value={adminNote}
+              onChange={(e) => setAdminNote(e.target.value)}
+              placeholder="Ghi chú nội bộ cho đơn hàng này..."
+              rows={3}
+              className="w-full border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-900/70 text-secondary-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 transition-colors"
+            />
+            <button
+              onClick={async () => {
+                try {
+                  await adminAPI.updateOrderStatus(id!, selectedStatus, adminNote);
+                  toast.success('Đã lưu ghi chú');
+                } catch { toast.error('Lỗi lưu ghi chú'); }
+              }}
+              className="mt-2 px-4 py-1.5 text-sm font-medium bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 rounded-lg hover:bg-secondary-200 dark:hover:bg-secondary-600 transition-colors"
+            >
+              Lưu ghi chú
+            </button>
+          </div>
+
+          {/* Status Timeline */}
+          {order.status_history && order.status_history.length > 0 && (
+            <div className="bg-white dark:bg-secondary-800 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm p-4 transition-colors">
+              <h3 className="font-semibold text-secondary-900 dark:text-white mb-4 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-secondary-500" />
+                Lịch sử trạng thái
+              </h3>
+              <div className="space-y-0">
+                {order.status_history.map((entry: any, idx: number) => {
+                  const statusInfo = statusOptions.find(s => s.value === entry.status);
+                  return (
+                    <div key={idx} className="flex gap-3">
+                      <div className="flex flex-col items-center">
+                        <div className={`w-3 h-3 rounded-full ${idx === 0 ? 'bg-primary-500' : 'bg-secondary-300 dark:bg-secondary-600'}`} />
+                        {idx < order.status_history.length - 1 && (
+                          <div className="w-0.5 h-8 bg-secondary-200 dark:bg-secondary-700" />
+                        )}
+                      </div>
+                      <div className="pb-4">
+                        <p className="text-sm font-medium text-secondary-900 dark:text-white">
+                          {statusInfo?.label || entry.status}
+                        </p>
+                        <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                          {new Date(entry.changed_at || entry.created_at).toLocaleString('vi-VN')}
+                          {entry.changed_by && ` • bởi ${entry.changed_by}`}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

@@ -81,24 +81,17 @@ export default function CategoryPage() {
     const hasChildren = category.children && category.children.length > 0;
     const isExpanded = expandedCats.has(category.id);
     
-    // Filter by search query if present, otherwise show all active/inactive based on fetch
-    // Simple client-side search: if keyword exists, match name. 
-    // Ideally we should filter the tree structure. For simplicity:
-    // If search active: show match. Tree structure might look broken if parent doesn't match.
-    // Let's implement simple show if match OR if child matches (complex).
-    // Review requirement: "Active button shouldn't hide it". This is handled by fetchCategories.
-    // Search is secondary.
-    
-    if (searchQuery && !category.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-        // If this node doesn't match, check if any children match? 
-        // For now, simple hide if not match. 
-        // NOTE: This breaks tree view during search because parents disappear.
-        // It's acceptable for MVP.
-        if (!hasChildren) return null; 
-        // If has children, we might need to render to see if children match. 
-        // Let's keep it simple: just render if name matches.
-        return null;
-    }
+    // Filter by search query - preserve tree structure
+    // If a child matches, we show the parent too
+    const matchesSearch = (cat: any): boolean => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      if (cat.name.toLowerCase().includes(q)) return true;
+      if (cat.children?.some((child: any) => matchesSearch(child))) return true;
+      return false;
+    };
+
+    if (!matchesSearch(category)) return null;
 
     return (
       <>
@@ -122,6 +115,11 @@ export default function CategoryPage() {
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-secondary-400 font-mono">
             {category.slug}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-center">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+              {category._count?.products ?? category.product_count ?? 0}
+            </span>
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-secondary-400">
              <div className="inline-flex items-center justify-center w-8 h-8 rounded bg-gray-100 dark:bg-secondary-700 text-gray-600 dark:text-secondary-300 font-medium text-xs border border-gray-200 dark:border-secondary-600">
@@ -218,6 +216,7 @@ export default function CategoryPage() {
                <tr>
                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-secondary-400 uppercase tracking-wider">Tên danh mục</th>
                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-secondary-400 uppercase tracking-wider">Slug</th>
+                 <th scope="col" className="px-6 py-3 text-center text-xs font-semibold text-gray-500 dark:text-secondary-400 uppercase tracking-wider">Sản phẩm</th>
                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-secondary-400 uppercase tracking-wider">Thứ tự</th>
                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-secondary-400 uppercase tracking-wider">Trạng thái</th>
                  <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-gray-500 dark:text-secondary-400 uppercase tracking-wider">Hành động</th>
@@ -226,7 +225,7 @@ export default function CategoryPage() {
              <tbody className="bg-white dark:bg-secondary-800 divide-y divide-gray-200 dark:divide-secondary-700">
                {isLoading ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500 dark:text-secondary-400">
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-secondary-400">
                       <div className="flex flex-col items-center gap-2">
                         <div className="w-6 h-6 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
                         <p>Đang tải danh mục...</p>
@@ -235,7 +234,7 @@ export default function CategoryPage() {
                   </tr>
                ) : categories.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500 dark:text-secondary-400">
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-secondary-400">
                       Chưa có danh mục nào. Hãy thêm mới!
                     </td>
                   </tr>

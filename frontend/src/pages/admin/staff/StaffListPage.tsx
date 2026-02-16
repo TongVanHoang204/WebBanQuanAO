@@ -8,6 +8,8 @@ import {
   Save,
   X,
   Search,
+  Filter,
+  ChevronDown,
   Shield,
   UserCheck,
   UserX,
@@ -16,7 +18,7 @@ import {
 import { toast } from 'react-hot-toast';
 import ConfirmModal from '../../../components/common/ConfirmModal';
 import { useAuth } from '../../../contexts/AuthContext';
-import { resolveApiUrl, adminAPI } from '../../../services/api';
+import { adminAPI } from '../../../services/api';
 import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 interface Staff {
@@ -87,15 +89,12 @@ export default function StaffListPage() {
   const fetchStaff = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const params = new URLSearchParams();
-      if (search) params.append('search', search);
-      if (roleFilter !== 'all') params.append('role', roleFilter);
+      const params: any = {};
+      if (search) params.search = search;
+      if (roleFilter !== 'all') params.role = roleFilter;
 
-      const res = await fetch(resolveApiUrl(`/api/admin/staff?${params}`), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
+      const res = await adminAPI.getStaff(params);
+      const data = res.data;
       if (data.success) {
         setStaffList(data.data.staff);
         setRoles(data.data.roles);
@@ -169,24 +168,17 @@ export default function StaffListPage() {
 
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      const url = editingId ? `/api/admin/staff/${editingId}` : '/api/admin/staff';
-      const method = editingId ? 'PUT' : 'POST';
-
       const body = editingId
         ? { full_name: form.full_name, phone: form.phone, role: form.role, password: form.password || undefined }
         : form;
 
-      const res = await fetch(resolveApiUrl(url), {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(body)
-      });
-      
-      const data = await res.json();
+      let res;
+      if (editingId) {
+        res = await adminAPI.updateStaff(editingId, body);
+      } else {
+        res = await adminAPI.createStaff(body);
+      }
+      const data = res.data;
       
       if (data.success) {
         toast.success(editingId ? 'Đã cập nhật' : 'Đã tạo mới');
@@ -216,19 +208,9 @@ export default function StaffListPage() {
       isDestructive: isBlocking,
       onConfirm: async () => {
         try {
-          const token = localStorage.getItem('token');
           const newStatus = staff.status === 'active' ? 'blocked' : 'active';
-          
-          const res = await fetch(resolveApiUrl(`/api/admin/staff/${staff.id}`), {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({ status: newStatus })
-          });
-          
-          const data = await res.json();
+          const res = await adminAPI.toggleStaffStatus(staff.id, newStatus);
+          const data = res.data;
           if (data.success) {
             toast.success(newStatus === 'active' ? 'Đã mở khóa tài khoản' : 'Đã khóa tài khoản');
             fetchStaff();
@@ -277,7 +259,7 @@ export default function StaffListPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-secondary-800 rounded-xl p-4 shadow-sm border border-secondary-200 dark:border-secondary-700">
+      <div className="bg-white dark:bg-secondary-800/80 rounded-2xl p-4 shadow-sm border border-secondary-200/80 dark:border-secondary-700/60">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
@@ -286,21 +268,25 @@ export default function StaffListPage() {
               placeholder="Tìm kiếm nhân viên..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500"
+              className="w-full h-11 pl-10 pr-4 border border-secondary-200 dark:border-secondary-700 rounded-xl bg-secondary-50 dark:bg-secondary-900/70 text-secondary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500"
             />
           </div>
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="px-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500"
-          >
-            <option value="all">Tất cả vai trò</option>
-            {roles.map(role => (
-              <option key={role.name} value={role.name}>
-                {role.name.charAt(0).toUpperCase() + role.name.slice(1)}
-              </option>
-            ))}
-          </select>
+          <div className="relative sm:w-56">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="appearance-none w-full h-11 pl-10 pr-10 border border-secondary-200 dark:border-secondary-700 rounded-xl bg-secondary-50 dark:bg-secondary-900/70 text-secondary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500"
+            >
+              <option value="all">Tất cả vai trò</option>
+              {roles.map(role => (
+                <option key={role.name} value={role.name}>
+                  {role.name.charAt(0).toUpperCase() + role.name.slice(1)}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
+          </div>
         </div>
       </div>
 

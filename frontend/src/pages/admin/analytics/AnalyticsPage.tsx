@@ -149,10 +149,10 @@ export default function AnalyticsPage() {
           </p>
         </div>
         
-        <div className="bg-white dark:bg-secondary-800 p-1.5 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm flex items-center gap-2">
+        <div className="bg-white dark:bg-secondary-800/80 p-2 rounded-2xl border border-secondary-200/80 dark:border-secondary-700/60 shadow-sm flex items-center gap-2">
             <div className="relative">
                 <select 
-                   className="appearance-none bg-transparent pl-4 pr-10 py-2 text-sm font-medium text-secondary-700 dark:text-secondary-200 focus:outline-none cursor-pointer hover:bg-secondary-50 dark:hover:bg-secondary-700 rounded-lg transition-colors"
+               className="appearance-none h-11 bg-secondary-50 dark:bg-secondary-900/70 border border-secondary-200 dark:border-secondary-700 pl-4 pr-10 text-sm font-medium text-secondary-700 dark:text-secondary-200 focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 cursor-pointer hover:bg-secondary-100 dark:hover:bg-secondary-700 rounded-xl transition-colors"
                    value={period}
                    onChange={e => setPeriod(e.target.value)}
                 >
@@ -201,35 +201,30 @@ export default function AnalyticsPage() {
             value={formatCurrency(summary.totalRevenue)} 
             icon={DollarSign} 
             colorClass="text-indigo-600"
-            trend={12.5} // Mock trend
          />
          <StatCard 
             title="Đơn hàng" 
             value={summary.totalOrders} 
             icon={Package} 
             colorClass="text-blue-600"
-            trend={5.2}
          />
          <StatCard 
             title="Giá trị TB/Đơn" 
             value={formatCurrency(summary.aov)} 
             icon={CreditCard} 
             colorClass="text-emerald-600"
-            trend={-2.1} 
          />
          <StatCard 
             title="Khách hàng" 
             value={summary.totalCustomers || 0} 
             icon={Users} 
             colorClass="text-purple-600"
-            trend={8.4}
          />
          <StatCard 
             title="Khách mới" 
             value={summary.newCustomers || 0} 
             icon={UserPlus} 
             colorClass="text-orange-600"
-            trend={15.3}
          />
       </div>
 

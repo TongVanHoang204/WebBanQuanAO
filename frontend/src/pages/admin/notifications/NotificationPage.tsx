@@ -7,15 +7,21 @@ import {
   Package, 
   AlertCircle, 
   Info,
-  MoreVertical
+  Trash2,
+  Eye,
+  Search
 } from 'lucide-react';
 import { notificationService, NotificationItem } from '@/services/notification.service';
 import { toast } from 'react-hot-toast';
+
+const ITEMS_PER_PAGE = 20;
 
 function NotificationPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'order' | 'inventory' | 'customer' | 'system' | 'priority' | '24h'>('all');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
 
   const fetchNotifications = async () => {
     try {
@@ -76,6 +82,17 @@ function NotificationPage() {
     return filtered;
   };
 
+  // Apply search filter on top of tab filter
+  const getSearchedNotifications = () => {
+    const filtered = getFilteredNotifications();
+    if (!searchQuery.trim()) return filtered;
+    const q = searchQuery.toLowerCase();
+    return filtered.filter(n => 
+      n.title.toLowerCase().includes(q) || 
+      n.message.toLowerCase().includes(q)
+    );
+  };
+
   const getTypeStyles = (notification: NotificationItem) => {
     switch (notification.type) {
       case 'order_new':
@@ -117,8 +134,48 @@ function NotificationPage() {
     }
   };
 
-  const filteredList = getFilteredNotifications();
+  const filteredList = getSearchedNotifications();
+  const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE);
+  const paginatedList = filteredList.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const unreadCount = notifications.filter(n => !Number(n.is_read)).length;
+
+  const getSidebarItemClasses = (itemColor: string, isActive: boolean) => {
+    if (!isActive) {
+      return {
+        button: 'text-secondary-500 hover:bg-secondary-100 dark:hover:bg-secondary-800 hover:text-secondary-900 dark:hover:text-white',
+        icon: itemColor === 'primary' ? 'text-secondary-500' :
+          itemColor === 'blue' ? 'text-blue-500' :
+          itemColor === 'rose' ? 'text-rose-500' :
+          'text-amber-500',
+      };
+    }
+
+    if (itemColor === 'primary') {
+      return {
+        button: 'bg-black dark:bg-white text-white dark:text-black shadow-lg shadow-secondary-900/20 dark:shadow-white/20 transform scale-[1.02]',
+        icon: '',
+      };
+    }
+
+    if (itemColor === 'blue') {
+      return {
+        button: 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 transform scale-[1.02]',
+        icon: '',
+      };
+    }
+
+    if (itemColor === 'rose') {
+      return {
+        button: 'bg-rose-600 text-white shadow-lg shadow-rose-500/30 transform scale-[1.02]',
+        icon: '',
+      };
+    }
+
+    return {
+      button: 'bg-amber-600 text-white shadow-lg shadow-amber-500/30 transform scale-[1.02]',
+      icon: '',
+    };
+  };
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 h-full bg-secondary-50/50 dark:bg-transparent -m-4 p-4 lg:-m-8 lg:p-8 rounded-3xl overflow-hidden">
@@ -139,14 +196,10 @@ function NotificationPage() {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id as any)}
-              className={`w-full flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${
-                activeTab === item.id 
-                  ? `bg-${item.color === 'primary' ? 'black dark:bg-white' : item.color + '-600'} ${item.color === 'primary' ? 'text-white dark:text-black' : 'text-white'} shadow-lg shadow-${item.color}-500/30 transform scale-[1.02]` 
-                  : 'text-secondary-500 hover:bg-secondary-100 dark:hover:bg-secondary-800 hover:text-secondary-900 dark:hover:text-white'
-              }`}
+              className={`w-full flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${getSidebarItemClasses(item.color, activeTab === item.id).button}`}
             >
               <div className="flex items-center gap-3">
-                <item.icon className={`w-5 h-5 ${activeTab === item.id ? '' : `text-${item.color === 'primary' ? 'secondary' : item.color}-500`}`} />
+                <item.icon className={`w-5 h-5 ${getSidebarItemClasses(item.color, activeTab === item.id).icon}`} />
                 {item.label}
               </div>
               {item.count !== undefined && item.count > 0 && (
@@ -163,7 +216,7 @@ function NotificationPage() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -181,8 +234,20 @@ function NotificationPage() {
           </button>
         </div>
 
+        {/* Search bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
+          <input
+            type="text"
+            placeholder="Tìm kiếm thông báo..."
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+            className="w-full h-11 pl-12 pr-4 bg-white dark:bg-secondary-900/50 border border-secondary-200 dark:border-secondary-700 rounded-xl text-secondary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500"
+          />
+        </div>
+
         {/* Filter Pills */}
-        <div className="flex items-center gap-3 mb-8 overflow-x-auto no-scrollbar pb-2">
+        <div className="flex items-center gap-3 mb-4 overflow-x-auto no-scrollbar pb-2">
           {[
             { id: 'unread', label: 'Chưa đọc' },
             { id: 'priority', label: 'Ưu tiên' },
@@ -219,7 +284,7 @@ function NotificationPage() {
               <p className="text-secondary-500 dark:text-secondary-400 font-medium">Hiện tại không có thông báo nào mới cho bạn.</p>
             </div>
           ) : (
-            filteredList.map((notification) => {
+            paginatedList.map((notification) => {
               const style = getTypeStyles(notification);
               const isUnread = !Number(notification.is_read);
               
@@ -273,11 +338,32 @@ function NotificationPage() {
                     {/* Actions (Right Side) */}
                     <div className="flex flex-col items-end justify-between pl-4">
                          <div className="flex items-center gap-1">
+                            {isUnread && (
+                              <button 
+                                className="p-2 text-secondary-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all duration-300"
+                                title="Đánh dấu đã đọc"
+                                onClick={async () => {
+                                  try {
+                                    await notificationService.markRead(notification.id);
+                                    fetchNotifications();
+                                  } catch { toast.error('Lỗi đánh dấu đã đọc'); }
+                                }}
+                              >
+                                <Eye className="w-5 h-5" />
+                              </button>
+                            )}
                             <button 
                                 className="p-2 text-secondary-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all duration-300"
-                                onClick={() => { /* Handle Delete */ }}
+                                title="Xóa thông báo"
+                                onClick={async () => {
+                                  try {
+                                    await notificationService.delete(notification.id);
+                                    toast.success('Đã xóa thông báo');
+                                    fetchNotifications();
+                                  } catch { toast.error('Lỗi xóa thông báo'); }
+                                }}
                             >
-                              <MoreVertical className="w-5 h-5" />
+                              <Trash2 className="w-5 h-5" />
                             </button>
                          </div>
                          
@@ -297,6 +383,29 @@ function NotificationPage() {
                 </div>
               );
             })
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 py-4">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage(p => p - 1)}
+                className="px-4 py-2 text-sm font-medium rounded-xl border border-secondary-200 dark:border-secondary-700 text-secondary-700 dark:text-secondary-300 disabled:opacity-50 hover:bg-secondary-50 dark:hover:bg-secondary-800 transition-colors"
+              >
+                Trước
+              </button>
+              <span className="text-sm text-secondary-500 dark:text-secondary-400">
+                {page} / {totalPages}
+              </span>
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage(p => p + 1)}
+                className="px-4 py-2 text-sm font-medium rounded-xl border border-secondary-200 dark:border-secondary-700 text-secondary-700 dark:text-secondary-300 disabled:opacity-50 hover:bg-secondary-50 dark:hover:bg-secondary-800 transition-colors"
+              >
+                Sau
+              </button>
+            </div>
           )}
         </div>
       </div>

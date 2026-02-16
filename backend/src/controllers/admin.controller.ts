@@ -739,8 +739,10 @@ export const getAdminOrders = async (
     const limit = Number(req.query.limit) || 10;
     const search = req.query.search as string;
     const status = req.query.status as string;
+    const startDate = req.query.start_date as string;
+    const endDate = req.query.end_date as string;
 
-    console.log('GET ORDERS QUERY:', { page, limit, search, status });
+    console.log('GET ORDERS QUERY:', { page, limit, search, status, startDate, endDate });
 
     const where: any = {};
 
@@ -767,6 +769,31 @@ export const getAdminOrders = async (
       } else {
         where.status = status;
         // Handle confirmed status if matches DB enum
+      }
+    }
+
+    // Filter by order date range
+    if ((startDate && startDate !== 'undefined' && startDate !== 'null') || (endDate && endDate !== 'undefined' && endDate !== 'null')) {
+      const createdAtFilter: any = {};
+
+      if (startDate) {
+        const from = new Date(startDate);
+        if (!Number.isNaN(from.getTime())) {
+          from.setHours(0, 0, 0, 0);
+          createdAtFilter.gte = from;
+        }
+      }
+
+      if (endDate) {
+        const to = new Date(endDate);
+        if (!Number.isNaN(to.getTime())) {
+          to.setHours(23, 59, 59, 999);
+          createdAtFilter.lte = to;
+        }
+      }
+
+      if (Object.keys(createdAtFilter).length > 0) {
+        where.created_at = createdAtFilter;
       }
     }
 

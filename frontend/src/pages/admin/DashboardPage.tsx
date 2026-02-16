@@ -19,7 +19,9 @@ import {
   Timer,
   XCircle,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -66,20 +68,25 @@ const BAR_COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#818cf8', '#636
 export default function DashboardPage() {
   const [stats, setStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { user } = useAuth();
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await adminAPI.getDashboard();
-        setStats(response.data.data);
-      } catch (error) {
-        toast.error('Không thể tải dữ liệu bảng điều khiển');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchStats = async (showRefresh = false) => {
+    try {
+      if (showRefresh) setIsRefreshing(true);
+      else setIsLoading(true);
+      const response = await adminAPI.getDashboard();
+      setStats(response.data.data);
+      if (showRefresh) toast.success('Dữ liệu đã được cập nhật');
+    } catch (error) {
+      toast.error('Không thể tải dữ liệu bảng điều khiển');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
 
+  useEffect(() => {
     fetchStats();
   }, []);
 
@@ -165,8 +172,20 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {/* Mini stats pills */}
-          <div className="flex flex-wrap gap-3">
+          {/* Refresh button */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => fetchStats(true)}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-white/10 text-white text-sm font-bold hover:bg-white/25 transition-all disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Làm mới
+            </button>
+          </div>
+        </div>
+
+        <div className="relative z-10 flex flex-wrap gap-3 mt-4">
             <div className="flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-white/10">
               <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
                 <Package className="w-4 h-4 text-white" />
@@ -199,10 +218,7 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-        </div>
       </div>
-
-      {/* ═══════════ BENTO GRID STATS ═══════════ */}
       <AdminBentoStats stats={stats} isLoading={isLoading} />
 
       {/* ═══════════ AI DASHBOARD INSIGHT ═══════════ */}
@@ -214,6 +230,40 @@ export default function DashboardPage() {
           return res.data.data.insight;
         }}
       />
+
+      {/* ═══════════ LOW STOCK ALERTS ═══════════ */}
+      {stats?.lowStockProducts && stats.lowStockProducts.length > 0 && (
+        <section className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <h3 className="font-bold text-amber-900 dark:text-amber-200">Cảnh báo tồn kho thấp</h3>
+              <p className="text-xs text-amber-600 dark:text-amber-400">{stats.lowStockProducts.length} sản phẩm cần nhập thêm hàng</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {stats.lowStockProducts.slice(0, 6).map((product: any) => (
+              <Link
+                key={product.id}
+                to={`/admin/products/${product.id}`}
+                className="flex items-center gap-3 bg-white dark:bg-secondary-800/80 rounded-xl p-3 border border-amber-200/50 dark:border-amber-800/30 hover:border-amber-300 dark:hover:border-amber-700/50 transition-colors group"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-secondary-900 dark:text-white truncate group-hover:text-amber-700 dark:group-hover:text-amber-300 transition-colors">
+                    {product.name}
+                  </p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 font-bold">
+                    Còn {product.stock ?? product.quantity ?? 0} sản phẩm
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-secondary-300 group-hover:text-amber-500 transition-colors" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ═══════════ QUICK ACTIONS ═══════════ */}
       <section>

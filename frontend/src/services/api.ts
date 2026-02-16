@@ -285,7 +285,7 @@ export const adminAPI = {
   }),
   
   // Orders
-  getOrders: (params?: { page?: number; limit?: number; status?: string; search?: string }) =>
+  getOrders: (params?: { page?: number; limit?: number; status?: string; search?: string; start_date?: string; end_date?: string }) =>
     api.get('/admin/orders', { params }),
   getOrderById: (id: string) => api.get(`/admin/orders/${id}`),
   updateOrderStatus: (id: string, status: string) =>
@@ -350,6 +350,49 @@ export const adminAPI = {
   aiStaffAnalyze: () => api.post('/admin/ai/staff-analyze'),
   aiProductContent: (name: string, category?: string, brand?: string, price?: number) =>
     api.post('/admin/ai/product-content', { name, category, brand, price }),
+
+  // Reviews (admin)
+  getReviews: (params?: { search?: string; status?: string; rating?: string }) =>
+    api.get('/admin/reviews', { params }),
+  updateReviewStatus: (id: string, status: string) =>
+    api.patch(`/admin/reviews/${id}/status`, { status }),
+  deleteReview: (id: string) => api.delete(`/admin/reviews/${id}`),
+  bulkDeleteReviews: (ids: string[]) =>
+    api.delete('/admin/reviews/bulk', { data: { ids } }),
+  bulkUpdateReviewStatus: (ids: string[], status: string) =>
+    api.patch('/admin/reviews/bulk-status', { ids, status }),
+
+  // Shipping (admin)
+  getShippingMethods: (params?: { include_inactive?: string }) =>
+    api.get('/admin/shipping', { params }),
+  createShippingMethod: (data: any) => api.post('/admin/shipping', data),
+  updateShippingMethod: (id: string, data: any) => api.put(`/admin/shipping/${id}`, data),
+  deleteShippingMethod: (id: string) => api.delete(`/admin/shipping/${id}`),
+
+  // Banners (admin)
+  getBanners: (params?: { include_inactive?: string; position?: string }) =>
+    api.get('/admin/banners', { params }),
+  createBanner: (data: any) => api.post('/admin/banners', data),
+  updateBanner: (id: string, data: any) => api.put(`/admin/banners/${id}`, data),
+  deleteBanner: (id: string) => api.delete(`/admin/banners/${id}`),
+
+  // Staff (admin)
+  getStaff: (params?: { search?: string; role?: string }) =>
+    api.get('/admin/staff', { params }),
+  createStaff: (data: any) => api.post('/admin/staff', data),
+  updateStaff: (id: string, data: any) => api.put(`/admin/staff/${id}`, data),
+  toggleStaffStatus: (id: string, status: string) =>
+    api.patch(`/admin/staff/${id}/status`, { status }),
+
+  // Logs (admin)
+  getLogs: (params?: { action?: string; start_date?: string }) =>
+    api.get('/admin/logs', { params }),
+
+  // Export
+  exportOrders: (params?: any) =>
+    api.get('/admin/export/orders', { params, responseType: 'blob' }),
+  exportTransactions: (params?: any) =>
+    api.get('/admin/export/transactions', { params, responseType: 'blob' }),
 };
 
 // Notifications API (Common for all users)

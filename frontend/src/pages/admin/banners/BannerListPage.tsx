@@ -15,8 +15,9 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { resolveApiUrl, adminAPI } from '../../../services/api';
+import { adminAPI, uploadAPI } from '../../../services/api';
 import AIInsightPanel from '../../../components/common/AIInsightPanel';
+import ConfirmModal from '../../../components/common/ConfirmModal';
 
 interface Banner {
   id: string;
@@ -77,17 +78,29 @@ export default function BannerListPage() {
   const [form, setForm] = useState<FormData>(initialForm);
   const [positionFilter, setPositionFilter] = useState<string>('');
 
+  // ConfirmModal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    isDestructive?: boolean;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
   const fetchBanners = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const params = new URLSearchParams({ include_inactive: 'true' });
-      if (positionFilter) params.append('position', positionFilter);
+      const params: any = { include_inactive: 'true' };
+      if (positionFilter) params.position = positionFilter;
 
-      const res = await fetch(resolveApiUrl(`/api/admin/banners?${params}`), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
+      const res = await adminAPI.getBanners(params);
+      const data = res.data;
       if (data.success) {
         setBanners(data.data);
       }
@@ -139,21 +152,12 @@ export default function BannerListPage() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const token = localStorage.getItem('token');
     const newImages: string[] = [];
 
-    // Upload each file
     for (let i = 0; i < files.length; i++) {
-        const formData = new FormData();
-        formData.append('file', files[i]);
-
         try {
-            const res = await fetch(resolveApiUrl('/api/upload'), {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${token}` },
-                body: formData
-            });
-            const data = await res.json();
+            const res = await uploadAPI.single(files[i]);
+            const data = res.data;
             if (data.success) {
                 newImages.push(data.data.url);
             }
@@ -212,27 +216,21 @@ export default function BannerListPage() {
 
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      const url = editingId ? `/api/admin/banners/${editingId}` : '/api/admin/banners';
-      const method = editingId ? 'PUT' : 'POST';
+      const payload = {
+        ...form,
+        images: form.images, 
+        image_url: form.images.length > 0 ? form.images[0] : form.image_url,
+        start_date: form.start_date || null,
+        end_date: form.end_date || null
+      };
 
-      const res = await fetch(resolveApiUrl(url), {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...form,
-          // Explicitly send images array
-          images: form.images, 
-          image_url: form.images.length > 0 ? form.images[0] : form.image_url,
-          start_date: form.start_date || null,
-          end_date: form.end_date || null
-        })
-      });
-      
-      const data = await res.json();
+      let res;
+      if (editingId) {
+        res = await adminAPI.updateBanner(editingId, payload);
+      } else {
+        res = await adminAPI.createBanner(payload);
+      }
+      const data = res.data;
       
       if (data.success) {
         toast.success(editingId ? 'Đã cập nhật' : 'Đã tạo mới');
@@ -249,36 +247,29 @@ export default function BannerListPage() {
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Xóa banner "${title}"?`)) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(resolveApiUrl(`/api/admin/banners/${id}`), {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      
-      if (data.success) {
-        toast.success('Đã xóa');
-        fetchBanners();
+    setConfirmModal({
+      isOpen: true,
+      title: 'Xóa banner?',
+      message: `Xóa banner "${title}"? Thao tác không thể hoàn tác.`,
+      confirmText: 'Xóa',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          const res = await adminAPI.deleteBanner(id);
+          if (res.data.success) {
+            toast.success('Đã xóa');
+            fetchBanners();
+          }
+        } catch (error) {
+          toast.error('Có lỗi xảy ra');
+        }
       }
-    } catch (error) {
-      toast.error('Có lỗi xảy ra');
-    }
+    });
   };
 
   const handleToggleActive = async (banner: Banner) => {
     try {
-      const token = localStorage.getItem('token');
-      await fetch(resolveApiUrl(`/api/admin/banners/${banner.id}`), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ is_active: !banner.is_active })
-      });
+      await adminAPI.updateBanner(banner.id, { is_active: !banner.is_active });
       fetchBanners();
     } catch (error) {
       toast.error('Có lỗi xảy ra');
@@ -543,6 +534,16 @@ export default function BannerListPage() {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        isDestructive={confirmModal.isDestructive}
+      />
     </div>
   );
 }

@@ -18,7 +18,8 @@ import {
   X,
   FileSpreadsheet,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  Layers
 } from 'lucide-react';
 import { adminAPI, toMediaUrl } from '../../../services/api';
 import { Product } from '../../../types';
@@ -156,34 +157,34 @@ export default function ProductListPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900 dark:text-white">Sản phẩm</h1>
-          <p className="text-secondary-500 dark:text-secondary-400 text-sm">Quản lý kho hàng và danh mục sản phẩm</p>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-secondary-900 dark:text-white">Sản phẩm</h1>
+            {pagination.total > 0 && (
+              <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 tabular-nums">
+                {pagination.total}
+              </span>
+            )}
+          </div>
+          <p className="text-secondary-500 dark:text-secondary-400 text-sm mt-0.5">Quản lý kho hàng và danh mục sản phẩm</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Link 
-            to="/admin/coupons/new"
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-secondary-200 dark:bg-secondary-800 dark:border-secondary-700 text-secondary-700 dark:text-secondary-300 rounded-full hover:bg-secondary-50 dark:hover:bg-secondary-700 transition-colors font-medium text-sm"
-          >
-            <Ticket className="w-4 h-4" />
-            Thêm khuyến mãi
-          </Link>
           <button 
             onClick={() => setImportModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-full text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700 transition-colors font-medium text-sm"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700 transition-all font-medium text-sm shadow-sm hover:shadow"
           >
             <Upload className="w-4 h-4" />
             <span>Nhập Excel</span>
           </button>
           <button 
             onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-full text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700 transition-colors font-medium text-sm"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700 transition-all font-medium text-sm shadow-sm hover:shadow"
           >
             <Download className="w-4 h-4" />
             <span>Xuất Excel</span>
           </button>
           <Link 
             to="/admin/products/new"
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 transition-colors font-medium text-sm"
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all font-medium text-sm shadow-sm shadow-primary-600/25 hover:shadow-md hover:shadow-primary-600/30"
           >
             <Plus className="w-4 h-4" />
             Thêm sản phẩm
@@ -192,7 +193,7 @@ export default function ProductListPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-secondary-800 p-4 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm flex flex-col sm:flex-row gap-4 transition-colors">
+      <div className="bg-white dark:bg-secondary-800/80 p-4 rounded-2xl border border-secondary-200/80 dark:border-secondary-700/60 shadow-sm flex flex-col sm:flex-row gap-4 transition-colors">
         <div className="flex-1 relative">
           <Search className="w-5 h-5 text-secondary-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -200,53 +201,66 @@ export default function ProductListPage() {
             placeholder="Tìm kiếm theo tên hoặc SKU..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-900 rounded-full text-sm text-secondary-900 dark:text-white placeholder-secondary-400 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+            className="w-full h-11 pl-10 pr-4 border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-900/70 rounded-xl text-sm text-secondary-900 dark:text-white placeholder-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 transition-colors"
           />
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter className="w-5 h-5 text-secondary-400" />
+        <div className="relative w-full sm:w-56">
+          <Filter className="w-4 h-4 text-secondary-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <select 
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="flex-1 sm:w-40 border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-900 rounded-full text-sm text-secondary-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 transition-colors"
+            className="appearance-none w-full h-11 pl-10 pr-10 border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-900/70 rounded-xl text-sm text-secondary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 transition-colors"
           >
             <option value="">Tất cả trạng thái</option>
             <option value="active">Đang bán</option>
             <option value="inactive">Bản nháp</option>
           </select>
+          <ChevronRight className="w-4 h-4 text-secondary-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none rotate-90" />
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-secondary-800 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm overflow-hidden transition-colors">
+      <div className="bg-white dark:bg-secondary-800/80 rounded-2xl border border-secondary-200/80 dark:border-secondary-700/60 shadow-sm overflow-hidden transition-colors">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-secondary-50 dark:bg-secondary-700/50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider min-w-[300px]">Sản phẩm</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider min-w-[120px]">Trạng thái</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">SKU</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Danh mục</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Giá</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider min-w-[250px]">Kho & Biến thể</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider sticky right-0 bg-secondary-50 dark:bg-secondary-800 z-10 shadow-[-5px_0px_10px_rgba(0,0,0,0.05)] dark:shadow-[-5px_0px_10px_rgba(0,0,0,0.5)]">Thao tác</th>
+            <thead>
+              <tr className="bg-secondary-50/80 dark:bg-secondary-900/50 border-b border-secondary-200/60 dark:border-secondary-700/40">
+                <th className="px-6 py-3.5 text-left text-[11px] font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider min-w-[300px]">Sản phẩm</th>
+                <th className="px-6 py-3.5 text-left text-[11px] font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider min-w-[120px]">Trạng thái</th>
+                <th className="px-6 py-3.5 text-left text-[11px] font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">SKU</th>
+                <th className="px-6 py-3.5 text-left text-[11px] font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Danh mục</th>
+                <th className="px-6 py-3.5 text-left text-[11px] font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Giá</th>
+                <th className="px-6 py-3.5 text-left text-[11px] font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider min-w-[250px]">Kho & Biến thể</th>
+                <th className="px-6 py-3.5 text-right text-[11px] font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider sticky right-0 bg-secondary-50 dark:bg-secondary-800 z-10 shadow-[-8px_0_12px_-4px_rgba(0,0,0,0.05)] dark:shadow-[-8px_0_12px_-4px_rgba(0,0,0,0.3)]">Thao tác</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700 bg-white dark:bg-secondary-800">
+            <tbody className="divide-y divide-secondary-100 dark:divide-secondary-700/50 bg-white dark:bg-secondary-800">
               {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center">
-                    <div className="flex justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-                    </div>
-                  </td>
-                </tr>
+                [...Array(5)].map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-xl bg-secondary-200 dark:bg-secondary-700 flex-shrink-0" />
+                        <div className="space-y-2 flex-1">
+                          <div className="h-3.5 bg-secondary-200 dark:bg-secondary-700 rounded-lg w-3/4" />
+                          <div className="h-3 bg-secondary-100 dark:bg-secondary-700/50 rounded-lg w-1/2" />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4"><div className="h-6 w-20 bg-secondary-200 dark:bg-secondary-700 rounded-full" /></td>
+                    <td className="px-6 py-4"><div className="h-3.5 w-20 bg-secondary-200 dark:bg-secondary-700 rounded-lg" /></td>
+                    <td className="px-6 py-4"><div className="h-3.5 w-24 bg-secondary-200 dark:bg-secondary-700 rounded-lg" /></td>
+                    <td className="px-6 py-4"><div className="h-3.5 w-20 bg-secondary-200 dark:bg-secondary-700 rounded-lg" /></td>
+                    <td className="px-6 py-4"><div className="h-3.5 w-16 bg-secondary-200 dark:bg-secondary-700 rounded-lg" /></td>
+                    <td className="px-6 py-4"><div className="h-3.5 w-16 bg-secondary-200 dark:bg-secondary-700 rounded-lg" /></td>
+                  </tr>
+                ))
               ) : products.length > 0 ? (
                 products.map((product) => (
                   <tr key={product.id} className="hover:bg-secondary-50 dark:hover:bg-secondary-700/50 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-secondary-100 dark:bg-secondary-700 overflow-hidden">
+                        <div className="h-12 w-12 flex-shrink-0 rounded-xl bg-secondary-100 dark:bg-secondary-700 overflow-hidden ring-1 ring-secondary-200/50 dark:ring-secondary-600/30">
                           {product.product_images && product.product_images.length > 0 ? (
                             <img 
                               src={toMediaUrl(product.product_images.find(i => i.is_primary)?.url || product.product_images[0].url)} 
@@ -268,64 +282,73 @@ export default function ProductListPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full ${
                         product.is_active 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' 
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                          ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/10 dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-400/20' 
+                          : 'bg-secondary-100 text-secondary-600 ring-1 ring-secondary-300/30 dark:bg-secondary-700 dark:text-secondary-400 dark:ring-secondary-500/20'
                       }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${product.is_active ? 'bg-emerald-500 dark:bg-emerald-400' : 'bg-secondary-400 dark:bg-secondary-500'}`} />
                         {product.is_active ? 'Đang bán' : 'Bản nháp'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-500 dark:text-secondary-400">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-500 dark:text-secondary-400 font-mono">
                       {product.sku}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-500 dark:text-secondary-400">
-                      {product.category?.name || 'Chưa phân loại'}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-secondary-100 text-secondary-600 dark:bg-secondary-700/50 dark:text-secondary-300">
+                        {product.category?.name || 'Chưa phân loại'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-secondary-900 dark:text-white">
                       {formatPrice(product.base_price)}
                     </td>
                      <td className="px-6 py-4 text-sm text-secondary-500 dark:text-secondary-400">
                        {product.product_variants && product.product_variants.length > 0 ? (
-                         <div className="flex flex-col gap-1 max-h-[120px] overflow-y-auto pr-2">
+                         <div className="flex flex-col gap-1.5 max-h-[120px] overflow-y-auto pr-2">
                            {product.product_variants.map(v => (
-                             <div key={v.id} className="grid grid-cols-[1fr_80px] items-center gap-2 text-xs border-b border-secondary-100 dark:border-secondary-700/50 last:border-0 pb-1 last:pb-0">
-                               <span className="font-medium text-secondary-900 dark:text-secondary-200 truncate" title={v.variant_sku}>
+                             <div key={v.id} className="flex items-center justify-between gap-3 text-xs">
+                               <span className="font-medium text-secondary-700 dark:text-secondary-300 truncate" title={v.variant_sku}>
                                  {v.variant_sku}
                                </span>
-                               
-                               <span className={`font-bold text-right ${v.stock_qty > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                               <span className={`flex-shrink-0 inline-flex items-center justify-center min-w-[2rem] px-1.5 py-0.5 rounded-full text-[11px] font-bold tabular-nums ${
+                                 v.stock_qty > 10 
+                                   ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' 
+                                   : v.stock_qty > 0 
+                                     ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                                     : 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-300'
+                               }`}>
                                  {v.stock_qty ?? 0}
                                </span>
                              </div>
                            ))}
                          </div>
                        ) : (
-                         <span className="font-medium">
-                            Tổng: {product.product_variants?.reduce((acc, v) => acc + v.stock_qty, 0) || product.stock_qty || 0}
+                         <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary-700 dark:text-secondary-300">
+                            <Layers className="w-3.5 h-3.5 text-secondary-400" />
+                            {product.product_variants?.reduce((acc, v) => acc + v.stock_qty, 0) || product.stock_qty || 0}
                          </span>
                        )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium sticky right-0 bg-white group-hover:bg-secondary-50 dark:bg-secondary-800 dark:group-hover:bg-secondary-700/50 transition-colors z-10 shadow-[-5px_0px_10px_rgba(0,0,0,0.05)] dark:shadow-[-5px_0px_10px_rgba(0,0,0,0.5)]">
-                      <div className="flex justify-end gap-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium sticky right-0 bg-white group-hover:bg-secondary-50 dark:bg-secondary-800 dark:group-hover:bg-secondary-700/50 transition-colors z-10 shadow-[-8px_0_12px_-4px_rgba(0,0,0,0.05)] dark:shadow-[-8px_0_12px_-4px_rgba(0,0,0,0.3)]">
+                      <div className="flex justify-end items-center gap-1">
                         <Link 
                           to={`/products/${product.slug}`} 
                           target="_blank"
-                          className="p-1 text-secondary-400 hover:text-secondary-600 dark:hover:text-secondary-300 rounded-full bg-secondary-50 hover:bg-secondary-100 dark:bg-secondary-700 dark:hover:bg-secondary-600"
+                          className="p-2 text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200 rounded-lg hover:bg-secondary-100 dark:hover:bg-secondary-700 transition-colors"
                           title="Xem trên web"
                         >
                           <Eye className="w-4 h-4" />
                         </Link>
                         <Link 
                           to={`/admin/products/${product.id}`}
-                          className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-full bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50"
+                          className="p-2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
                           title="Chỉnh sửa"
                         >
                           <Edit className="w-4 h-4" />
                         </Link>
                         <button 
                           onClick={() => setDeleteModal({ isOpen: true, productId: product.id })}
-                          className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-full bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50"
+                          className="p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
                           title="Xóa"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -336,8 +359,16 @@ export default function ProductListPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-secondary-500 dark:text-secondary-400">
-                    Không tìm thấy sản phẩm nào
+                  <td colSpan={7} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-16 h-16 rounded-2xl bg-secondary-100 dark:bg-secondary-700/50 flex items-center justify-center">
+                        <Package className="w-8 h-8 text-secondary-300 dark:text-secondary-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-secondary-600 dark:text-secondary-300">Không tìm thấy sản phẩm nào</p>
+                        <p className="text-xs text-secondary-400 dark:text-secondary-500 mt-1">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -346,54 +377,49 @@ export default function ProductListPage() {
         </div>
         
         {/* Pagination */}
-        <div className="bg-white dark:bg-secondary-800 px-4 py-3 border-t border-secondary-200 dark:border-secondary-700 flex items-center justify-between sm:px-6 transition-colors">
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-secondary-700 dark:text-secondary-300">
-                Hiển thị trang <span className="font-medium">{pagination.page}</span> trên <span className="font-medium">{pagination.totalPages}</span>
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button
-                  onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
-                  disabled={pagination.page === 1}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-sm font-medium text-secondary-500 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        <div className="bg-white dark:bg-secondary-800/80 px-5 py-4 border-t border-secondary-200/60 dark:border-secondary-700/40 flex flex-col sm:flex-row items-center justify-between gap-3 transition-colors">
+          <p className="text-sm text-secondary-500 dark:text-secondary-400">
+            Trang <span className="font-semibold text-secondary-700 dark:text-secondary-200">{pagination.page}</span> / <span className="font-semibold text-secondary-700 dark:text-secondary-200">{pagination.totalPages}</span>
+            <span className="ml-1.5 text-secondary-400 dark:text-secondary-500">· {pagination.total} sản phẩm</span>
+          </p>
+          <nav className="flex items-center gap-1.5" aria-label="Pagination">
+            <button
+              onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+              disabled={pagination.page === 1}
+              className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-500 dark:text-secondary-400 hover:bg-secondary-50 dark:hover:bg-secondary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            {getPageItems(pagination.page, Math.max(1, pagination.totalPages)).map((item, index) =>
+              item === 'ellipsis' ? (
+                <span
+                  key={`ellipsis-${index}`}
+                  className="w-9 h-9 inline-flex items-center justify-center text-sm text-secondary-400 dark:text-secondary-500 select-none"
                 >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                {getPageItems(pagination.page, Math.max(1, pagination.totalPages)).map((item, index) =>
-                  item === 'ellipsis' ? (
-                    <span
-                      key={`ellipsis-${index}`}
-                      className="relative inline-flex items-center px-3 py-2 border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-sm text-secondary-500 dark:text-secondary-300"
-                    >
-                      ...
-                    </span>
-                  ) : (
-                    <button
-                      key={item}
-                      onClick={() => setPagination(prev => ({ ...prev, page: item }))}
-                      className={`relative inline-flex items-center px-3 py-2 border border-secondary-300 dark:border-secondary-600 text-sm font-medium transition-colors ${
-                        pagination.page === item
-                          ? 'z-10 bg-primary-600 text-white border-primary-600'
-                          : 'bg-white dark:bg-secondary-700 text-secondary-600 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-600'
-                      }`}
-                    >
-                      {item}
-                    </button>
-                  )
-                )}
+                  ···
+                </span>
+              ) : (
                 <button
-                  onClick={() => setPagination(prev => ({ ...prev, page: Math.min(pagination.totalPages, prev.page + 1) }))}
-                  disabled={pagination.page === pagination.totalPages || pagination.totalPages === 0}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-sm font-medium text-secondary-500 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  key={item}
+                  onClick={() => setPagination(prev => ({ ...prev, page: item }))}
+                  className={`inline-flex items-center justify-center w-9 h-9 rounded-xl text-sm font-medium transition-all ${
+                    pagination.page === item
+                      ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/25'
+                      : 'border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-600 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700'
+                  }`}
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  {item}
                 </button>
-              </nav>
-            </div>
-          </div>
+              )
+            )}
+            <button
+              onClick={() => setPagination(prev => ({ ...prev, page: Math.min(pagination.totalPages, prev.page + 1) }))}
+              disabled={pagination.page === pagination.totalPages || pagination.totalPages === 0}
+              className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-500 dark:text-secondary-400 hover:bg-secondary-50 dark:hover:bg-secondary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </nav>
         </div>
       </div>
 
