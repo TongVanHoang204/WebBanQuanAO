@@ -17,14 +17,26 @@ const serialize = (data: any) => {
  */
 export const getLogs = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { page = '1', limit = '20', user_id, action, start_date, end_date } = req.query;
+    const { page = '1', limit = '20', user_id, action, entity_type, search, start_date, end_date } = req.query;
     const pageNum = Math.max(1, parseInt(page as string));
     const limitNum = Math.min(100, Math.max(1, parseInt(limit as string)));
 
     const where: any = {};
 
     if (user_id) where.user_id = BigInt(user_id as string);
-    if (action) where.action = action;
+    if (action) where.action = { contains: action as string };
+    if (entity_type) where.entity_type = entity_type;
+
+    if (search) {
+      const s = search as string;
+      where.OR = [
+        { action: { contains: s } },
+        { entity_type: { contains: s } },
+        { entity_id: { contains: s } },
+        { user: { username: { contains: s } } },
+        { user: { full_name: { contains: s } } },
+      ];
+    }
 
     if (start_date || end_date) {
       where.created_at = {};

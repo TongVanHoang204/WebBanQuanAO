@@ -1077,9 +1077,32 @@ KHI CẦN DÙNG CÔNG CỤ, trả về JSON như sau (không thêm text):
 
   // --- MAIN CHAT LOGIC ---
   static async generateChatResponse(messages: ChatMessage[], user?: any) {
-      // Admin Logic (Keep as is, or similar structure)
-      // 1. Prepare messages
       const requestMessages = [...messages];
+
+      // If the caller already provided a system prompt (e.g. admin insight panel),
+      // honour it and do a simple direct call — no tool flow required.
+      const hasCustomSystemPrompt =
+        requestMessages.length > 0 &&
+        requestMessages[0].role === 'system' &&
+        !requestMessages[0].content.includes('SỬ DỤNG CÔNG CỤ');
+
+      if (hasCustomSystemPrompt) {
+        // Direct LLM call — no tools, no retry loop
+        try {
+          const response = await ollama.chat({
+            model: this.MODEL,
+            messages: requestMessages,
+            stream: false,
+            options: { temperature: 0.4 },
+          });
+          return response.message.content;
+        } catch (e: any) {
+          console.error('AI Insight Error:', e);
+          return 'Lỗi kết nối AI Service.';
+        }
+      }
+
+      // Default admin chatbot flow (with tools)
       if (requestMessages.length === 0 || requestMessages[0].role !== 'system') {
         requestMessages.unshift({ role: 'system', content: this.getSystemPrompt() });
       } else {
@@ -1087,7 +1110,7 @@ KHI CẦN DÙNG CÔNG CỤ, trả về JSON như sau (không thêm text):
       }
 
       const result = await this.runLLMFlow(requestMessages, false);
-      return result.message; // Admin controller might expect string only, need to check
+      return result.message;
   }
 
   // Customer Chat Logic

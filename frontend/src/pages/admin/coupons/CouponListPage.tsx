@@ -13,6 +13,8 @@ import { Link } from 'react-router-dom';
 import { couponService } from '../../../services/coupon.service';
 import { toast } from 'react-hot-toast';
 import ConfirmModal from '../../../components/common/ConfirmModal';
+import Pagination from '../../../components/common/Pagination';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 export default function CouponListPage() {
   const [coupons, setCoupons] = useState<any[]>([]);
@@ -115,6 +117,29 @@ export default function CouponListPage() {
         </div>
       </div>
 
+      {/* AI Insight */}
+      <AIInsightPanel
+        title="AI Phân tích khuyến mãi"
+        prompt="Phân tích hiệu quả các mã khuyến mãi. Đánh giá tỷ lệ sử dụng, mã sắp hết hạn, và đề xuất chiến lược khuyến mãi hiệu quả hơn."
+        dataContext={(() => {
+          const lines: string[] = [`Tổng mã khuyến mãi: ${coupons.length}`];
+          if (coupons.length > 0) {
+            const active = coupons.filter((c: any) => c.is_active !== false && (!c.expires_at || new Date(c.expires_at) > new Date()));
+            const expiring = coupons.filter((c: any) => {
+              if (!c.expires_at) return false;
+              const diff = new Date(c.expires_at).getTime() - Date.now();
+              return diff > 0 && diff < 7 * 86400000;
+            });
+            lines.push(`Mã đang hoạt động: ${active.length}`);
+            lines.push(`Mã sắp hết hạn (7 ngày): ${expiring.length}`);
+            const totalUsed = coupons.reduce((sum: number, c: any) => sum + (c.used_count ?? c.times_used ?? 0), 0);
+            lines.push(`Tổng lượt sử dụng: ${totalUsed}`);
+            lines.push(`Danh sách mã: ${coupons.slice(0, 5).map((c: any) => `${c.code} (giảm ${c.discount_value ?? c.discount ?? '?'}${c.discount_type === 'percentage' || c.type === 'percentage' ? '%' : 'đ'}, dùng ${c.used_count ?? c.times_used ?? 0}/${c.max_usage ?? c.usage_limit ?? '∞'} lần)`).join('; ')}`);
+          }
+          return lines.join('\n');
+        })()}
+      />
+
       {/* List */}
       <div className="bg-white dark:bg-secondary-800 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
@@ -200,26 +225,15 @@ export default function CouponListPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-secondary-200 dark:border-secondary-700 flex justify-center">
-            <div className="flex gap-2">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage(p => p - 1)}
-                className="px-3 py-1 rounded border border-secondary-200 dark:border-secondary-700 disabled:opacity-50 text-secondary-700 dark:text-secondary-300"
-              >
-                Trước
-              </button>
-              <span className="px-3 py-1 text-secondary-700 dark:text-secondary-300">
-                Trang {page} / {totalPages}
-              </span>
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage(p => p + 1)}
-                className="px-3 py-1 rounded border border-secondary-200 dark:border-secondary-700 disabled:opacity-50 text-secondary-700 dark:text-secondary-300"
-              >
-                Sau
-              </button>
+          <div className="bg-white dark:bg-secondary-800 px-4 py-3 border-t border-secondary-200 dark:border-secondary-700 flex flex-col sm:flex-row items-center justify-between gap-4 sm:px-6 transition-colors">
+            <div className="text-sm text-secondary-500 dark:text-secondary-400">
+               Hiển thị trang <span className="font-medium text-secondary-900 dark:text-white">{page}</span> trên <span className="font-medium text-secondary-900 dark:text-white">{totalPages}</span>
             </div>
+            <Pagination 
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </div>
         )}
       </div>
@@ -234,6 +248,7 @@ export default function CouponListPage() {
         cancelText="Để em xem lại"
         isDestructive={true}
       />
+
     </div>
   );
 }

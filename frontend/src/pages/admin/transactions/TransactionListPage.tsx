@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { paymentAPI } from '../../../services/api';
 import { toast } from 'react-hot-toast';
+import Pagination from '../../../components/common/Pagination';
 
 interface Transaction {
   id: string;
@@ -29,17 +30,24 @@ export default function TransactionListPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const fetchTransactions = async () => {
     try {
       setLoading(true);
       const res = await paymentAPI.getTransactions({ 
         search, 
-        status: statusFilter !== 'all' ? statusFilter : undefined 
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        page,
+        limit: 10
       });
       
       if (res.data.success) {
-        setTransactions(res.data.data);
+        setTransactions(res.data.data.transactions || res.data.data); // Handle if data is wrapped or array
+        if (res.data.data.pagination) {
+            setTotalPages(res.data.data.pagination.totalPages);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -55,7 +63,7 @@ export default function TransactionListPage() {
         fetchTransactions();
     }, 300);
     return () => clearTimeout(timer);
-  }, [search, statusFilter]);
+  }, [search, statusFilter, page]);
 
   return (
     <div className="space-y-6">
@@ -102,6 +110,7 @@ export default function TransactionListPage() {
             <p className="text-secondary-500">Chưa có giao dịch nào</p>
           </div>
         ) : (
+          <>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="bg-secondary-50 dark:bg-secondary-900 text-secondary-500 dark:text-secondary-400 font-medium">
@@ -153,6 +162,20 @@ export default function TransactionListPage() {
               </tbody>
             </table>
           </div>
+          
+            {totalPages > 1 && (
+               <div className="bg-white dark:bg-secondary-800 px-4 py-3 border-t border-secondary-200 dark:border-secondary-700 flex flex-col sm:flex-row items-center justify-between gap-4 sm:px-6 transition-colors">
+                  <div className="text-sm text-secondary-500 dark:text-secondary-400">
+                     Hiển thị trang <span className="font-medium text-secondary-900 dark:text-white">{page}</span> trên <span className="font-medium text-secondary-900 dark:text-white">{totalPages}</span>
+                  </div>
+                  <Pagination 
+                     currentPage={page}
+                     totalPages={totalPages}
+                     onPageChange={setPage}
+                  />
+               </div>
+            )}
+           </>
         )}
       </div>
     </div>

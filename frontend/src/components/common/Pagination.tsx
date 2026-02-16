@@ -26,11 +26,23 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
       }
 
       // Show pages around current page
-      const start = Math.max(2, currentPage - 1);
-      const end = Math.min(totalPages - 1, currentPage + 1);
+      let start = Math.max(2, currentPage - 1);
+      let end = Math.min(totalPages - 1, currentPage + 1);
+
+      // Adjust range if at edges
+      if (currentPage <= 3) {
+        end = 4;
+        start = 2; // redundant but safe
+      }
+      if (currentPage >= totalPages - 2) {
+        start = totalPages - 3;
+        end = totalPages - 1; // redundant but safe
+      }
 
       for (let i = start; i <= end; i++) {
-        pages.push(i);
+        if (i > 1 && i < totalPages) {
+           pages.push(i);
+        }
       }
 
       if (currentPage < totalPages - 2) {

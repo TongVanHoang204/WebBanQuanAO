@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Download, Pencil, Trash2, Loader2, Eye, UserX, UserCheck } from 'lucide-react';
 import { adminAPI } from '../../../services/api';
 import Pagination from '../../../components/common/Pagination';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 import CustomerModal from './CustomerModal';
 import ConfirmModal from '../../../components/common/ConfirmModal';
 import toast from 'react-hot-toast';
@@ -177,6 +178,19 @@ export default function CustomerListPage() {
          </div>
       </div>
 
+      {/* AI Insight */}
+      <AIInsightPanel
+        title="AI Phân tích khách hàng"
+        prompt="Phân tích hành vi và tình hình khách hàng. Đánh giá tỷ lệ khách hoạt động, xu hướng đăng ký mới, và đề xuất chiến lược chăm sóc và tăng retention."
+        dataContext={[
+          `Tổng khách hàng: ${stats.total}`,
+          `Khách hoạt động: ${stats.active}`,
+          `Khách mới tuần này: ${stats.new_this_week}`,
+          `Tỷ lệ hoạt động: ${stats.total ? ((stats.active / stats.total) * 100).toFixed(1) : 0}%`,
+          customers.length > 0 ? `Mẫu khách hàng (5 đầu): ${customers.slice(0, 5).map((c: any) => `${c.full_name || c.username || c.email} - ${c.total_orders ?? '?'} đơn`).join('; ')}` : '',
+        ].filter(Boolean).join('\n')}
+      />
+
       {/* Table */}
       <div className="bg-white dark:bg-secondary-800 border border-gray-200 dark:border-secondary-700 rounded-xl shadow-sm overflow-hidden transition-colors">
          <div className="overflow-x-auto">
@@ -282,7 +296,10 @@ export default function CustomerListPage() {
          
          {/* Pagination */}
          {!loading && customers.length > 0 && (
-             <div className="border-t border-gray-200 dark:border-secondary-700">
+             <div className="bg-white dark:bg-secondary-800 px-4 py-3 border-t border-gray-200 dark:border-secondary-700 flex flex-col sm:flex-row items-center justify-between gap-4 sm:px-6 transition-colors">
+                <div className="text-sm text-secondary-500 dark:text-secondary-400">
+                   Hiển thị trang <span className="font-medium text-secondary-900 dark:text-white">{page}</span> trên <span className="font-medium text-secondary-900 dark:text-white">{Math.max(1, totalPages)}</span>
+                </div>
                 <Pagination 
                    currentPage={page}
                    totalPages={totalPages}
@@ -308,6 +325,7 @@ export default function CustomerListPage() {
         confirmText={confirmModal.confirmText}
         isDestructive={confirmModal.isDestructive}
       />
+
     </div>
   );
 }

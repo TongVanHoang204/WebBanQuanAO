@@ -27,6 +27,7 @@ import { adminAPI } from '../../services/api';
 import { formatPrice } from '../../hooks/useShop';
 import toast from 'react-hot-toast';
 import { LoadingScreen } from '../../components/common/LoadingScreen';
+import AIInsightPanel from '../../components/common/AIInsightPanel';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<any>(null);
@@ -142,6 +143,19 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* AI Insight */}
+      <AIInsightPanel
+        title="AI Phân tích tổng quan"
+        prompt="Phân tích tổng quan kinh doanh hôm nay cho cửa hàng thời trang. Đánh giá tình trạng đơn hàng, doanh thu, và đề xuất hành động cụ thể để tăng hiệu quả kinh doanh."
+        dataContext={stats ? [
+          `Tổng đơn hàng: ${stats.totalOrders ?? 0}`,
+          `Đơn chờ xử lý: ${stats.pendingOrders ?? 0}`,
+          `Đơn đang giao: ${stats.deliveringOrders ?? 0}`,
+          `Doanh thu hôm nay: ${(stats.revenueToday ?? 0).toLocaleString('vi-VN')} VNĐ`,
+          `Tỷ lệ chờ xử lý: ${stats.totalOrders ? ((stats.pendingOrders / stats.totalOrders) * 100).toFixed(1) : 0}%`,
+        ].join('\n') : undefined}
+      />
 
       {/* Quick Actions */}
       <div>
@@ -329,6 +343,7 @@ export default function DashboardPage() {
           </table>
         </div>
       </div>
+
     </div>
   );
 }

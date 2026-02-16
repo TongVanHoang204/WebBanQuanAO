@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { notificationService, NotificationItem } from '@/services/notification.service';
 import { toast } from 'react-hot-toast';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 function NotificationPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'order' | 'inventory' | 'customer' | 'system'>('all');
@@ -195,6 +196,30 @@ function NotificationPage() {
           ))}
         </div>
 
+        {/* AI Insight */}
+        <AIInsightPanel
+          title="AI Phân tích thông báo"
+          prompt={`Phân tích xu hướng thông báo hệ thống. Tab đang xem: ${activeTab}. Nhận diện loại thông báo xuất hiện nhiều, cảnh báo quan trọng, và đề xuất tối ưu quy trình.`}
+          dataContext={(() => {
+            const lines: string[] = [
+              `Tổng thông báo: ${notifications.length}`,
+              `Chưa đọc: ${notifications.filter((n: any) => !n.is_read).length}`,
+            ];
+            const typeCounts: Record<string, number> = {};
+            notifications.forEach((n: any) => {
+              const t = n.type || 'other';
+              typeCounts[t] = (typeCounts[t] || 0) + 1;
+            });
+            if (Object.keys(typeCounts).length > 0) {
+              lines.push(`Phân loại: ${Object.entries(typeCounts).map(([k,v]) => `${k}: ${v}`).join(', ')}`);
+            }
+            if (notifications.length > 0) {
+              lines.push(`Thông báo gần nhất: ${notifications.slice(0, 3).map((n: any) => `[${n.type || '?'}] ${(n.title || n.message || '').slice(0, 50)}`).join('; ')}`);
+            }
+            return lines.join('\n');
+          })()}
+        />
+
         {/* List */}
         <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar pb-12">
           {loading ? (
@@ -293,6 +318,7 @@ function NotificationPage() {
           )}
         </div>
       </div>
+
     </div>
   );
 }

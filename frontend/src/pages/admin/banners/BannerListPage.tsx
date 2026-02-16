@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { resolveApiUrl } from '../../../services/api';
+import Pagination from '../../../components/common/Pagination';
 
 interface Banner {
   id: string;
@@ -75,6 +76,8 @@ export default function BannerListPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(initialForm);
   const [positionFilter, setPositionFilter] = useState<string>('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const fetchBanners = async () => {
     try {
@@ -82,13 +85,18 @@ export default function BannerListPage() {
       const token = localStorage.getItem('token');
       const params = new URLSearchParams({ include_inactive: 'true' });
       if (positionFilter) params.append('position', positionFilter);
+      params.append('page', page.toString());
+      params.append('limit', '10');
 
       const res = await fetch(resolveApiUrl(`/api/admin/banners?${params}`), {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
       if (data.success) {
-        setBanners(data.data);
+        setBanners(data.data.banners || data.data); // Handle wrapped or array
+        if (data.data.pagination) {
+            setTotalPages(data.data.pagination.totalPages);
+        }
       }
     } catch (error) {
       toast.error('Không thể tải danh sách');
@@ -99,7 +107,7 @@ export default function BannerListPage() {
 
   useEffect(() => {
     fetchBanners();
-  }, [positionFilter]);
+  }, [positionFilter, page]);
 
   const handleEdit = (banner: Banner) => {
     setEditingId(banner.id);
@@ -497,7 +505,21 @@ export default function BannerListPage() {
               </div>
             ))}
           </div>
+
         )}
+         {/* Pagination */}
+         {totalPages > 1 && (
+            <div className="bg-white dark:bg-secondary-800 px-4 py-3 border-t border-secondary-200 dark:border-secondary-700 flex flex-col sm:flex-row items-center justify-between gap-4 sm:px-6 transition-colors">
+               <div className="text-sm text-secondary-500 dark:text-secondary-400">
+                  Hiển thị trang <span className="font-medium text-secondary-900 dark:text-white">{page}</span> trên <span className="font-medium text-secondary-900 dark:text-white">{totalPages}</span>
+               </div>
+               <Pagination 
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+               />
+            </div>
+         )}
       </div>
     </div>
   );

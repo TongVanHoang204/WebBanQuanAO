@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Download, TrendingUp, ShoppingBag, DollarSign, Activity, Users, FolderOpen } from 'lucide-react';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend, BarChart, Bar
@@ -116,6 +117,22 @@ export default function AnalyticsPage() {
             </button>*/}
         </div>
       </div>
+
+      {/* AI Insight */}
+      <AIInsightPanel
+        title="AI Phân tích doanh thu"
+        prompt={`Phân tích chi tiết doanh thu và hiệu suất bán hàng trong khoảng ${period === '7_days' ? '7 ngày' : period === '30_days' ? '30 ngày' : period}. So sánh các chỉ số, nhận diện xu hướng, và đề xuất hành động tăng doanh thu.`}
+        dataContext={data ? [
+          `Tổng doanh thu: ${(data.summary?.totalRevenue ?? 0).toLocaleString('vi-VN')} VNĐ`,
+          `Tổng đơn hàng: ${data.summary?.totalOrders ?? 0}`,
+          `Giá trị đơn trung bình (AOV): ${(data.summary?.aov ?? 0).toLocaleString('vi-VN')} VNĐ`,
+          `Tổng khách hàng: ${data.summary?.totalCustomers ?? 0}`,
+          `Khách mới: ${data.summary?.newCustomers ?? 0}`,
+          data.topProducts?.length ? `Top sản phẩm bán chạy: ${data.topProducts.slice(0, 5).map((p: any) => `${p.name} (${p.total_sold ?? p.quantity ?? 0} đã bán)`).join(', ')}` : '',
+          data.charts?.status?.length ? `Phân bổ trạng thái đơn: ${data.charts.status.map((s: any) => `${s.status}: ${s.count}`).join(', ')}` : '',
+          data.charts?.categories?.length ? `Doanh thu theo danh mục: ${data.charts.categories.slice(0, 5).map((c: any) => `${c.name}: ${Number(c.revenue ?? 0).toLocaleString('vi-VN')} VNĐ`).join(', ')}` : '',
+        ].filter(Boolean).join('\n') : undefined}
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
@@ -373,6 +390,7 @@ export default function AnalyticsPage() {
              </table>
           </div>
       </div>
+
     </div>
   );
 }

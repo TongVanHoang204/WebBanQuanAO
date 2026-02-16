@@ -12,6 +12,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { resolveApiUrl } from '../../../services/api';
+import Pagination from '../../../components/common/Pagination';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
+
 
 interface Review {
   id: string;
@@ -46,6 +49,8 @@ export default function ReviewListPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [ratingFilter, setRatingFilter] = useState<string>('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const fetchReviews = async () => {
     try {
@@ -55,6 +60,8 @@ export default function ReviewListPage() {
       if (search) params.append('search', search);
       if (statusFilter !== 'all') params.append('status', statusFilter);
       if (ratingFilter) params.append('rating', ratingFilter);
+      params.append('page', page.toString());
+      params.append('limit', '10');
 
       const res = await fetch(resolveApiUrl(`/api/admin/reviews?${params}`), {
         headers: { Authorization: `Bearer ${token}` }
@@ -63,6 +70,9 @@ export default function ReviewListPage() {
       if (data.success) {
         setReviews(data.data.reviews);
         setStats(data.data.stats);
+        if (data.data.pagination) {
+            setTotalPages(data.data.pagination.totalPages);
+        }
       }
     } catch (error) {
       console.error('Error fetching reviews:', error);
@@ -74,7 +84,7 @@ export default function ReviewListPage() {
 
   useEffect(() => {
     fetchReviews();
-  }, [statusFilter, ratingFilter]);
+  }, [statusFilter, ratingFilter, page]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -329,6 +339,29 @@ export default function ReviewListPage() {
         </div>
       </div>
 
+      {/* AI Insight */}
+      <AIInsightPanel
+        title="AI Phân tích đánh giá"
+        prompt="Phân tích chi tiết tình hình đánh giá sản phẩm. Nhận diện xu hướng, đánh giá chất lượng dịch vụ, và đề xuất cách cải thiện trải nghiệm khách hàng."
+        dataContext={(() => {
+          const lines: string[] = [
+            `Đánh giá chờ duyệt: ${stats.pending}`,
+            `Đã duyệt: ${stats.approved}`,
+            `Từ chối: ${stats.rejected}`,
+            `Đã ẩn: ${stats.hidden}`,
+            `Tổng: ${stats.pending + stats.approved + stats.rejected + stats.hidden}`,
+          ];
+          if (reviews.length > 0) {
+            const ratings = reviews.map(r => r.rating).filter(Boolean);
+            if (ratings.length) lines.push(`Rating trung bình (trang hiện tại): ${(ratings.reduce((a,b) => a + b, 0) / ratings.length).toFixed(1)}/5`);
+            const dist = [1,2,3,4,5].map(r => `${r} sao: ${ratings.filter(x => x === r).length}`);
+            lines.push(`Phân bổ rating: ${dist.join(', ')}`);
+            lines.push(`Mẫu đánh giá gần nhất: ${reviews.slice(0, 3).map(r => `"${(r.content || r.title || '').slice(0, 60)}" - ${r.rating} sao`).join('; ')}`);
+          }
+          return lines.join('\n');
+        })()}
+      />
+
       {/* Reviews List */}
       <div className="bg-white dark:bg-secondary-800 rounded-xl shadow-sm border border-secondary-200 dark:border-secondary-700 overflow-hidden">
         {loading ? (
@@ -343,6 +376,7 @@ export default function ReviewListPage() {
             </p>
           </div>
         ) : (
+          <>
           <div className="divide-y divide-secondary-200 dark:divide-secondary-700">
             {/* Header */}
             <div className="px-6 py-3 bg-secondary-50 dark:bg-secondary-900 flex items-center gap-4">
@@ -459,8 +493,23 @@ export default function ReviewListPage() {
               </div>
             ))}
           </div>
+          
+          {totalPages > 1 && (
+            <div className="bg-white dark:bg-secondary-800 px-4 py-3 border-t border-secondary-200 dark:border-secondary-700 flex flex-col sm:flex-row items-center justify-between gap-4 sm:px-6 transition-colors">
+              <div className="text-sm text-secondary-500 dark:text-secondary-400">
+                Hiển thị trang <span className="font-medium text-secondary-900 dark:text-white">{page}</span> trên <span className="font-medium text-secondary-900 dark:text-white">{totalPages}</span>
+              </div>
+              <Pagination 
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
+            </div>
+          )}
+          </>
         )}
       </div>
+
     </div>
   );
 }

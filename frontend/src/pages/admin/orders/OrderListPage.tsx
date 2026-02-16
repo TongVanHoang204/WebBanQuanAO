@@ -17,6 +17,8 @@ import {
 import { adminAPI } from '../../../services/api';
 import { formatPrice } from '../../../hooks/useShop';
 import toast from 'react-hot-toast';
+import Pagination from '../../../components/common/Pagination';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 export default function OrderListPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -202,6 +204,21 @@ export default function OrderListPage() {
         </div>
       </div>
 
+      {/* AI Insight */}
+      <AIInsightPanel
+        title="AI Phân tích đơn hàng"
+        prompt="Phân tích chi tiết tình hình đơn hàng. Đánh giá tỷ lệ xử lý, tốc độ giao hàng, và đề xuất cách cải thiện tỷ lệ chuyển đổi đơn hàng."
+        dataContext={[
+          `Tổng đơn hàng: ${stats?.totalOrders ?? 0}`,
+          `Đơn chờ xử lý: ${stats?.pendingOrders ?? 0}`,
+          `Đơn đang giao: ${stats?.deliveringOrders ?? 0}`,
+          `Doanh thu hôm nay: ${(stats?.revenueToday ?? 0).toLocaleString('vi-VN')} VNĐ`,
+          `Tab đang lọc: ${status === 'all' ? 'Tất cả' : status}`,
+          `Tổng trang: ${pagination.totalPages}`,
+          `Tỷ lệ chờ xử lý: ${stats?.totalOrders ? ((stats.pendingOrders / stats.totalOrders) * 100).toFixed(1) : 0}%`,
+        ].join('\n')}
+      />
+
       {/* Filters & Tabs */}
       <div className="bg-white dark:bg-secondary-800 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm overflow-hidden transition-colors">
         {/* Tabs */}
@@ -336,35 +353,19 @@ export default function OrderListPage() {
 
         {/* Pagination - Only show if there are orders */}
         {!isLoading && orders.length > 0 && (
-          <div className="bg-white dark:bg-secondary-800 px-4 py-3 border-t border-secondary-200 dark:border-secondary-700 flex items-center justify-between sm:px-6 transition-colors">
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-secondary-700 dark:text-secondary-300">
-                  Hiển thị trang <span className="font-medium">{pagination.page}</span> trên <span className="font-medium">{Math.max(1, pagination.totalPages)}</span>
-                </p>
-              </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button
-                    onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
-                    disabled={pagination.page === 1}
-                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-sm font-medium text-secondary-500 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => setPagination(prev => ({ ...prev, page: Math.min(pagination.totalPages, prev.page + 1) }))}
-                    disabled={pagination.page >= pagination.totalPages}
-                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-sm font-medium text-secondary-500 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </nav>
-              </div>
+          <div className="bg-white dark:bg-secondary-800 px-4 py-3 border-t border-secondary-200 dark:border-secondary-700 flex flex-col sm:flex-row items-center justify-between gap-4 sm:px-6 transition-colors">
+            <div className="text-sm text-secondary-500 dark:text-secondary-400">
+               Hiển thị trang <span className="font-medium text-secondary-900 dark:text-white">{pagination.page}</span> trên <span className="font-medium text-secondary-900 dark:text-white">{Math.max(1, pagination.totalPages)}</span>
             </div>
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={pagination.totalPages}
+              onPageChange={(page) => setPagination(prev => ({ ...prev, page }))}
+            />
           </div>
         )}
       </div>
+
     </div>
   );
 }
