@@ -526,7 +526,7 @@ export default function ActivityLogPage() {
                       </div>
 
                       {/* Details */}
-                      {renderDetails(log)}
+                       {renderDetails(log)}
                     </div>
                   </div>
                 </div>

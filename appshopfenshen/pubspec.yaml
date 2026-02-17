@@ -1,0 +1,46 @@
+name: appshopfenshen
+description: "ShopFeshen - Ứng dụng mua sắm thời trang"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # HTTP & API
+  dio: ^5.4.0
+
+  # State management
+  provider: ^6.1.0
+
+  # Image loading
+  cached_network_image: ^3.3.0
+
+  # UI enhancements
+  shimmer: ^3.0.0
+  carousel_slider: ^5.0.0
+  flutter_rating_bar: ^4.0.1
+  badges: ^3.1.2
+  google_fonts: ^8.0.1
+
+  # Storage
+  shared_preferences: ^2.2.0
+
+  # Utilities
+  intl: ^0.20.2
+  fluttertoast: ^9.0.0
+  url_launcher: ^6.2.0
+  image_picker: ^1.0.0
+  socket_io_client: ^3.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

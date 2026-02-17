@@ -1,0 +1,44 @@
+﻿Analyzing lib...
+
+   info - screens\auth\login_screen.dart:162:42 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\auth\register_screen.dart:171:42 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\cart\cart_screen.dart:29:13 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - screens\cart\cart_screen.dart:49:32 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\cart\cart_screen.dart:76:28 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\cart\cart_screen.dart:113:41 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\cart\cart_screen.dart:146:50 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\cart\cart_screen.dart:148:50 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\cart\cart_screen.dart:148:54 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\checkout\checkout_screen.dart:113:13 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - screens\checkout\checkout_screen.dart:218:36 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\home\home_screen.dart:111:42 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\home\home_screen.dart:238:38 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\home\home_screen.dart:241:38 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\home\home_screen.dart:241:42 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\home\home_screen.dart:314:35 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\home\home_screen.dart:380:40 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\home\home_screen.dart:389:40 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\home\home_screen.dart:389:44 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\home\home_screen.dart:479:13 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - screens\home\home_screen.dart:538:28 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\order\order_detail_screen.dart:36:13 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - screens\order\order_list_screen.dart:37:13 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - screens\order\order_list_screen.dart:90:43 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\product\product_detail_screen.dart:67:13 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - screens\product\product_detail_screen.dart:142:40 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\product\product_detail_screen.dart:174:46 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\product\product_detail_screen.dart:510:34 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\product\product_list_screen.dart:96:13 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - screens\product\product_list_screen.dart:187:40 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\product\product_list_screen.dart:189:40 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\product\product_list_screen.dart:189:44 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\product\search_screen.dart:48:13 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - screens\product\search_screen.dart:141:45 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\product\search_screen.dart:170:54 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\profile\profile_screen.dart:19:28 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\wishlist\wishlist_screen.dart:29:13 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - screens\wishlist\wishlist_screen.dart:43:32 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - screens\wishlist\wishlist_screen.dart:95:50 - Unnecessary use of multiple underscores. Try using '_'. - unnecessary_underscores
+   info - services\api_service.dart:53:26 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+
+40 issues found.
