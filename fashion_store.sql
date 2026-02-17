@@ -37,30 +37,30 @@ CREATE TABLE IF NOT EXISTS `activity_logs` (
   KEY `idx_logs_action` (`action`),
   KEY `idx_logs_date` (`created_at`),
   CONSTRAINT `activity_logs_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=70 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=155 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.activity_logs: ~69 rows (approximately)
+-- Dumping data for table fashion_store.activity_logs: ~154 rows (approximately)
 INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `entity_type`, `entity_id`, `details`, `ip_address`, `user_agent`, `created_at`) VALUES
 	(1, 6, 'update_order_status', 'order', '19', '"Updated order status to processing"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-24 03:54:30.198'),
 	(2, 6, 'Cập nhật sản phẩm', 'product', '1', '{"diff":{"brand_id":{"from":null,"to":"1"},"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":1,"brand_id":"1","sku":"89","name":"Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short","slug":"set-bo-ao-thun-nu-form-rong-tay-lo","description":"<p>Chất liệu cotton su. and</p>","compare_at_price":65000,"is_active":true,"variants":[{"variant_sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang","sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang","price":75000,"stock_qty":0,"is_active":true,"options":{},"id":13}],"attributes":[],"images":[{"url":"http://localhost:4000/uploads/1769094301311-794242468.png","is_primary":true,"sort_order":0},{"url":"http://localhost:4000/uploads/1769094312782-549414451.webp","is_primary":false,"sort_order":1}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-26 03:21:21.297'),
 	(3, 6, 'create_order', 'order', '123', '"Created order FS20260126-6980"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-26 03:54:22.050'),
-	(4, 59, 'create_order', 'order', '124', '"Created order FS20260126-2042"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-26 04:20:36.156'),
-	(5, 59, 'create_order', 'order', '125', '"Created order FS20260127-1416"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-27 08:08:39.784'),
-	(6, 59, 'create_order', 'order', '126', '"Created order FS20260129-8544"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 06:53:36.758'),
+	(4, NULL, 'create_order', 'order', '124', '"Created order FS20260126-2042"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-26 04:20:36.156'),
+	(5, NULL, 'create_order', 'order', '125', '"Created order FS20260127-1416"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-27 08:08:39.784'),
+	(6, NULL, 'create_order', 'order', '126', '"Created order FS20260129-8544"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 06:53:36.758'),
 	(7, 6, 'update_order_status', 'order', '126', '"Updated order status to shipped"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-29 06:55:38.068'),
 	(8, 6, 'update_order_status', 'order', '125', '"Updated order status to completed"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36', '2026-01-29 09:30:41.427'),
-	(9, 59, 'create_order', 'order', '127', '"Created order FS20260129-3984"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 13:17:41.913'),
-	(10, 59, 'create_order', 'order', '128', '"Created order FS20260129-8210"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 13:30:30.252'),
-	(11, 59, 'create_order', 'order', '129', '"Created order FS20260129-4185"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 13:32:37.033'),
-	(12, 59, 'create_order', 'order', '130', '"Created order FS20260129-3948"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 13:33:18.594'),
-	(13, 59, 'create_order', 'order', '131', '"Created order FS20260129-6071"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 13:35:55.636'),
-	(14, 59, 'create_order', 'order', '132', '"Created order FS20260129-0528"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 13:36:39.437'),
-	(15, 59, 'create_order', 'order', '133', '"Created order FS20260129-4010"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 13:38:51.613'),
-	(16, 59, 'create_order', 'order', '134', '"Created order FS20260130-1836"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-30 08:14:19.365'),
-	(17, 59, 'create_order', 'order', '135', '"Created order FS20260130-6258"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-30 08:59:59.538'),
-	(18, 59, 'create_order', 'order', '136', '"Created order FS20260130-7666"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-30 09:52:18.851'),
-	(19, 59, 'create_order', 'order', '137', '"Created order FS20260130-5839"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-30 09:52:49.743'),
-	(20, 59, 'Cập nhật sản phẩm', 'product', '1', '{"diff":{"description":{"from":"<p>Chất liệu cotton su. and</p>","to":"<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>"}},"updates":{"category_id":1,"brand_id":1,"sku":"89","name":"Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short","slug":"set-bo-ao-thun-nu-form-rong-tay-lo","description":"<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>","compare_at_price":65000,"is_active":true,"variants":[{"variant_sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang","sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang","price":75000,"stock_qty":0,"is_active":true,"options":{},"id":13}],"attributes":[],"images":[{"url":"http://localhost:4000/uploads/1769094301311-794242468.png","is_primary":true,"sort_order":0},{"url":"http://localhost:4000/uploads/1769094312782-549414451.webp","is_primary":false,"sort_order":1}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-01 04:06:15.573'),
+	(9, NULL, 'create_order', 'order', '127', '"Created order FS20260129-3984"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 13:17:41.913'),
+	(10, NULL, 'create_order', 'order', '128', '"Created order FS20260129-8210"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 13:30:30.252'),
+	(11, NULL, 'create_order', 'order', '129', '"Created order FS20260129-4185"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 13:32:37.033'),
+	(12, NULL, 'create_order', 'order', '130', '"Created order FS20260129-3948"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 13:33:18.594'),
+	(13, NULL, 'create_order', 'order', '131', '"Created order FS20260129-6071"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 13:35:55.636'),
+	(14, NULL, 'create_order', 'order', '132', '"Created order FS20260129-0528"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 13:36:39.437'),
+	(15, NULL, 'create_order', 'order', '133', '"Created order FS20260129-4010"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-29 13:38:51.613'),
+	(16, NULL, 'create_order', 'order', '134', '"Created order FS20260130-1836"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-30 08:14:19.365'),
+	(17, NULL, 'create_order', 'order', '135', '"Created order FS20260130-6258"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-30 08:59:59.538'),
+	(18, NULL, 'create_order', 'order', '136', '"Created order FS20260130-7666"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-30 09:52:18.851'),
+	(19, NULL, 'create_order', 'order', '137', '"Created order FS20260130-5839"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-30 09:52:49.743'),
+	(20, NULL, 'Cập nhật sản phẩm', 'product', '1', '{"diff":{"description":{"from":"<p>Chất liệu cotton su. and</p>","to":"<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>"}},"updates":{"category_id":1,"brand_id":1,"sku":"89","name":"Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short","slug":"set-bo-ao-thun-nu-form-rong-tay-lo","description":"<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>","compare_at_price":65000,"is_active":true,"variants":[{"variant_sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang","sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang","price":75000,"stock_qty":0,"is_active":true,"options":{},"id":13}],"attributes":[],"images":[{"url":"http://localhost:4000/uploads/1769094301311-794242468.png","is_primary":true,"sort_order":0},{"url":"http://localhost:4000/uploads/1769094312782-549414451.webp","is_primary":false,"sort_order":1}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-01 04:06:15.573'),
 	(21, 60, 'create_order', 'order', '138', '"Created order FS20260201-2696"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-01 07:53:18.422'),
 	(22, 60, 'create_order', 'order', '139', '"Created order FS20260201-5731"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-01 07:57:17.906'),
 	(23, 60, 'cancel_order', 'order', '138', '"Cancelled order FS20260201-2696"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-01 08:57:52.581'),
@@ -109,7 +109,92 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `entity_type`, `entity_i
 	(66, 6, 'export_orders', 'report', NULL, '"Exported orders. Filters: {\\"token\\":\\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2IiwiZW1haWwiOiJob2FuZ0BnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzAyODgyNjgsImV4cCI6MTc3MDg5MzA2OH0.R-YJc9iRJifefyFBjLISCp1824bRuXRwSf6Egzh7Uyc\\",\\"status\\":\\"\\",\\"search\\":\\"\\"}"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-05 17:13:24.356'),
 	(67, 60, 'create_order', 'order', '148', '"Created order FS20260205-0070"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-05 17:51:11.577'),
 	(68, 6, 'create_order', 'order', '149', '"Created order FS20260205-3122"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-05 18:27:31.702'),
-	(69, 6, 'create_order', 'order', '150', '"Created order FS20260205-2703"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-05 18:33:09.246');
+	(69, 6, 'create_order', 'order', '150', '"Created order FS20260205-2703"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-05 18:33:09.246'),
+	(70, 60, 'create_order', 'order', '151', '"Created order FS20260211-9305"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 03:52:25.729'),
+	(71, 60, 'create_order', 'order', '152', '"Created order FS20260211-6379"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 04:03:05.555'),
+	(72, 60, 'create_order', 'order', '153', '"Created order FS20260211-8187"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 04:12:24.906'),
+	(73, 60, 'create_order', 'order', '154', '"Created order FS20260211-7176"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 04:17:40.827'),
+	(74, NULL, 'create_order', 'order', '155', '"Created order FS20260211-5697"', '::1', 'axios/1.13.5', '2026-02-11 04:30:27.050'),
+	(75, NULL, 'create_order', 'order', '156', '"Created order FS20260211-3320"', '::1', 'axios/1.13.5', '2026-02-11 04:31:17.328'),
+	(76, NULL, 'create_order', 'order', '157', '"Created order FS20260211-6146"', '::1', 'axios/1.13.5', '2026-02-11 04:32:04.467'),
+	(77, NULL, 'create_order', 'order', '158', '"Created order FS20260211-5688"', '::1', 'axios/1.13.5', '2026-02-11 04:32:36.284'),
+	(78, NULL, 'create_order', 'order', '159', '"Created order FS20260211-0620"', '::1', 'axios/1.13.5', '2026-02-11 04:34:58.598'),
+	(79, 66, 'Tạo sản phẩm mới', 'product', '63', '{"name":"QA Auto Product 1770784498605","sku":"QA-SKU-1770784498605"}', '::1', 'axios/1.13.5', '2026-02-11 04:34:58.620'),
+	(80, 66, 'Cập nhật sản phẩm', 'product', '63', '{"diff":{"name":{"from":"QA Auto Product 1770784498605","to":"QA Auto Product 1770784498605 UPDATED"},"base_price":{"from":"500000","to":600000}},"updates":{"name":"QA Auto Product 1770784498605 UPDATED","base_price":600000}}', '::1', 'axios/1.13.5', '2026-02-11 04:34:58.638'),
+	(81, 66, 'update_order_status', 'order', '159', '"Updated order status to processing"', '::1', 'axios/1.13.5', '2026-02-11 04:34:58.660'),
+	(82, 66, 'Xóa sản phẩm', 'product', '63', NULL, '::1', 'axios/1.13.5', '2026-02-11 04:34:58.675'),
+	(83, 69, 'Tạo sản phẩm mới', 'product', '64', '{"name":"Debug Product 1770784559440","sku":"DBG-SKU-1770784559440"}', '::1', 'axios/1.13.5', '2026-02-11 04:35:59.453'),
+	(84, 69, 'Cập nhật sản phẩm', 'product', '64', '{"diff":{"name":{"from":"Debug Product 1770784559440","to":"Debug Product 1770784559440 UPDATED"},"base_price":{"from":"500000","to":600000}},"updates":{"name":"Debug Product 1770784559440 UPDATED","base_price":600000}}', '::1', 'axios/1.13.5', '2026-02-11 04:35:59.476'),
+	(85, 70, 'Tạo sản phẩm mới', 'product', '65', '{"name":"QA Auto Product 1770784609730","sku":"QA-SKU-1770784609730"}', '::1', 'axios/1.13.5', '2026-02-11 04:36:49.742'),
+	(86, 70, 'Cập nhật sản phẩm', 'product', '65', '{"diff":{"name":{"from":"QA Auto Product 1770784609730","to":"QA Auto Product 1770784609730 UPDATED"},"base_price":{"from":"500000","to":600000}},"updates":{"name":"QA Auto Product 1770784609730 UPDATED","base_price":600000}}', '::1', 'axios/1.13.5', '2026-02-11 04:36:49.757'),
+	(87, 70, 'Xóa sản phẩm', 'product', '65', NULL, '::1', 'axios/1.13.5', '2026-02-11 04:36:49.771'),
+	(88, 72, 'Tạo sản phẩm mới', 'product', '66', '{"name":"QA Auto Product 1770784638503","sku":"QA-SKU-1770784638503"}', '::1', 'axios/1.13.5', '2026-02-11 04:37:18.517'),
+	(89, 72, 'Cập nhật sản phẩm', 'product', '66', '{"diff":{"name":{"from":"QA Auto Product 1770784638503","to":"QA Auto Product 1770784638503 UPDATED"},"base_price":{"from":"500000","to":600000}},"updates":{"name":"QA Auto Product 1770784638503 UPDATED","base_price":600000}}', '::1', 'axios/1.13.5', '2026-02-11 04:37:18.537'),
+	(90, 72, 'Xóa sản phẩm', 'product', '66', NULL, '::1', 'axios/1.13.5', '2026-02-11 04:37:18.550'),
+	(91, 74, 'Tạo sản phẩm mới', 'product', '67', '{"name":"QA Auto Product 1770784702644","sku":"QA-SKU-1770784702644"}', '::1', 'axios/1.13.5', '2026-02-11 04:38:22.659'),
+	(92, NULL, 'create_order', 'order', '160', '"Created order FS20260211-4853"', '::1', 'axios/1.13.5', '2026-02-11 04:38:23.402'),
+	(93, 74, 'Cập nhật sản phẩm', 'product', '67', '{"diff":{"name":{"from":"QA Auto Product 1770784702644","to":"QA Auto Product 1770784702644 UPDATED"},"base_price":{"from":"500000","to":600000}},"updates":{"name":"QA Auto Product 1770784702644 UPDATED","base_price":600000}}', '::1', 'axios/1.13.5', '2026-02-11 04:38:23.425'),
+	(94, 74, 'update_order_status', 'order', '160', '"Updated order status to processing"', '::1', 'axios/1.13.5', '2026-02-11 04:38:23.452'),
+	(95, 76, 'Tạo sản phẩm mới', 'product', '68', '{"name":"QA Auto Product 1770784727013","sku":"QA-SKU-1770784727013"}', '::1', 'axios/1.13.5', '2026-02-11 04:38:47.029'),
+	(96, NULL, 'create_order', 'order', '161', '"Created order FS20260211-7611"', '::1', 'axios/1.13.5', '2026-02-11 04:38:47.773'),
+	(97, 76, 'Cập nhật sản phẩm', 'product', '68', '{"diff":{"name":{"from":"QA Auto Product 1770784727013","to":"QA Auto Product 1770784727013 UPDATED"},"base_price":{"from":"500000","to":600000}},"updates":{"name":"QA Auto Product 1770784727013 UPDATED","base_price":600000}}', '::1', 'axios/1.13.5', '2026-02-11 04:38:47.800'),
+	(98, 76, 'update_order_status', 'order', '161', '"Updated order status to processing"', '::1', 'axios/1.13.5', '2026-02-11 04:38:47.825'),
+	(99, 76, 'update_order_status', 'order', '161', '"Updated order status to cancelled"', '::1', 'axios/1.13.5', '2026-02-11 04:38:47.851'),
+	(100, 6, 'create_staff', 'user', '78', '"Created staff account: phuc"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 04:47:57.740'),
+	(101, 60, 'create_order', 'order', '162', '"Created order FS20260211-5737"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 06:17:04.158'),
+	(102, 60, 'create_order', 'order', '163', '"Created order FS20260211-2782"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 06:21:30.826'),
+	(103, 6, 'export_products', 'report', NULL, '"Exported products. Filters: {\\"token\\":\\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2IiwiZW1haWwiOiJob2FuZ0BnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzA3OTIxNjEsImV4cCI6MTc3MTM5Njk2MX0.1TKzVKsyFVlNJK5ErVAsQV4wY6hnFG0XJGHb8fr2y_U\\"}"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 06:56:37.269'),
+	(104, 6, 'Cập nhật sản phẩm', 'product', '11', '{"diff":{"brand_id":{"from":null,"to":""},"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":7,"brand_id":"","sku":"HOODIE-NU-001","name":"Áo Hoodie Nữ Zip Kéo","slug":"ao-hoodie-nu-zip-keo","description":"Nỉ bông dày dặn.","compare_at_price":250000,"is_active":true,"variants":[{"variant_sku":"HOODIE-NU-001-GREY-M","sku":"HOODIE-NU-001-GREY-M","price":180000,"stock_qty":30,"is_active":true,"options":{},"id":19}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:01:41.580'),
+	(105, 6, 'Cập nhật sản phẩm', 'product', '12', '{"diff":{"brand_id":{"from":null,"to":""},"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":8,"brand_id":"","sku":"SKIRT-001","name":"Chân váy xếp ly Tennis","slug":"chan-vay-xep-ly-tennis","description":"Vải Kaki đứng form.","compare_at_price":160000,"is_active":true,"variants":[{"variant_sku":"SKIRT-001-WHITE-S","sku":"SKIRT-001-WHITE-S","price":120000,"stock_qty":25,"is_active":true,"options":{"Màu sắc":"Trắng","Kích cỡ":"S"},"id":20}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:01:52.798'),
+	(106, 6, 'import_products', 'product', NULL, '"Imported products: 0 created, 62 updated, 0 errors"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:02:59.486'),
+	(107, 6, 'import_products', 'product', NULL, '"Imported products: 0 created, 62 updated, 0 errors"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:04:05.037'),
+	(108, 6, 'import_products', 'product', NULL, '"Imported products: 0 created, 62 updated, 0 errors"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:14:24.585'),
+	(109, 6, 'import_products', 'product', NULL, '"Imported products: 0 created, 62 updated, 0 errors"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:17:33.143'),
+	(110, 6, 'import_products', 'product', NULL, '"Imported products: 0 created, 62 updated, 0 errors"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:19:55.065'),
+	(111, 6, 'import_products', 'product', NULL, '"Imported products: 0 created, 62 updated, 0 errors"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:24:02.457'),
+	(112, 6, 'import_products', 'product', NULL, '"Imported products: 0 created, 62 updated, 0 errors"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:25:42.155'),
+	(113, 6, 'import_products', 'product', NULL, '"Imported products: 0 created, 62 updated, 0 errors"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:29:51.140'),
+	(114, 6, 'import_products', 'product', NULL, '"Imported products: 0 created, 62 updated, 0 errors"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:34:27.503'),
+	(115, 6, 'import_products', 'product', NULL, '"Imported products: 0 created, 62 updated, 0 errors"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:41:51.592'),
+	(116, 6, 'import_products', 'product', NULL, '"Imported products: 0 created, 62 updated, 0 errors"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:47:09.511'),
+	(117, 6, 'import_products', 'product', NULL, '"Imported products: 0 created, 62 updated, 0 errors"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:49:54.183'),
+	(118, 6, 'Cập nhật sản phẩm', 'product', '7', '{"diff":{"category_id":{"from":null,"to":""},"brand_id":{"from":null,"to":""},"meta_description":{"from":null,"to":""}},"updates":{"category_id":"","brand_id":"","sku":"CAP-001","name":"Mũ lưỡi trai basic","slug":"mu-luoi-trai-basic","description":"Mũ basic...","compare_at_price":49997,"is_active":true,"variants":[{"variant_sku":"CAP-001-BLACK-M","sku":"CAP-001-BLACK-M","price":59000,"stock_qty":105,"is_active":true,"options":{},"id":11},{"variant_sku":"CAP-001-WHITE-M","sku":"CAP-001-WHITE-M","price":59000,"stock_qty":65,"is_active":true,"options":{},"id":12}],"attributes":[],"images":[{"url":"http://localhost:4000/uploads/1770796230366-458644706.png","is_primary":true,"sort_order":0}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:50:30.416'),
+	(119, 6, 'Cập nhật sản phẩm', 'product', '7', '{"diff":{"category_id":{"from":null,"to":""},"brand_id":{"from":null,"to":""}},"updates":{"category_id":"","brand_id":"","sku":"CAP-001","name":"Mũ lưỡi trai basic","slug":"mu-luoi-trai-basic","description":"Mũ basic...","compare_at_price":49997,"is_active":true,"variants":[{"variant_sku":"CAP-001-BLACK-M","sku":"CAP-001-BLACK-M","price":59000,"stock_qty":105,"is_active":true,"options":{},"id":11},{"variant_sku":"CAP-001-WHITE-M","sku":"CAP-001-WHITE-M","price":59000,"stock_qty":65,"is_active":true,"options":{},"id":12}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 07:50:43.497'),
+	(120, 6, 'export_orders', 'report', NULL, '"Exported orders. Filters: {\\"token\\":\\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2IiwiZW1haWwiOiJob2FuZ0BnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzA3OTIxNjEsImV4cCI6MTc3MTM5Njk2MX0.1TKzVKsyFVlNJK5ErVAsQV4wY6hnFG0XJGHb8fr2y_U\\",\\"status\\":\\"\\",\\"search\\":\\"\\"}"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 08:00:33.735'),
+	(121, 6, 'update_order_status', 'order', '163', '"Updated order status to confirmed"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 08:16:51.181'),
+	(122, 6, 'update_order_status', 'order', '163', '"Updated order status to completed"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 08:17:15.314'),
+	(123, 6, 'update_order_status', 'order', '163', '"Updated order status to shipped"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 08:24:59.576'),
+	(124, 6, 'update_order_status', 'order', '163', '"Updated order status to completed"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 08:25:52.822'),
+	(125, 6, 'update_order_status', 'order', '162', '"Updated order status to completed"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 08:25:59.736'),
+	(126, 6, 'Cập nhật sản phẩm', 'product', '11', '{"diff":{"brand_id":{"from":null,"to":""},"description":{"from":"Nỉ bông dày dặn.","to":"<p></p><p>Khám phá sự giao thoa hoàn hảo giữa phong cách thời thượng và tính ứng dụng tối đa với thiết kế <strong>Áo Hoodie Nữ Zip Kéo</strong> cao cấp. Đây không chỉ là một món đồ giữ ấm đơn thuần, mà còn là tuyên ngôn về vẻ đẹp hiện đại, tự tin và đầy phóng khoáng dành cho những quý cô yêu thích sự năng động nhưng vẫn giữ trọn nét tinh tế.<br></p><p>Sản phẩm được chế tác từ chất liệu nỉ cotton thượng hạng, mang lại cảm giác mềm mại tuyệt đối và khả năng thoáng khí ưu việt. Form dáng được tinh chỉnh kỹ lưỡng để tạo nên sự cân bằng giữa nét khỏe khoắn và sự thanh lịch, giúp người mặc dễ dàng biến hóa trong nhiều hoàn cảnh khác nhau. Điểm nhấn ấn tượng nằm ở chi tiết khóa kéo kim loại cao cấp, hoạt động mượt mà, không chỉ mang lại sự tiện lợi mà còn tạo nên một diện mạo sắc sảo, thu hút mọi ánh nhìn.<br></p><ul><li><p><strong>Chất liệu cao cấp:</strong> Sợi vải bền bỉ, không xù lông và giữ form chuẩn mực sau nhiều lần giặt.</p></li><li><p><strong>Thiết kế tinh tế:</strong> Đường cắt may tỉ mỉ, tôn vinh vóc dáng người mặc một cách tự nhiên.</p></li><li><p><strong>Tính đa năng:</strong> Dễ dàng kết hợp cùng jeans, chân váy hoặc đồ tập để tạo nên phong cách layering đẳng cấp.</p></li><li><p><strong>Chi tiết hoàn hảo:</strong> Túi áo tiện dụng và mũ trùm rộng rãi, bảo vệ tối đa trước những cơn gió lạnh.<br></p></li></ul><p>Hãy để chiếc Áo Hoodie Nữ Zip Kéo trở thành người bạn đồng hành lý tưởng, giúp bạn khơi nguồn cảm hứng mặc đẹp mỗi ngày và tận hưởng sự ấm áp, sang trọng trong từng chuyển động.</p>"},"meta_description":{"from":null,"to":""}},"updates":{"category_id":7,"brand_id":"","sku":"HOODIE-NU-001","name":"Áo Hoodie Nữ Zip Kéo","slug":"ao-hoodie-nu-zip-keo","description":"<p></p><p>Khám phá sự giao thoa hoàn hảo giữa phong cách thời thượng và tính ứng dụng tối đa với thiết kế <strong>Áo Hoodie Nữ Zip Kéo</strong> cao cấp. Đây không chỉ là một món đồ giữ ấm đơn thuần, mà còn là tuyên ngôn về vẻ đẹp hiện đại, tự tin và đầy phóng khoáng dành cho những quý cô yêu thích sự năng động nhưng vẫn giữ trọn nét tinh tế.<br></p><p>Sản phẩm được chế tác từ chất liệu nỉ cotton thượng hạng, mang lại cảm giác mềm mại tuyệt đối và khả năng thoáng khí ưu việt. Form dáng được tinh chỉnh kỹ lưỡng để tạo nên sự cân bằng giữa nét khỏe khoắn và sự thanh lịch, giúp người mặc dễ dàng biến hóa trong nhiều hoàn cảnh khác nhau. Điểm nhấn ấn tượng nằm ở chi tiết khóa kéo kim loại cao cấp, hoạt động mượt mà, không chỉ mang lại sự tiện lợi mà còn tạo nên một diện mạo sắc sảo, thu hút mọi ánh nhìn.<br></p><ul><li><p><strong>Chất liệu cao cấp:</strong> Sợi vải bền bỉ, không xù lông và giữ form chuẩn mực sau nhiều lần giặt.</p></li><li><p><strong>Thiết kế tinh tế:</strong> Đường cắt may tỉ mỉ, tôn vinh vóc dáng người mặc một cách tự nhiên.</p></li><li><p><strong>Tính đa năng:</strong> Dễ dàng kết hợp cùng jeans, chân váy hoặc đồ tập để tạo nên phong cách layering đẳng cấp.</p></li><li><p><strong>Chi tiết hoàn hảo:</strong> Túi áo tiện dụng và mũ trùm rộng rãi, bảo vệ tối đa trước những cơn gió lạnh.<br></p></li></ul><p>Hãy để chiếc Áo Hoodie Nữ Zip Kéo trở thành người bạn đồng hành lý tưởng, giúp bạn khơi nguồn cảm hứng mặc đẹp mỗi ngày và tận hưởng sự ấm áp, sang trọng trong từng chuyển động.</p>","compare_at_price":250000,"is_active":true,"variants":[{"variant_sku":"HOODIE-NU-001-GREY-M","sku":"HOODIE-NU-001-GREY-M","price":180000,"stock_qty":30,"is_active":true,"options":{},"id":19}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 08:28:45.137'),
+	(127, 6, 'Cập nhật sản phẩm', 'product', '12', '{"diff":{"brand_id":{"from":null,"to":"3"},"description":{"from":"Vải Kaki đứng form.","to":"<p></p>"},"meta_description":{"from":null,"to":""}},"updates":{"category_id":8,"brand_id":"3","sku":"SKIRT-001","name":"Chân váy xếp ly Tennis","slug":"chan-vay-xep-ly-tennis","description":"<p></p>","compare_at_price":160000,"is_active":true,"variants":[{"variant_sku":"SKIRT-001-WHITE-S","sku":"SKIRT-001-WHITE-S","price":120000,"stock_qty":25,"is_active":true,"options":{"Màu sắc":"Trắng","Kích cỡ":"S"},"id":20}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 08:30:56.706'),
+	(128, 6, 'Cập nhật sản phẩm', 'product', '1', '{"diff":{"meta_description":{"from":null,"to":""}},"updates":{"category_id":1,"brand_id":1,"sku":"89","name":"Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short","slug":"set-bo-ao-thun-nu-form-rong-tay-lo","description":"<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>","compare_at_price":65000,"is_active":true,"variants":[{"variant_sku":"SKU-6HHWXQ","sku":"SKU-6HHWXQ","price":70000,"stock_qty":5,"is_active":true,"options":{"Size":"M"}},{"variant_sku":"SKU-WQ4H4A","sku":"SKU-WQ4H4A","price":70000,"stock_qty":12,"is_active":true,"options":{"Size":"L"}},{"variant_sku":"SKU-28O0HD","sku":"SKU-28O0HD","price":70000,"stock_qty":20,"is_active":true,"options":{"Size":"XL"}},{"variant_sku":"SKU-N8ALC4","sku":"SKU-N8ALC4","price":70000,"stock_qty":6,"is_active":true,"options":{"Size":"XXL"}}],"attributes":[{"name":"Size","values":["M","L","XL","XXL"]}],"images":[{"url":"/uploads/1769094301311-794242468.png","is_primary":true,"sort_order":0},{"url":"/uploads/1769094312782-549414451.webp","is_primary":false,"sort_order":1}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 09:00:35.394'),
+	(129, 6, 'Cập nhật sản phẩm', 'product', '1', '{"diff":{},"updates":{"category_id":1,"brand_id":1,"sku":"89","name":"Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short","slug":"set-bo-ao-thun-nu-form-rong-tay-lo","description":"<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>","compare_at_price":65000,"is_active":true,"variants":[{"variant_sku":"SKU-EH6UJZ","sku":"SKU-EH6UJZ","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Đen"}},{"variant_sku":"SKU-YWTRLS","sku":"SKU-YWTRLS","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Trắng"}},{"variant_sku":"SKU-CRK3FH","sku":"SKU-CRK3FH","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Đen"}},{"variant_sku":"SKU-US63ZB","sku":"SKU-US63ZB","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Trắng"}},{"variant_sku":"SKU-DSJY3A","sku":"SKU-DSJY3A","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Đen"}},{"variant_sku":"SKU-IDQWF4","sku":"SKU-IDQWF4","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Trắng"}},{"variant_sku":"SKU-60BU0M","sku":"SKU-60BU0M","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Đen"}},{"variant_sku":"SKU-TDNZL3","sku":"SKU-TDNZL3","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Trắng"}}],"attributes":[{"name":"Kích cỡ","values":["M","L","XL","XXL"]},{"name":"Màu","values":["Đen","Trắng"]}],"images":[{"url":"/uploads/1769094301311-794242468.png","is_primary":true,"sort_order":0},{"url":"/uploads/1769094312782-549414451.webp","is_primary":false,"sort_order":1}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 09:01:47.767'),
+	(130, 6, 'Cập nhật sản phẩm', 'product', '1', '{"diff":{},"updates":{"category_id":1,"brand_id":1,"sku":"89","name":"Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short","slug":"set-bo-ao-thun-nu-form-rong-tay-lo","description":"<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>","compare_at_price":65000,"is_active":true,"variants":[{"variant_sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang-ARCHIVED-1770800435355-ARCHIVED-1770800507731","sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang-ARCHIVED-1770800435355-ARCHIVED-1770800507731","price":75000,"stock_qty":20,"is_active":true,"options":{},"id":13},{"variant_sku":"SKU-EH6UJZ","sku":"SKU-EH6UJZ","price":75000,"stock_qty":10,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Đen"},"id":231},{"variant_sku":"SKU-YWTRLS","sku":"SKU-YWTRLS","price":75000,"stock_qty":10,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Trắng"},"id":232},{"variant_sku":"SKU-CRK3FH","sku":"SKU-CRK3FH","price":75000,"stock_qty":10,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Đen"},"id":233},{"variant_sku":"SKU-US63ZB","sku":"SKU-US63ZB","price":75000,"stock_qty":10,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Trắng"},"id":234},{"variant_sku":"SKU-DSJY3A","sku":"SKU-DSJY3A","price":75000,"stock_qty":10,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Đen"},"id":235},{"variant_sku":"SKU-IDQWF4","sku":"SKU-IDQWF4","price":75000,"stock_qty":10,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Trắng"},"id":236},{"variant_sku":"SKU-60BU0M","sku":"SKU-60BU0M","price":75000,"stock_qty":10,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Đen"},"id":237},{"variant_sku":"SKU-TDNZL3","sku":"SKU-TDNZL3","price":75000,"stock_qty":10,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Trắng"},"id":238}],"attributes":[{"name":"Kích cỡ","values":["M","L","XL","XXL"]},{"name":"Màu","values":["Đen","Trắng"]}],"images":[{"url":"/uploads/1769094301311-794242468.png","is_primary":true,"sort_order":0},{"url":"/uploads/1769094312782-549414451.webp","is_primary":false,"sort_order":1}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 09:05:30.339'),
+	(131, 6, 'Cập nhật sản phẩm', 'product', '1', '{"diff":{},"updates":{"category_id":1,"brand_id":1,"sku":"89","name":"Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short","slug":"set-bo-ao-thun-nu-form-rong-tay-lo","description":"<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>","compare_at_price":65000,"is_active":true,"variants":[{"variant_sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang-ARCHIVED-1770800435355-ARCHIVED-1770800507731","sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang-ARCHIVED-1770800435355-ARCHIVED-1770800507731","price":75000,"stock_qty":88,"is_active":true,"options":{},"id":13},{"variant_sku":"SKU-EH6UJZ","sku":"SKU-EH6UJZ","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Đen"},"id":231},{"variant_sku":"SKU-YWTRLS","sku":"SKU-YWTRLS","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Trắng"},"id":232},{"variant_sku":"SKU-CRK3FH","sku":"SKU-CRK3FH","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Đen"},"id":233},{"variant_sku":"SKU-US63ZB","sku":"SKU-US63ZB","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Trắng"},"id":234},{"variant_sku":"SKU-DSJY3A","sku":"SKU-DSJY3A","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Đen"},"id":235},{"variant_sku":"SKU-IDQWF4","sku":"SKU-IDQWF4","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Trắng"},"id":236},{"variant_sku":"SKU-60BU0M","sku":"SKU-60BU0M","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Đen"},"id":237},{"variant_sku":"SKU-TDNZL3","sku":"SKU-TDNZL3","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Trắng"},"id":238}],"attributes":[{"name":"Kích cỡ","values":["M","L","XL","XXL"]},{"name":"Màu","values":["Đen","Trắng"]}],"images":[{"url":"/uploads/1769094301311-794242468.png","is_primary":true,"sort_order":0},{"url":"/uploads/1769094312782-549414451.webp","is_primary":false,"sort_order":1}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 09:07:48.359'),
+	(132, 6, 'Cập nhật sản phẩm', 'product', '1', '{"diff":{},"updates":{"category_id":1,"brand_id":1,"sku":"89","name":"Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short","slug":"set-bo-ao-thun-nu-form-rong-tay-lo","description":"<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>","compare_at_price":65000,"is_active":true,"variants":[{"variant_sku":"SKU-ISJFWF","sku":"SKU-ISJFWF","price":75000,"stock_qty":88,"is_active":true,"options":{},"id":13},{"variant_sku":"SKU-EH6UJZ","sku":"SKU-EH6UJZ","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Đen"},"id":231},{"variant_sku":"SKU-YWTRLS","sku":"SKU-YWTRLS","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Trắng"},"id":232},{"variant_sku":"SKU-CRK3FH","sku":"SKU-CRK3FH","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Đen"},"id":233},{"variant_sku":"SKU-US63ZB","sku":"SKU-US63ZB","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Trắng"},"id":234},{"variant_sku":"SKU-DSJY3A","sku":"SKU-DSJY3A","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Đen"},"id":235},{"variant_sku":"SKU-IDQWF4","sku":"SKU-IDQWF4","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Trắng"},"id":236},{"variant_sku":"SKU-60BU0M","sku":"SKU-60BU0M","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Đen"},"id":237},{"variant_sku":"SKU-TDNZL3","sku":"SKU-TDNZL3","price":0,"stock_qty":0,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Trắng"},"id":238}],"attributes":[{"name":"Kích cỡ","values":["M","L","XL","XXL"]},{"name":"Màu","values":["Đen","Trắng"]}],"images":[{"url":"/uploads/1769094301311-794242468.png","is_primary":true,"sort_order":0},{"url":"/uploads/1769094312782-549414451.webp","is_primary":false,"sort_order":1}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 10:07:09.221'),
+	(133, 6, 'Cập nhật sản phẩm', 'product', '1', '{"diff":{},"updates":{"category_id":1,"brand_id":1,"sku":"89","name":"Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short","slug":"set-bo-ao-thun-nu-form-rong-tay-lo","description":"<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>","compare_at_price":65000,"is_active":true,"variants":[{"variant_sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang-ARCHIVED-1770800435355-ARCHIVED-1770800507731","sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang-ARCHIVED-1770800435355-ARCHIVED-1770800507731","price":75000,"stock_qty":30,"is_active":true,"options":{},"id":13},{"variant_sku":"SKU-EH6UJZ","sku":"SKU-EH6UJZ","price":0,"stock_qty":20,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Đen"},"id":231},{"variant_sku":"SKU-YWTRLS","sku":"SKU-YWTRLS","price":0,"stock_qty":6,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Trắng"},"id":232},{"variant_sku":"SKU-CRK3FH","sku":"SKU-CRK3FH","price":0,"stock_qty":2,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Đen"},"id":233},{"variant_sku":"SKU-US63ZB","sku":"SKU-US63ZB","price":0,"stock_qty":12,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Trắng"},"id":234},{"variant_sku":"SKU-DSJY3A","sku":"SKU-DSJY3A","price":0,"stock_qty":24,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Đen"},"id":235},{"variant_sku":"SKU-IDQWF4","sku":"SKU-IDQWF4","price":0,"stock_qty":32,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Trắng"},"id":236},{"variant_sku":"SKU-60BU0M","sku":"SKU-60BU0M","price":0,"stock_qty":19,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Đen"},"id":237},{"variant_sku":"SKU-TDNZL3","sku":"SKU-TDNZL3","price":0,"stock_qty":18,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Trắng"},"id":238}],"attributes":[{"name":"Kích cỡ","values":["M","L","XL","XXL"]},{"name":"Màu","values":["Đen","Trắng"]}],"images":[{"url":"/uploads/1769094301311-794242468.png","is_primary":true,"sort_order":0},{"url":"/uploads/1769094312782-549414451.webp","is_primary":false,"sort_order":1}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 10:07:47.468'),
+	(134, 6, 'Cập nhật sản phẩm', 'product', '1', '{"diff":{},"updates":{"category_id":1,"brand_id":1,"sku":"89","name":"Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short","slug":"set-bo-ao-thun-nu-form-rong-tay-lo","description":"<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>","compare_at_price":65000,"is_active":true,"variants":[{"variant_sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang-ARCHIVED-1770800435355-ARCHIVED-1770800507731","sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang-ARCHIVED-1770800435355-ARCHIVED-1770800507731","price":75000,"stock_qty":30,"is_active":true,"options":{},"id":13},{"variant_sku":"SKU-EH6UJZ","sku":"SKU-EH6UJZ","price":75000,"stock_qty":20,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Đen"},"id":231},{"variant_sku":"SKU-YWTRLS","sku":"SKU-YWTRLS","price":75000,"stock_qty":6,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Trắng"},"id":232},{"variant_sku":"SKU-CRK3FH","sku":"SKU-CRK3FH","price":75000,"stock_qty":2,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Đen"},"id":233},{"variant_sku":"SKU-US63ZB","sku":"SKU-US63ZB","price":75000,"stock_qty":12,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Trắng"},"id":234},{"variant_sku":"SKU-DSJY3A","sku":"SKU-DSJY3A","price":75000,"stock_qty":24,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Đen"},"id":235},{"variant_sku":"SKU-IDQWF4","sku":"SKU-IDQWF4","price":75000,"stock_qty":32,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Trắng"},"id":236},{"variant_sku":"SKU-60BU0M","sku":"SKU-60BU0M","price":75000,"stock_qty":19,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Đen"},"id":237},{"variant_sku":"SKU-TDNZL3","sku":"SKU-TDNZL3","price":75000,"stock_qty":18,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Trắng"},"id":238}],"attributes":[{"name":"Kích cỡ","values":["M","L","XL","XXL"]},{"name":"Màu","values":["Đen","Trắng"]}],"images":[{"url":"/uploads/1769094301311-794242468.png","is_primary":true,"sort_order":0},{"url":"/uploads/1769094312782-549414451.webp","is_primary":false,"sort_order":1}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 10:13:10.260'),
+	(135, 6, 'Cập nhật sản phẩm', 'product', '1', '{"diff":{},"updates":{"category_id":1,"brand_id":1,"sku":"89","name":"Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short","slug":"set-bo-ao-thun-nu-form-rong-tay-lo","description":"<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>","compare_at_price":65000,"is_active":true,"variants":[{"variant_sku":"SKU-7SAJFI","sku":"SKU-7SAJFI","price":75000,"stock_qty":30,"is_active":true,"options":{},"id":13},{"variant_sku":"SKU-EH6UJZ","sku":"SKU-EH6UJZ","price":75000,"stock_qty":20,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Đen"},"id":231},{"variant_sku":"SKU-YWTRLS","sku":"SKU-YWTRLS","price":75000,"stock_qty":6,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Trắng"},"id":232},{"variant_sku":"SKU-CRK3FH","sku":"SKU-CRK3FH","price":75000,"stock_qty":2,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Đen"},"id":233},{"variant_sku":"SKU-US63ZB","sku":"SKU-US63ZB","price":75000,"stock_qty":12,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Trắng"},"id":234},{"variant_sku":"SKU-DSJY3A","sku":"SKU-DSJY3A","price":75000,"stock_qty":24,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Đen"},"id":235},{"variant_sku":"SKU-IDQWF4","sku":"SKU-IDQWF4","price":75000,"stock_qty":32,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Trắng"},"id":236},{"variant_sku":"SKU-60BU0M","sku":"SKU-60BU0M","price":75000,"stock_qty":19,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Đen"},"id":237},{"variant_sku":"SKU-TDNZL3","sku":"SKU-TDNZL3","price":75000,"stock_qty":18,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Trắng"},"id":238}],"attributes":[{"name":"Kích cỡ","values":["M","L","XL","XXL"]},{"name":"Màu","values":["Đen","Trắng"]}],"images":[{"url":"/uploads/1769094301311-794242468.png","is_primary":true,"sort_order":0},{"url":"/uploads/1769094312782-549414451.webp","is_primary":false,"sort_order":1}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-11 10:16:12.174'),
+	(136, 6, 'Cập nhật sản phẩm', 'product', '1', '{"diff":{"sku":{"from":"89","to":"SKU-U5SHAF"}},"updates":{"category_id":1,"brand_id":1,"sku":"SKU-U5SHAF","name":"Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short","slug":"set-bo-ao-thun-nu-form-rong-tay-lo","description":"<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>","compare_at_price":65000,"is_active":true,"variants":[{"variant_sku":"SKU-7SAJFI","sku":"SKU-7SAJFI","price":75000,"stock_qty":30,"is_active":true,"options":{},"id":13},{"variant_sku":"SKU-EH6UJZ","sku":"SKU-EH6UJZ","price":75000,"stock_qty":20,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Đen"},"id":231},{"variant_sku":"SKU-YWTRLS","sku":"SKU-YWTRLS","price":75000,"stock_qty":6,"is_active":true,"options":{"Kích cỡ":"M","Màu":"Trắng"},"id":232},{"variant_sku":"SKU-CRK3FH","sku":"SKU-CRK3FH","price":75000,"stock_qty":2,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Đen"},"id":233},{"variant_sku":"SKU-US63ZB","sku":"SKU-US63ZB","price":75000,"stock_qty":12,"is_active":true,"options":{"Kích cỡ":"L","Màu":"Trắng"},"id":234},{"variant_sku":"SKU-DSJY3A","sku":"SKU-DSJY3A","price":75000,"stock_qty":24,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Đen"},"id":235},{"variant_sku":"SKU-IDQWF4","sku":"SKU-IDQWF4","price":75000,"stock_qty":32,"is_active":true,"options":{"Kích cỡ":"XL","Màu":"Trắng"},"id":236},{"variant_sku":"SKU-60BU0M","sku":"SKU-60BU0M","price":75000,"stock_qty":19,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Đen"},"id":237},{"variant_sku":"SKU-TDNZL3","sku":"SKU-TDNZL3","price":75000,"stock_qty":18,"is_active":true,"options":{"Kích cỡ":"XXL","Màu":"Trắng"},"id":238}],"attributes":[{"name":"Kích cỡ","values":["M","L","XL","XXL"]},{"name":"Màu","values":["Đen","Trắng"]}],"images":[{"url":"/uploads/1769094301311-794242468.png","is_primary":true,"sort_order":0},{"url":"/uploads/1769094312782-549414451.webp","is_primary":false,"sort_order":1}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 14:18:23.904'),
+	(137, 6, 'import_products', 'product', NULL, '"Imported products: 0 created, 61 updated, 1 errors"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 14:57:56.418'),
+	(138, 6, 'Cập nhật sản phẩm', 'product', '55', '{"diff":{"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":7,"brand_id":2,"sku":"SKU-1769144617404-42","name":"Áo ba lỗ gym","slug":"ao-ba-lo-gym-9574","description":"<p>Sản phẩm Áo ba lỗ gym chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":460800,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617404-42-S","sku":"SKU-1769144617404-42-S","price":384000,"stock_qty":60,"is_active":true,"options":{},"id":189},{"variant_sku":"SKU-1769144617404-42-M","sku":"SKU-1769144617404-42-M","price":384000,"stock_qty":92,"is_active":true,"options":{},"id":190},{"variant_sku":"SKU-1769144617404-42-L","sku":"SKU-1769144617404-42-L","price":384000,"stock_qty":24,"is_active":true,"options":{},"id":191},{"variant_sku":"SKU-1769144617404-42-XL","sku":"SKU-1769144617404-42-XL","price":384000,"stock_qty":99,"is_active":true,"options":{},"id":192}],"attributes":[],"images":[{"url":"https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lynvu1p69cptba.webp","is_primary":true,"sort_order":0}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 14:58:17.552'),
+	(139, 6, 'Cập nhật sản phẩm', 'product', '2', '{"diff":{"brand_id":{"from":null,"to":""},"meta_description":{"from":null,"to":""}},"updates":{"category_id":7,"brand_id":"","sku":"TSHIRT-NU-001","name":"Áo thun nữ oversize Basic","slug":"ao-thun-nu-oversize-basic","description":"Áo thun oversize...","compare_at_price":129000,"is_active":true,"variants":[{"variant_sku":"TSHIRT-NU-001-BLACK-M","sku":"TSHIRT-NU-001-BLACK-M","price":99000,"stock_qty":31,"is_active":true,"options":{"Màu sắc":"Đỏ"},"id":1},{"variant_sku":"TSHIRT-NU-001-WHITE-L","sku":"TSHIRT-NU-001-WHITE-L","price":99000,"stock_qty":35,"is_active":true,"options":{"Màu sắc":"Hồng"},"id":2}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 14:58:23.919'),
+	(140, 6, 'Cập nhật sản phẩm', 'product', '12', '{"diff":{"brand_id":{"from":null,"to":""},"meta_description":{"from":null,"to":""}},"updates":{"category_id":8,"brand_id":"","sku":"SKIRT-001","name":"Chân váy xếp ly Tennis","slug":"chan-vay-xep-ly-tennis","description":"Vải Kaki đứng form.","compare_at_price":160000,"is_active":true,"variants":[{"variant_sku":"SKIRT-001-WHITE-S","sku":"SKIRT-001-WHITE-S","price":120000,"stock_qty":25,"is_active":true,"options":{"Màu sắc":"Trắng","Kích cỡ":"S"},"id":20}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 14:58:35.879'),
+	(141, 6, 'Cập nhật sản phẩm', 'product', '16', '{"diff":{"category_id":{"from":null,"to":""},"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":"","brand_id":4,"sku":"SKU-1769144617125-3","name":"Áo khoác bomber","slug":"ao-khoac-bomber-1564","description":"<p>Sản phẩm Áo khoác bomber chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":472800,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617125-3-S","sku":"SKU-1769144617125-3-S","price":394000,"stock_qty":29,"is_active":true,"options":{},"id":33},{"variant_sku":"SKU-1769144617125-3-M","sku":"SKU-1769144617125-3-M","price":394000,"stock_qty":43,"is_active":true,"options":{},"id":34},{"variant_sku":"SKU-1769144617125-3-L","sku":"SKU-1769144617125-3-L","price":394000,"stock_qty":84,"is_active":true,"options":{},"id":35},{"variant_sku":"SKU-1769144617125-3-XL","sku":"SKU-1769144617125-3-XL","price":394000,"stock_qty":13,"is_active":true,"options":{},"id":36}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 14:58:53.303'),
+	(142, 6, 'Cập nhật sản phẩm', 'product', '28', '{"diff":{"category_id":{"from":null,"to":""},"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":"","brand_id":2,"sku":"SKU-1769144617216-15","name":"Áo cardigan mỏng","slug":"ao-cardigan-mong-4989","description":"<p>Sản phẩm Áo cardigan mỏng chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":64800,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617216-15-S","sku":"SKU-1769144617216-15-S","price":54000,"stock_qty":9,"is_active":true,"options":{},"id":81},{"variant_sku":"SKU-1769144617216-15-M","sku":"SKU-1769144617216-15-M","price":54000,"stock_qty":65,"is_active":true,"options":{},"id":82},{"variant_sku":"SKU-1769144617216-15-L","sku":"SKU-1769144617216-15-L","price":54000,"stock_qty":23,"is_active":true,"options":{},"id":83},{"variant_sku":"SKU-1769144617216-15-XL","sku":"SKU-1769144617216-15-XL","price":54000,"stock_qty":96,"is_active":true,"options":{},"id":84}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 14:59:15.224'),
+	(143, 6, 'Cập nhật sản phẩm', 'product', '62', '{"diff":{"category_id":{"from":null,"to":""},"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":"","brand_id":4,"sku":"SKU-1769144617446-49","name":"Set váy công chúa","slug":"set-vay-cong-chua-7730","description":"<p>Sản phẩm Set váy công chúa chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":219600,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617446-49-S","sku":"SKU-1769144617446-49-S","price":183000,"stock_qty":40,"is_active":true,"options":{},"id":217},{"variant_sku":"SKU-1769144617446-49-M","sku":"SKU-1769144617446-49-M","price":183000,"stock_qty":49,"is_active":true,"options":{},"id":218},{"variant_sku":"SKU-1769144617446-49-L","sku":"SKU-1769144617446-49-L","price":183000,"stock_qty":100,"is_active":true,"options":{},"id":219},{"variant_sku":"SKU-1769144617446-49-XL","sku":"SKU-1769144617446-49-XL","price":183000,"stock_qty":66,"is_active":true,"options":{},"id":220}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 14:59:42.778'),
+	(144, 6, 'Cập nhật sản phẩm', 'product', '45', '{"diff":{"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":8,"brand_id":2,"sku":"SKU-1769144617337-32","name":"Quần culottes","slug":"quan-culottes-5427","description":"<p>Sản phẩm Quần culottes chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":477600,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617337-32-S","sku":"SKU-1769144617337-32-S","price":398000,"stock_qty":55,"is_active":true,"options":{},"id":149},{"variant_sku":"SKU-1769144617337-32-M","sku":"SKU-1769144617337-32-M","price":398000,"stock_qty":50,"is_active":true,"options":{},"id":150},{"variant_sku":"SKU-1769144617337-32-L","sku":"SKU-1769144617337-32-L","price":398000,"stock_qty":100,"is_active":true,"options":{},"id":151},{"variant_sku":"SKU-1769144617337-32-XL","sku":"SKU-1769144617337-32-XL","price":398000,"stock_qty":85,"is_active":true,"options":{},"id":152}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 15:00:11.491'),
+	(145, 6, 'Cập nhật sản phẩm', 'product', '61', '{"diff":{"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":8,"brand_id":2,"sku":"SKU-1769144617438-48","name":"Áo len gấu","slug":"ao-len-gau-9264","description":"<p>Sản phẩm Áo len gấu chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":522000,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617438-48-S","sku":"SKU-1769144617438-48-S","price":435000,"stock_qty":93,"is_active":true,"options":{},"id":213},{"variant_sku":"SKU-1769144617438-48-M","sku":"SKU-1769144617438-48-M","price":435000,"stock_qty":63,"is_active":true,"options":{},"id":214},{"variant_sku":"SKU-1769144617438-48-L","sku":"SKU-1769144617438-48-L","price":435000,"stock_qty":38,"is_active":true,"options":{},"id":215},{"variant_sku":"SKU-1769144617438-48-XL","sku":"SKU-1769144617438-48-XL","price":435000,"stock_qty":41,"is_active":true,"options":{},"id":216}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 15:00:41.519'),
+	(146, 6, 'Cập nhật sản phẩm', 'product', '18', '{"diff":{"category_id":{"from":null,"to":""},"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":"","brand_id":4,"sku":"SKU-1769144617142-5","name":"Quần kaki classic","slug":"quan-kaki-classic-9282","description":"<p>Sản phẩm Quần kaki classic chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":193200,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617142-5-S","sku":"SKU-1769144617142-5-S","price":161000,"stock_qty":19,"is_active":true,"options":{},"id":41},{"variant_sku":"SKU-1769144617142-5-M","sku":"SKU-1769144617142-5-M","price":161000,"stock_qty":36,"is_active":true,"options":{},"id":42},{"variant_sku":"SKU-1769144617142-5-L","sku":"SKU-1769144617142-5-L","price":161000,"stock_qty":30,"is_active":true,"options":{},"id":43},{"variant_sku":"SKU-1769144617142-5-XL","sku":"SKU-1769144617142-5-XL","price":161000,"stock_qty":98,"is_active":true,"options":{},"id":44}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 15:00:51.394'),
+	(147, 6, 'Cập nhật sản phẩm', 'product', '24', '{"diff":{"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":1,"brand_id":1,"sku":"SKU-1769144617183-11","name":"Áo croptop nữ","slug":"ao-croptop-nu-5564","description":"<p>Sản phẩm Áo croptop nữ chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":354000,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617183-11-S","sku":"SKU-1769144617183-11-S","price":295000,"stock_qty":85,"is_active":true,"options":{},"id":65},{"variant_sku":"SKU-1769144617183-11-M","sku":"SKU-1769144617183-11-M","price":295000,"stock_qty":44,"is_active":true,"options":{},"id":66},{"variant_sku":"SKU-1769144617183-11-L","sku":"SKU-1769144617183-11-L","price":295000,"stock_qty":59,"is_active":true,"options":{},"id":67},{"variant_sku":"SKU-1769144617183-11-XL","sku":"SKU-1769144617183-11-XL","price":295000,"stock_qty":41,"is_active":true,"options":{},"id":68}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 15:01:08.645'),
+	(148, 6, 'Cập nhật sản phẩm', 'product', '53', '{"diff":{"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":1,"brand_id":4,"sku":"SKU-1769144617390-40","name":"Áo thun in họa tiết","slug":"ao-thun-in-hoa-tiet-6637","description":"<p>Sản phẩm Áo thun in họa tiết chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":343200,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617390-40-S","sku":"SKU-1769144617390-40-S","price":286000,"stock_qty":40,"is_active":true,"options":{},"id":181},{"variant_sku":"SKU-1769144617390-40-M","sku":"SKU-1769144617390-40-M","price":286000,"stock_qty":87,"is_active":true,"options":{},"id":182},{"variant_sku":"SKU-1769144617390-40-L","sku":"SKU-1769144617390-40-L","price":286000,"stock_qty":55,"is_active":true,"options":{},"id":183},{"variant_sku":"SKU-1769144617390-40-XL","sku":"SKU-1769144617390-40-XL","price":286000,"stock_qty":54,"is_active":true,"options":{},"id":184}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 15:01:23.304'),
+	(149, 6, 'Cập nhật sản phẩm', 'product', '39', '{"diff":{"category_id":{"from":null,"to":""},"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":"","brand_id":2,"sku":"SKU-1769144617301-26","name":"Khăn choàng cashmere","slug":"khan-choang-cashmere-4927","description":"<p>Sản phẩm Khăn choàng cashmere chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":570000,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617301-26-S","sku":"SKU-1769144617301-26-S","price":475000,"stock_qty":11,"is_active":true,"options":{},"id":125},{"variant_sku":"SKU-1769144617301-26-M","sku":"SKU-1769144617301-26-M","price":475000,"stock_qty":44,"is_active":true,"options":{},"id":126},{"variant_sku":"SKU-1769144617301-26-L","sku":"SKU-1769144617301-26-L","price":475000,"stock_qty":92,"is_active":true,"options":{},"id":127},{"variant_sku":"SKU-1769144617301-26-XL","sku":"SKU-1769144617301-26-XL","price":475000,"stock_qty":86,"is_active":true,"options":{},"id":128}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 15:01:33.830'),
+	(150, 6, 'Cập nhật sản phẩm', 'product', '26', '{"diff":{"category_id":{"from":null,"to":""},"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":"","brand_id":2,"sku":"SKU-1769144617201-13","name":"Áo len cổ lọ","slug":"ao-len-co-lo-8832","description":"<p>Sản phẩm Áo len cổ lọ chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":366000,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617201-13-S","sku":"SKU-1769144617201-13-S","price":305000,"stock_qty":18,"is_active":true,"options":{},"id":73},{"variant_sku":"SKU-1769144617201-13-M","sku":"SKU-1769144617201-13-M","price":305000,"stock_qty":19,"is_active":true,"options":{},"id":74},{"variant_sku":"SKU-1769144617201-13-L","sku":"SKU-1769144617201-13-L","price":305000,"stock_qty":35,"is_active":true,"options":{},"id":75},{"variant_sku":"SKU-1769144617201-13-XL","sku":"SKU-1769144617201-13-XL","price":305000,"stock_qty":91,"is_active":true,"options":{},"id":76}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 15:01:44.936'),
+	(151, 6, 'Cập nhật sản phẩm', 'product', '14', '{"diff":{"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":11,"brand_id":3,"sku":"SKU-1769144617106-1","name":"Áo polo premium","slug":"ao-polo-premium-9651","description":"<p>Sản phẩm Áo polo premium chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":440400,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617106-1-S","sku":"SKU-1769144617106-1-S","price":367000,"stock_qty":47,"is_active":true,"options":{},"id":25},{"variant_sku":"SKU-1769144617106-1-M","sku":"SKU-1769144617106-1-M","price":367000,"stock_qty":30,"is_active":true,"options":{},"id":26},{"variant_sku":"SKU-1769144617106-1-L","sku":"SKU-1769144617106-1-L","price":367000,"stock_qty":59,"is_active":true,"options":{},"id":27},{"variant_sku":"SKU-1769144617106-1-XL","sku":"SKU-1769144617106-1-XL","price":367000,"stock_qty":60,"is_active":true,"options":{},"id":28}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 15:01:57.792'),
+	(152, 6, 'Cập nhật sản phẩm', 'product', '43', '{"diff":{"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":7,"brand_id":3,"sku":"SKU-1769144617325-30","name":"Vest nam công sở","slug":"vest-nam-cong-so-6976","description":"<p>Sản phẩm Vest nam công sở chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":394800,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617325-30-S","sku":"SKU-1769144617325-30-S","price":329000,"stock_qty":69,"is_active":true,"options":{},"id":141},{"variant_sku":"SKU-1769144617325-30-M","sku":"SKU-1769144617325-30-M","price":329000,"stock_qty":63,"is_active":true,"options":{},"id":142},{"variant_sku":"SKU-1769144617325-30-L","sku":"SKU-1769144617325-30-L","price":329000,"stock_qty":75,"is_active":true,"options":{},"id":143},{"variant_sku":"SKU-1769144617325-30-XL","sku":"SKU-1769144617325-30-XL","price":329000,"stock_qty":21,"is_active":true,"options":{},"id":144}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 15:02:08.981'),
+	(153, 6, 'Cập nhật sản phẩm', 'product', '10', '{"diff":{"is_active":{"from":true,"to":false},"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":11,"brand_id":4,"sku":"BELT-001","name":"Thắt lưng da nam cao cấp","slug":"that-lung-da-nam","description":"Da bò thật 100%.","compare_at_price":200000,"is_active":false,"variants":[{"variant_sku":"BELT-001-BROWN-FREE","sku":"BELT-001-BROWN-FREE","price":150000,"stock_qty":50,"is_active":true,"options":{},"id":18}],"attributes":[],"images":[{"url":"https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mdmkyqmn0g1bc6.webp","is_primary":true,"sort_order":0}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', '2026-02-16 06:29:49.943'),
+	(154, 6, 'Cập nhật sản phẩm', 'product', '10', '{"diff":{"is_active":{"from":false,"to":true}},"updates":{"category_id":11,"brand_id":4,"sku":"BELT-001","name":"Thắt lưng da nam cao cấp","slug":"that-lung-da-nam","description":"Da bò thật 100%.","compare_at_price":200000,"is_active":true,"variants":[{"variant_sku":"BELT-001-BROWN-FREE","sku":"BELT-001-BROWN-FREE","price":150000,"stock_qty":50,"is_active":true,"options":{},"id":18}],"attributes":[],"images":[{"url":"https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mdmkyqmn0g1bc6.webp","is_primary":true,"sort_order":0}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', '2026-02-16 06:29:57.731');
 
 -- Dumping structure for table fashion_store.banners
 DROP TABLE IF EXISTS `banners`;
@@ -150,7 +235,7 @@ CREATE TABLE IF NOT EXISTS `banner_images` (
   CONSTRAINT `banner_images_banner_id_fkey` FOREIGN KEY (`banner_id`) REFERENCES `banners` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.banner_images: ~4 rows (approximately)
+-- Dumping data for table fashion_store.banner_images: ~3 rows (approximately)
 INSERT INTO `banner_images` (`id`, `banner_id`, `image_url`, `sort_order`, `created_at`) VALUES
 	(1, 1, 'http://localhost:4000/uploads/1769502904792-391252114.jpg', 0, '2026-01-27 08:56:25.066'),
 	(2, 1, 'http://localhost:4000/uploads/1769504180335-464240027.jpg', 1, '2026-01-27 08:56:25.066'),
@@ -191,17 +276,27 @@ CREATE TABLE IF NOT EXISTS `carts` (
   KEY `idx_carts_user` (`user_id`),
   KEY `idx_carts_session` (`session_id`),
   CONSTRAINT `carts_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.carts: ~5 rows (approximately)
+-- Dumping data for table fashion_store.carts: ~17 rows (approximately)
 INSERT INTO `carts` (`id`, `user_id`, `session_id`, `created_at`, `updated_at`) VALUES
 	(1, 2, NULL, '2026-01-22 21:09:18.707', NULL),
 	(2, 3, NULL, '2026-01-22 21:09:18.707', NULL),
 	(3, NULL, 'sess_guest_abc123', '2026-01-22 21:09:18.707', NULL),
 	(4, NULL, 'sess_1769175589975_62qeigcon', '2026-01-23 13:40:10.788', '2026-01-23 13:40:10.788'),
 	(5, 6, NULL, '2026-01-23 16:54:51.891', '2026-01-23 16:54:51.891'),
-	(6, 59, NULL, '2026-01-26 04:20:15.652', '2026-01-26 04:20:15.652'),
-	(7, 60, NULL, '2026-01-29 12:11:59.491', '2026-01-29 12:11:59.491');
+	(6, NULL, NULL, '2026-01-26 04:20:15.652', '2026-01-26 04:20:15.652'),
+	(7, 60, NULL, '2026-01-29 12:11:59.491', '2026-01-29 12:11:59.491'),
+	(9, NULL, 'test-session-123', '2026-02-11 03:43:02.717', '2026-02-11 03:43:02.717'),
+	(10, NULL, NULL, '2026-02-11 04:30:26.935', '2026-02-11 04:30:26.935'),
+	(11, NULL, NULL, '2026-02-11 04:31:17.268', '2026-02-11 04:31:17.268'),
+	(12, NULL, NULL, '2026-02-11 04:32:04.400', '2026-02-11 04:32:04.400'),
+	(13, NULL, NULL, '2026-02-11 04:32:36.202', '2026-02-11 04:32:36.202'),
+	(14, NULL, NULL, '2026-02-11 04:34:58.562', '2026-02-11 04:34:58.562'),
+	(15, NULL, NULL, '2026-02-11 04:36:49.716', '2026-02-11 04:36:49.716'),
+	(16, NULL, NULL, '2026-02-11 04:37:18.489', '2026-02-11 04:37:18.489'),
+	(17, NULL, NULL, '2026-02-11 04:38:23.361', '2026-02-11 04:38:23.361'),
+	(18, NULL, NULL, '2026-02-11 04:38:47.726', '2026-02-11 04:38:47.726');
 
 -- Dumping structure for table fashion_store.cart_items
 DROP TABLE IF EXISTS `cart_items`;
@@ -218,7 +313,7 @@ CREATE TABLE IF NOT EXISTS `cart_items` (
   KEY `idx_ci_variant` (`variant_id`),
   CONSTRAINT `cart_items_cart_id_fkey` FOREIGN KEY (`cart_id`) REFERENCES `carts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `cart_items_variant_id_fkey` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=58 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table fashion_store.cart_items: ~6 rows (approximately)
 INSERT INTO `cart_items` (`id`, `cart_id`, `variant_id`, `qty`, `price_at_add`, `created_at`) VALUES
@@ -227,7 +322,8 @@ INSERT INTO `cart_items` (`id`, `cart_id`, `variant_id`, `qty`, `price_at_add`, 
 	(3, 2, 6, 1, 109000.00, '2026-01-22 21:09:18.722'),
 	(4, 3, 12, 1, 59000.00, '2026-01-22 21:09:18.722'),
 	(38, 5, 1, 1, 99000.00, '2026-02-05 18:33:17.293'),
-	(39, 7, 7, 1, 249000.00, '2026-02-06 03:59:55.974');
+	(41, 9, 1, 1, 99000.00, '2026-02-11 03:43:02.723'),
+	(57, 7, 1, 1, 99000.00, '2026-02-11 06:30:25.361');
 
 -- Dumping structure for table fashion_store.categories
 DROP TABLE IF EXISTS `categories`;
@@ -381,18 +477,19 @@ CREATE TABLE IF NOT EXISTS `conversations` (
   KEY `idx_conv_status` (`status`),
   KEY `idx_conv_assigned` (`assigned_to`),
   CONSTRAINT `conversations_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.conversations: ~8 rows (approximately)
+-- Dumping data for table fashion_store.conversations: ~9 rows (approximately)
 INSERT INTO `conversations` (`id`, `user_id`, `guest_name`, `guest_email`, `status`, `assigned_to`, `created_at`, `updated_at`, `closed_at`) VALUES
 	(1, NULL, NULL, NULL, 'closed', 6, '2026-01-29 04:04:59.253', '2026-01-29 04:22:54.740', '2026-01-29 04:22:54.738'),
 	(2, 6, NULL, NULL, 'closed', 6, '2026-01-29 04:20:55.140', '2026-01-29 04:37:43.076', '2026-01-29 04:37:43.074'),
 	(3, 6, NULL, NULL, 'closed', 6, '2026-01-29 04:37:59.641', '2026-01-29 04:41:18.362', '2026-01-29 04:41:18.361'),
-	(4, 59, 'Hoang customer', NULL, 'active', 6, '2026-01-29 04:53:05.019', '2026-02-05 17:39:30.102', NULL),
+	(4, NULL, 'Hoang customer', NULL, 'active', 6, '2026-01-29 04:53:05.019', '2026-02-15 13:25:06.571', NULL),
 	(5, 60, 'Tống Văn Hoàng', NULL, 'closed', 59, '2026-01-29 11:31:33.396', '2026-02-01 03:57:32.248', '2026-02-01 03:57:32.247'),
 	(6, 60, 'Tống Văn Hoàng', NULL, 'closed', 6, '2026-02-01 04:43:18.355', '2026-02-01 04:55:20.422', '2026-02-01 04:55:20.420'),
 	(7, 60, 'Tống Văn Hoàng', NULL, 'closed', 6, '2026-02-01 04:55:23.634', '2026-02-01 04:55:48.223', '2026-02-01 04:55:48.221'),
-	(8, 60, 'Tống Văn Hoàng', NULL, 'active', 6, '2026-02-01 04:56:01.557', '2026-02-05 17:39:19.260', NULL);
+	(8, 60, 'Tống Văn Hoàng', NULL, 'closed', 6, '2026-02-01 04:56:01.557', '2026-02-15 13:24:35.358', '2026-02-15 13:24:35.357'),
+	(9, 60, 'Tống Văn Hoàng', NULL, 'active', 6, '2026-02-15 14:52:25.682', '2026-02-15 15:06:59.709', NULL);
 
 -- Dumping structure for table fashion_store.coupons
 DROP TABLE IF EXISTS `coupons`;
@@ -413,9 +510,8 @@ CREATE TABLE IF NOT EXISTS `coupons` (
   UNIQUE KEY `coupons_code_key` (`code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.coupons: ~2 rows (approximately)
+-- Dumping data for table fashion_store.coupons: ~1 rows (approximately)
 INSERT INTO `coupons` (`id`, `code`, `type`, `value`, `min_subtotal`, `max_discount`, `start_at`, `end_at`, `usage_limit`, `usage_per_user`, `is_active`, `created_at`) VALUES
-	(3, 'SAL20', 'percent', 20.00, 50000.00, NULL, '2026-01-23 00:00:00.000', '2026-01-29 00:00:00.000', 10, NULL, 1, '2026-01-23 11:53:32.293'),
 	(5, 'SALE21', 'percent', 20.00, 50000.00, NULL, '2026-02-05 00:00:00.000', '2026-02-07 00:00:00.000', 1, NULL, 1, '2026-02-05 18:23:13.662');
 
 -- Dumping structure for table fashion_store.coupon_redemptions
@@ -436,7 +532,7 @@ CREATE TABLE IF NOT EXISTS `coupon_redemptions` (
   CONSTRAINT `coupon_redemptions_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.coupon_redemptions: ~1 rows (approximately)
+-- Dumping data for table fashion_store.coupon_redemptions: ~0 rows (approximately)
 INSERT INTO `coupon_redemptions` (`id`, `coupon_id`, `user_id`, `order_id`, `discount_amount`, `created_at`) VALUES
 	(2, 5, 6, 150, 19800.00, '2026-02-05 18:33:09.238');
 
@@ -452,9 +548,9 @@ CREATE TABLE IF NOT EXISTS `inventory_movements` (
   PRIMARY KEY (`id`),
   KEY `idx_im_variant` (`variant_id`),
   CONSTRAINT `inventory_movements_variant_id_fkey` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=63 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.inventory_movements: ~43 rows (approximately)
+-- Dumping data for table fashion_store.inventory_movements: ~54 rows (approximately)
 INSERT INTO `inventory_movements` (`id`, `variant_id`, `type`, `qty`, `note`, `created_at`) VALUES
 	(7, 1, 'out', 1, 'Order FS20260123-3439', '2026-01-23 13:40:29.981'),
 	(8, 1, 'out', 1, 'Order FS20260123-3617', '2026-01-23 16:55:08.733'),
@@ -498,7 +594,18 @@ INSERT INTO `inventory_movements` (`id`, `variant_id`, `type`, `qty`, `note`, `c
 	(46, 1, 'in', 1, 'Auto-cancelled expired order FS20260205-0478', '2026-02-05 17:59:00.135'),
 	(47, 3, 'in', 1, 'Auto-cancelled expired order FS20260205-0070', '2026-02-05 17:59:00.144'),
 	(48, 1, 'out', 1, 'Order FS20260205-3122', '2026-02-05 18:27:31.688'),
-	(49, 1, 'out', 1, 'Order FS20260205-2703', '2026-02-05 18:33:09.233');
+	(49, 1, 'out', 1, 'Order FS20260205-2703', '2026-02-05 18:33:09.233'),
+	(50, 7, 'out', 1, 'Order FS20260211-9305', '2026-02-11 03:52:25.691'),
+	(51, 1, 'out', 1, 'Order FS20260211-6379', '2026-02-11 04:03:05.530'),
+	(52, 1, 'out', 1, 'Order FS20260211-8187', '2026-02-11 04:12:24.874'),
+	(53, 1, 'out', 1, 'Order FS20260211-7176', '2026-02-11 04:17:40.810'),
+	(54, 13, 'out', 4, 'Order FS20260211-5697', '2026-02-11 04:30:27.022'),
+	(55, 13, 'out', 2, 'Order FS20260211-3320', '2026-02-11 04:31:17.320'),
+	(56, 13, 'out', 2, 'Order FS20260211-6146', '2026-02-11 04:32:04.456'),
+	(57, 13, 'out', 3, 'Order FS20260211-5688', '2026-02-11 04:32:36.273'),
+	(58, 13, 'out', 1, 'Order FS20260211-0620', '2026-02-11 04:34:58.586'),
+	(61, 3, 'out', 1, 'Order FS20260211-5737', '2026-02-11 06:17:04.146'),
+	(62, 3, 'out', 1, 'Order FS20260211-2782', '2026-02-11 06:21:30.816');
 
 -- Dumping structure for table fashion_store.notifications
 DROP TABLE IF EXISTS `notifications`;
@@ -516,18 +623,14 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   KEY `idx_notifications_read` (`is_read`),
   KEY `idx_notifications_created` (`created_at`),
   CONSTRAINT `notifications_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.notifications: ~24 rows (approximately)
+-- Dumping data for table fashion_store.notifications: ~51 rows (approximately)
 INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `link`, `is_read`, `created_at`) VALUES
 	(2, 6, 'order_new', 'Đơn hàng mới #ORD-123', 'Khách hàng Nguyễn Văn A vừa đặt đơn hàng trị giá 500.000đ', '/admin/orders/1', 1, '2026-01-26 03:37:09.484'),
 	(3, 6, 'product_low_stock', 'Sản phẩm sắp hết hàng', 'Áo thun Basic (Size M) chỉ còn 2 sản phẩm trong kho.', '/admin/products/5', 1, '2026-01-26 03:37:09.487'),
 	(4, 6, 'system', 'Hệ thống đã cập nhật', 'Phiên bản v1.2 đã được triển khai thành công.', NULL, 1, '2026-01-26 03:37:09.489'),
 	(5, 6, 'order_status', 'Đơn hàng #ORD-999 đã hoàn thành', 'Giao hàng thành công cho khách hàng.', '/admin/orders/999', 1, '2026-01-26 03:37:09.490'),
-	(6, 59, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260129-3984 đã được đặt thành công.', '/orders/127', 1, '2026-01-29 20:17:41.000'),
-	(7, 59, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260129-8210 đã được đặt thành công.', '/orders/128', 1, '2026-01-29 20:30:30.000'),
-	(15, 59, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260130-7666 đã được đặt thành công.', '/orders/136', 1, '2026-01-30 16:52:18.000'),
-	(16, 59, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260130-5839 đã được đặt thành công.', '/orders/137', 1, '2026-01-30 16:52:49.000'),
 	(17, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260201-2696 đã được đặt thành công.', '/orders/138', 1, '2026-02-01 14:53:18.000'),
 	(18, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260201-5731 đã được đặt thành công.', '/orders/139', 1, '2026-02-01 14:57:17.000'),
 	(19, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260201-5022 đã được đặt thành công.', '/orders/140', 1, '2026-02-01 16:13:15.000'),
@@ -540,10 +643,42 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `link`
 	(26, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260204-0244 vừa được đặt bởi Tống Văn Hoàng.', '/admin/orders/143', 1, '2026-02-04 14:33:26.000'),
 	(27, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260204-2302 đã được đặt thành công.', '/orders/144', 1, '2026-02-04 14:46:24.000'),
 	(28, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260204-2302 vừa được đặt bởi Tống Văn Hoàng.', '/admin/orders/144', 1, '2026-02-04 14:46:24.000'),
-	(30, 6, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260205-3122 đã được đặt thành công.', '/orders/149', 0, '2026-02-06 01:27:31.000'),
+	(30, 6, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260205-3122 đã được đặt thành công.', '/orders/149', 1, '2026-02-06 01:27:31.000'),
 	(31, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260205-3122 vừa được đặt bởi Hoang ADMIN.', '/admin/orders/149', 1, '2026-02-06 01:27:31.000'),
-	(32, 6, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260205-2703 đã được đặt thành công.', '/orders/150', 0, '2026-02-06 01:33:09.000'),
-	(33, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260205-2703 vừa được đặt bởi Hoang ADMIN.', '/admin/orders/150', 1, '2026-02-06 01:33:09.000');
+	(32, 6, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260205-2703 đã được đặt thành công.', '/orders/150', 1, '2026-02-06 01:33:09.000'),
+	(33, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260205-2703 vừa được đặt bởi Hoang ADMIN.', '/admin/orders/150', 1, '2026-02-06 01:33:09.000'),
+	(34, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-9305 đã được đặt thành công.', '/orders/151', 1, '2026-02-11 10:52:25.000'),
+	(35, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-9305 vừa được đặt bởi Tống Văn Hoàng.', '/admin/orders/151', 1, '2026-02-11 10:52:25.000'),
+	(36, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-6379 đã được đặt thành công.', '/orders/152', 1, '2026-02-11 11:03:05.000'),
+	(37, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-6379 vừa được đặt bởi Tống Văn Hoàng.', '/admin/orders/152', 1, '2026-02-11 11:03:05.000'),
+	(38, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-8187 đã được đặt thành công.', '/orders/153', 1, '2026-02-11 11:12:24.000'),
+	(39, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-8187 vừa được đặt bởi Tống Văn Hoàng.', '/admin/orders/153', 1, '2026-02-11 11:12:24.000'),
+	(40, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-7176 đã được đặt thành công.', '/orders/154', 1, '2026-02-11 11:17:40.000'),
+	(41, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-7176 vừa được đặt bởi Tống Văn Hoàng.', '/admin/orders/154', 1, '2026-02-11 11:17:40.000'),
+	(60, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-5737 đã được đặt thành công.', '/orders/162', 1, '2026-02-11 13:17:04.000'),
+	(61, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-5737 vừa được đặt bởi Tống Văn Hoàng.', '/admin/orders/162', 1, '2026-02-11 13:17:04.000'),
+	(62, NULL, 'system', 'System Test', 'System alerting admin only', NULL, 1, '2026-02-11 13:20:30.000'),
+	(63, 60, 'order_new', 'Đặt hàng thành công', 'Đơn hàng FS20260211-2782 đã được đặt thành công.', '/orders/163', 1, '2026-02-11 13:21:30.000'),
+	(64, NULL, 'order_new', 'Đơn hàng mới', 'Đơn hàng FS20260211-2782 vừa được đặt bởi Tống Văn Hoàng.', '/admin/orders/163', 1, '2026-02-11 13:21:30.000'),
+	(65, NULL, 'system', 'Nhập dữ liệu thành công', 'Quá trình nhập dữ liệu hoàn tất: 0 tạo mới, 62 cập nhật.', '/admin/products', 1, '2026-02-11 14:02:59.000'),
+	(66, NULL, 'system', 'Nhập dữ liệu thành công', 'Quá trình nhập dữ liệu hoàn tất: 0 tạo mới, 62 cập nhật.', '/admin/products', 1, '2026-02-11 14:04:05.000'),
+	(73, NULL, 'system', 'Nhập dữ liệu thành công', 'Quá trình nhập dữ liệu hoàn tất: 0 tạo mới, 62 cập nhật.', '/admin/products', 1, '2026-02-11 14:34:27.000'),
+	(77, 60, 'order_status', 'Cập nhật đơn hàng', 'Đơn hàng FS20260211-2782 đã được cập nhật sang trạng thái: confirmed', '/orders/163', 1, '2026-02-11 15:16:51.000'),
+	(78, 60, 'order_status', 'Giao hàng thành công', 'Đơn hàng FS20260211-2782 đã được giao thành công. Cảm ơn bạn đã mua sắm!', '/orders/163', 1, '2026-02-11 15:17:15.000'),
+	(79, 60, 'order_status', 'Đơn hàng đang được giao', 'Đơn hàng FS20260211-2782 đã được giao cho đơn vị vận chuyển.', '/orders/163', 1, '2026-02-11 15:24:59.000'),
+	(80, 60, 'order_status', 'Giao hàng thành công', 'Đơn hàng FS20260211-2782 đã được giao thành công. Cảm ơn bạn đã mua sắm!', '/orders/163', 1, '2026-02-11 15:25:52.000'),
+	(81, 60, 'order_status', 'Giao hàng thành công', 'Đơn hàng FS20260211-5737 đã được giao thành công. Cảm ơn bạn đã mua sắm!', '/orders/162', 1, '2026-02-11 15:25:59.000'),
+	(82, NULL, 'product_low_stock', 'Sắp hết hàng', 'Sản phẩm "Quần jean nam slimfit" (SKU: JEAN-NAM-001-BLACK-M) chỉ còn 9 sản phẩm.', '/admin/products', 1, '2026-02-14 11:00:00.000'),
+	(83, NULL, 'product_low_stock', 'Sắp hết hàng', 'Sản phẩm "Quần jean nam slimfit" (SKU: JEAN-NAM-001-GREY-L) chỉ còn 10 sản phẩm.', '/admin/products', 1, '2026-02-14 11:00:00.000'),
+	(84, NULL, 'product_low_stock', 'Sắp hết hàng', 'Sản phẩm "Đầm Maxi Hoa Nhí Vintage" (SKU: DRESS-001-YELLOW-S) chỉ còn 10 sản phẩm.', '/admin/products', 1, '2026-02-14 11:00:00.000'),
+	(85, NULL, 'product_low_stock', 'Sắp hết hàng', 'Sản phẩm "Áo Khoác Bomber Varsity" (SKU: JACKET-NAM-001-BLACK-L) chỉ còn 8 sản phẩm.', '/admin/products', 1, '2026-02-14 11:00:00.000'),
+	(86, NULL, 'product_low_stock', 'Sắp hết hàng', 'Sản phẩm "Áo Khoác Bomber Varsity" (SKU: JACKET-NAM-001-BLACK-XL) chỉ còn 5 sản phẩm.', '/admin/products', 1, '2026-02-14 11:00:00.000'),
+	(87, NULL, 'product_low_stock', 'Sắp hết hàng', 'Sản phẩm "Áo cardigan mỏng" (SKU: SKU-1769144617216-15-S) chỉ còn 9 sản phẩm.', '/admin/products', 1, '2026-02-14 11:00:00.000'),
+	(88, NULL, 'product_low_stock', 'Sắp hết hàng', 'Sản phẩm "Túi tote canvas" (SKU: SKU-1769144617224-16-XL) chỉ còn 10 sản phẩm.', '/admin/products', 1, '2026-02-14 11:00:00.000'),
+	(89, NULL, 'product_low_stock', 'Sắp hết hàng', 'Sản phẩm "Áo gile len" (SKU: SKU-1769144617331-31-S) chỉ còn 10 sản phẩm.', '/admin/products', 1, '2026-02-14 11:00:00.000'),
+	(90, NULL, 'product_low_stock', 'Sắp hết hàng', 'Sản phẩm "Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short" (SKU: SKU-YWTRLS) chỉ còn 6 sản phẩm.', '/admin/products', 1, '2026-02-14 11:00:00.000'),
+	(91, NULL, 'product_low_stock', 'Sắp hết hàng', 'Sản phẩm "Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short" (SKU: SKU-CRK3FH) chỉ còn 2 sản phẩm.', '/admin/products', 1, '2026-02-14 11:00:00.000'),
+	(92, NULL, 'system', 'Nhập dữ liệu thành công', 'Quá trình nhập dữ liệu hoàn tất: 0 tạo mới, 61 cập nhật.', '/admin/products', 1, '2026-02-15 21:57:56.000');
 
 -- Dumping structure for table fashion_store.options
 DROP TABLE IF EXISTS `options`;
@@ -553,9 +688,9 @@ CREATE TABLE IF NOT EXISTS `options` (
   `code` varchar(50) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `options_code_key` (`code`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.options: ~16 rows (approximately)
+-- Dumping data for table fashion_store.options: ~17 rows (approximately)
 INSERT INTO `options` (`id`, `name`, `code`) VALUES
 	(1, 'Màu sắc', 'color'),
 	(2, 'Kích cỡ', 'size'),
@@ -572,7 +707,8 @@ INSERT INTO `options` (`id`, `name`, `code`) VALUES
 	(13, 'Khóa', 'closure'),
 	(14, 'Giới tính', 'gender'),
 	(15, 'Độ tuổi', 'age_group'),
-	(16, 'Thương hiệu', 'brand');
+	(16, 'Thương hiệu', 'brand'),
+	(19, 'Màu', 'm-u');
 
 -- Dumping structure for table fashion_store.option_values
 DROP TABLE IF EXISTS `option_values`;
@@ -585,7 +721,7 @@ CREATE TABLE IF NOT EXISTS `option_values` (
   UNIQUE KEY `uk_option_values` (`option_id`,`value`),
   KEY `idx_ov_option` (`option_id`),
   CONSTRAINT `option_values_option_id_fkey` FOREIGN KEY (`option_id`) REFERENCES `options` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=68 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=70 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table fashion_store.option_values: ~15 rows (approximately)
 INSERT INTO `option_values` (`id`, `option_id`, `value`, `sort_order`) VALUES
@@ -603,7 +739,9 @@ INSERT INTO `option_values` (`id`, `option_id`, `value`, `sort_order`) VALUES
 	(12, 2, 'XL', 0),
 	(13, 2, 'XXL', 0),
 	(14, 2, 'Free', 0),
-	(15, 3, 'Cotton', 0);
+	(15, 3, 'Cotton', 0),
+	(68, 19, 'Đen', 0),
+	(69, 19, 'Trắng', 0);
 
 -- Dumping structure for table fashion_store.orders
 DROP TABLE IF EXISTS `orders`;
@@ -633,9 +771,9 @@ CREATE TABLE IF NOT EXISTS `orders` (
   KEY `idx_orders_user` (`user_id`),
   KEY `idx_orders_status` (`status`),
   CONSTRAINT `orders_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=151 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=164 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.orders: ~136 rows (approximately)
+-- Dumping data for table fashion_store.orders: ~140 rows (approximately)
 INSERT INTO `orders` (`id`, `order_code`, `user_id`, `status`, `subtotal`, `discount_total`, `shipping_fee`, `grand_total`, `customer_name`, `customer_phone`, `ship_address_line1`, `ship_address_line2`, `ship_city`, `ship_province`, `ship_postal_code`, `ship_country`, `note`, `created_at`, `updated_at`, `admin_note`) VALUES
 	(1, 'FS20251213-0001', 2, 'paid', 277000.00, 0.00, 0.00, 282000.00, 'Khánh', '0900000002', '12 Nguyễn Trãi', NULL, 'Quận 1', 'TP.HCM', NULL, 'VN', NULL, '2026-01-22 21:09:18.630', NULL, NULL),
 	(2, 'FS20251213-0002', 3, 'processing', 109000.00, 0.00, 0.00, 134000.00, 'Minh', '0900000003', '45 Lê Lợi', NULL, 'Quận 1', 'TP.HCM', NULL, 'VN', NULL, '2026-01-22 21:09:18.630', NULL, NULL),
@@ -746,20 +884,20 @@ INSERT INTO `orders` (`id`, `order_code`, `user_id`, `status`, `subtotal`, `disc
 	(120, 'FS20251107-0199', 9, 'processing', 657000.00, 0.00, 0.00, 657000.00, 'Lê Lan', '0984518917', '489 Điện Biên Phủ', NULL, 'Đống Đa', 'TP.HCM', NULL, 'VN', NULL, '2025-11-07 13:21:57.110', '2026-01-23 05:03:37.691', NULL),
 	(122, 'FS20260123-3617', 6, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang ADMIN', '34233243', '21312', '', '23123', '123123', '', 'VN', '', '2026-01-23 16:55:08.722', '2026-01-23 16:55:08.722', NULL),
 	(123, 'FS20260126-6980', 6, 'cancelled', 249000.00, 0.00, 25000.00, 274000.00, 'Hoang ADMIN', '0935818725', '187', '', 'Tp.HCM', 'Tp.HCM', '', 'VN', '', '2026-01-26 03:54:22.029', '2026-02-05 17:59:00.048', NULL),
-	(124, 'FS20260126-2042', 59, 'pending', 1080000.00, 0.00, 25000.00, 1105000.00, 'Hoang customer', '0935818725', '187', '', 'Tp.HCM', 'Tp.HCM', '', 'VN', '', '2026-01-26 04:20:36.132', '2026-01-26 04:20:36.132', NULL),
-	(125, 'FS20260127-1416', 59, 'completed', 99000.00, 0.00, 25000.00, 124000.00, 'Hoang customer', '0935818725', '187', '', 'Tp.HCM', 'Tp.HCM', '', 'VN', '', '2026-01-27 08:08:39.760', '2026-01-29 09:30:41.413', NULL),
-	(126, 'FS20260129-8544', 59, 'shipped', 99000.00, 0.00, 25000.00, 124000.00, 'Hoang customer', '0935818725', '187', '', 'Tp.HCM', 'Tp.HCM', '', 'VN', '', '2026-01-29 06:53:36.743', '2026-01-29 06:55:38.063', NULL),
-	(127, 'FS20260129-3984', 59, 'pending', 297000.00, 0.00, 35000.00, 332000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-29 13:17:41.859', '2026-01-29 13:17:41.859', NULL),
-	(128, 'FS20260129-8210', 59, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-29 13:30:30.238', '2026-01-29 13:30:30.238', NULL),
-	(129, 'FS20260129-4185', 59, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-29 13:32:37.021', '2026-01-29 13:32:37.021', NULL),
-	(130, 'FS20260129-3948', 59, 'pending', 249000.00, 0.00, 35000.00, 284000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-29 13:33:18.581', '2026-01-29 13:33:18.581', NULL),
-	(131, 'FS20260129-6071', 59, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-29 13:35:55.625', '2026-01-29 13:35:55.625', NULL),
-	(132, 'FS20260129-0528', 59, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-29 13:36:39.428', '2026-01-29 13:36:39.428', NULL),
-	(133, 'FS20260129-4010', 59, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-29 13:38:51.594', '2026-01-29 13:38:51.594', NULL),
-	(134, 'FS20260130-1836', 59, 'cancelled', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-30 08:14:19.348', '2026-02-05 17:59:00.070', NULL),
-	(135, 'FS20260130-6258', 59, 'cancelled', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-30 08:59:59.525', '2026-02-05 17:59:00.080', NULL),
-	(136, 'FS20260130-7666', 59, 'cancelled', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-30 09:52:18.838', '2026-02-05 17:59:00.089', NULL),
-	(137, 'FS20260130-5839', 59, 'cancelled', 89000.00, 0.00, 35000.00, 124000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-30 09:52:49.730', '2026-02-05 17:59:00.099', NULL),
+	(124, 'FS20260126-2042', NULL, 'pending', 1080000.00, 0.00, 25000.00, 1105000.00, 'Hoang customer', '0935818725', '187', '', 'Tp.HCM', 'Tp.HCM', '', 'VN', '', '2026-01-26 04:20:36.132', '2026-01-26 04:20:36.132', NULL),
+	(125, 'FS20260127-1416', NULL, 'completed', 99000.00, 0.00, 25000.00, 124000.00, 'Hoang customer', '0935818725', '187', '', 'Tp.HCM', 'Tp.HCM', '', 'VN', '', '2026-01-27 08:08:39.760', '2026-01-29 09:30:41.413', NULL),
+	(126, 'FS20260129-8544', NULL, 'shipped', 99000.00, 0.00, 25000.00, 124000.00, 'Hoang customer', '0935818725', '187', '', 'Tp.HCM', 'Tp.HCM', '', 'VN', '', '2026-01-29 06:53:36.743', '2026-01-29 06:55:38.063', NULL),
+	(127, 'FS20260129-3984', NULL, 'pending', 297000.00, 0.00, 35000.00, 332000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-29 13:17:41.859', '2026-01-29 13:17:41.859', NULL),
+	(128, 'FS20260129-8210', NULL, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-29 13:30:30.238', '2026-01-29 13:30:30.238', NULL),
+	(129, 'FS20260129-4185', NULL, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-29 13:32:37.021', '2026-01-29 13:32:37.021', NULL),
+	(130, 'FS20260129-3948', NULL, 'pending', 249000.00, 0.00, 35000.00, 284000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-29 13:33:18.581', '2026-01-29 13:33:18.581', NULL),
+	(131, 'FS20260129-6071', NULL, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-29 13:35:55.625', '2026-01-29 13:35:55.625', NULL),
+	(132, 'FS20260129-0528', NULL, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-29 13:36:39.428', '2026-01-29 13:36:39.428', NULL),
+	(133, 'FS20260129-4010', NULL, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-29 13:38:51.594', '2026-01-29 13:38:51.594', NULL),
+	(134, 'FS20260130-1836', NULL, 'cancelled', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-30 08:14:19.348', '2026-02-05 17:59:00.070', NULL),
+	(135, 'FS20260130-6258', NULL, 'cancelled', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-30 08:59:59.525', '2026-02-05 17:59:00.080', NULL),
+	(136, 'FS20260130-7666', NULL, 'cancelled', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-30 09:52:18.838', '2026-02-05 17:59:00.089', NULL),
+	(137, 'FS20260130-5839', NULL, 'cancelled', 89000.00, 0.00, 35000.00, 124000.00, 'Hoang customer', '0935818725', '321', '', '321', '123', '', 'VN', '', '2026-01-30 09:52:49.730', '2026-02-05 17:59:00.099', NULL),
 	(138, 'FS20260201-2696', 60, 'cancelled', 99000.00, 0.00, 25000.00, 124000.00, 'Tống Văn Hoàng', '0935818725', '187', '', 'Tp.HCM', 'Tp.HCM', '', 'VN', '', '2026-02-01 07:53:18.397', '2026-02-01 08:57:52.568', NULL),
 	(139, 'FS20260201-5731', 60, 'pending', 89000.00, 0.00, 25000.00, 114000.00, 'Tống Văn Hoàng', '0935818725', '187', '', 'Tp.HCM', 'Tp.HCM', '', 'VN', '', '2026-02-01 07:57:17.895', '2026-02-01 07:57:17.895', NULL),
 	(140, 'FS20260201-5022', 60, 'completed', 3115000.00, 0.00, 25000.00, 3140000.00, 'Tống Văn Hoàng', '0935818725', '187', '', 'Tp.HCM', 'Tp.HCM', '', 'VN', '', '2026-02-01 09:13:15.000', '2026-02-01 09:39:50.916', NULL),
@@ -772,7 +910,13 @@ INSERT INTO `orders` (`id`, `order_code`, `user_id`, `status`, `subtotal`, `disc
 	(147, 'FS20260205-0478', 60, 'cancelled', 99000.00, 0.00, 35000.00, 134000.00, 'Tống Văn Hoàng', '0935818725', '187', '', 'Huyện Lục Nam', 'Tỉnh Bắc Giang', '', 'VN', '', '2026-02-05 08:39:36.135', '2026-02-05 17:59:00.136', NULL),
 	(148, 'FS20260205-0070', 60, 'cancelled', 89000.00, 0.00, 35000.00, 124000.00, 'Tống Văn Hoàng', '0935818725', '187', '', 'Huyện Thanh Sơn', 'Tỉnh Phú Thọ', '', 'VN', '', '2026-02-05 17:51:11.550', '2026-02-05 17:59:00.145', NULL),
 	(149, 'FS20260205-3122', 6, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Hoang ADMIN', '0935818725', '187', '', 'Huyện Mèo Vạc', 'Tỉnh Hà Giang', '', 'VN', '', '2026-02-05 18:27:31.680', '2026-02-05 18:27:31.680', NULL),
-	(150, 'FS20260205-2703', 6, 'pending', 99000.00, 19800.00, 35000.00, 114200.00, 'Hoang ADMIN', '0935818725', '187', '', 'Huyện Thanh Sơn', 'Tỉnh Phú Thọ', '', 'VN', '', '2026-02-05 18:33:09.228', '2026-02-05 18:33:09.228', NULL);
+	(150, 'FS20260205-2703', 6, 'pending', 99000.00, 19800.00, 35000.00, 114200.00, 'Hoang ADMIN', '0935818725', '187', '', 'Huyện Thanh Sơn', 'Tỉnh Phú Thọ', '', 'VN', '', '2026-02-05 18:33:09.228', '2026-02-05 18:33:09.228', NULL),
+	(151, 'FS20260211-9305', 60, 'pending', 249000.00, 0.00, 35000.00, 284000.00, 'Tống Văn Hoàng', '0935818725', '53, hồ tùng mậu', '', 'Huyện Đăk Đoa', 'Tỉnh Gia Lai', '', 'VN', '', '2026-02-11 03:52:25.640', '2026-02-11 03:52:25.640', NULL),
+	(152, 'FS20260211-6379', 60, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Tống Văn Hoàng', '0935818725', '53, hồ tùng mậu', '', 'Quận Tây Hồ', 'Thành phố Hà Nội', '', 'VN', '', '2026-02-11 04:03:05.513', '2026-02-11 04:03:05.513', NULL),
+	(153, 'FS20260211-8187', 60, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Tống Văn Hoàng', '0935818725', '53, hồ tùng mậu', '', 'Quận 11', 'Thành phố Hồ Chí Minh', '', 'VN', '', '2026-02-11 04:12:24.852', '2026-02-11 04:12:24.852', NULL),
+	(154, 'FS20260211-7176', 60, 'pending', 99000.00, 0.00, 35000.00, 134000.00, 'Tống Văn Hoàng', '0935818725', '53, hồ tùng mậu', '', 'Thành phố Sông Công', 'Tỉnh Thái Nguyên', '', 'VN', '', '2026-02-11 04:17:40.799', '2026-02-11 04:17:40.799', NULL),
+	(162, 'FS20260211-5737', 60, 'completed', 89000.00, 0.00, 35000.00, 124000.00, 'Tống Văn Hoàng', '0935818725', '53, hồ tùng mậu', '', 'Huyện Bảo Lâm', 'Tỉnh Cao Bằng', '', 'VN', '', '2026-02-11 06:17:04.131', '2026-02-11 08:25:59.731', NULL),
+	(163, 'FS20260211-2782', 60, 'completed', 89000.00, 0.00, 35000.00, 124000.00, 'Tống Văn Hoàng', '0935818725', '53, hồ tùng mậu', '', 'Quận 3', 'Thành phố Hồ Chí Minh', '', 'VN', '', '2026-02-11 06:21:30.813', '2026-02-11 08:25:52.816', NULL);
 
 -- Dumping structure for table fashion_store.order_items
 DROP TABLE IF EXISTS `order_items`;
@@ -794,9 +938,9 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   CONSTRAINT `order_items_order_id_fkey` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `order_items_product_id_fkey` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON UPDATE CASCADE,
   CONSTRAINT `order_items_variant_id_fkey` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=294 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=307 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.order_items: ~265 rows (approximately)
+-- Dumping data for table fashion_store.order_items: ~260 rows (approximately)
 INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `variant_id`, `sku`, `name`, `options_text`, `unit_price`, `qty`, `line_total`) VALUES
 	(1, 1, 2, 1, 'TSHIRT-NU-001', 'Áo thun nữ oversize Basic', NULL, 99000.00, 2, 198000.00),
 	(2, 1, 6, 10, 'BAG-001', 'Túi tote canvas', NULL, 79000.00, 1, 79000.00),
@@ -1089,7 +1233,13 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `variant_id`, `sku`, 
 	(290, 147, 2, 1, 'TSHIRT-NU-001-BLACK-M', 'Áo thun nữ oversize Basic', 'Màu sắc: Đen, Màu sắc: Đỏ', 99000.00, 1, 99000.00),
 	(291, 148, 3, 3, 'SHORT-NU-001-BLACK-M', 'Quần short nữ lưng thun', 'Màu sắc: Đen, Màu sắc: Đỏ', 89000.00, 1, 89000.00),
 	(292, 149, 2, 1, 'TSHIRT-NU-001-BLACK-M', 'Áo thun nữ oversize Basic', 'Màu sắc: Đen, Màu sắc: Đỏ', 99000.00, 1, 99000.00),
-	(293, 150, 2, 1, 'TSHIRT-NU-001-BLACK-M', 'Áo thun nữ oversize Basic', 'Màu sắc: Đen, Màu sắc: Đỏ', 99000.00, 1, 99000.00);
+	(293, 150, 2, 1, 'TSHIRT-NU-001-BLACK-M', 'Áo thun nữ oversize Basic', 'Màu sắc: Đen, Màu sắc: Đỏ', 99000.00, 1, 99000.00),
+	(294, 151, 5, 7, 'JEAN-NAM-001-BLACK-M', 'Quần jean nam slimfit', '', 249000.00, 1, 249000.00),
+	(295, 152, 2, 1, 'TSHIRT-NU-001-BLACK-M', 'Áo thun nữ oversize Basic', 'Màu sắc: Đen, Màu sắc: Đỏ', 99000.00, 1, 99000.00),
+	(296, 153, 2, 1, 'TSHIRT-NU-001-BLACK-M', 'Áo thun nữ oversize Basic', 'Màu sắc: Đen, Màu sắc: Đỏ', 99000.00, 1, 99000.00),
+	(297, 154, 2, 1, 'TSHIRT-NU-001-BLACK-M', 'Áo thun nữ oversize Basic', 'Màu sắc: Đen, Màu sắc: Đỏ', 99000.00, 1, 99000.00),
+	(305, 162, 3, 3, 'SHORT-NU-001-BLACK-M', 'Quần short nữ lưng thun', 'Màu sắc: Đen, Màu sắc: Đỏ', 89000.00, 1, 89000.00),
+	(306, 163, 3, 3, 'SHORT-NU-001-BLACK-M', 'Quần short nữ lưng thun', 'Màu sắc: Đen, Màu sắc: Đỏ', 89000.00, 1, 89000.00);
 
 -- Dumping structure for table fashion_store.payments
 DROP TABLE IF EXISTS `payments`;
@@ -1105,9 +1255,9 @@ CREATE TABLE IF NOT EXISTS `payments` (
   PRIMARY KEY (`id`),
   KEY `idx_pay_order` (`order_id`),
   CONSTRAINT `payments_order_id_fkey` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.payments: ~29 rows (approximately)
+-- Dumping data for table fashion_store.payments: ~34 rows (approximately)
 INSERT INTO `payments` (`id`, `order_id`, `method`, `status`, `amount`, `transaction_ref`, `paid_at`, `created_at`) VALUES
 	(4, 122, 'cod', 'pending', 134000.00, NULL, NULL, '2026-01-23 16:55:08.734'),
 	(5, 123, 'momo', 'pending', 274000.00, NULL, NULL, '2026-01-26 03:54:22.043'),
@@ -1137,7 +1287,13 @@ INSERT INTO `payments` (`id`, `order_id`, `method`, `status`, `amount`, `transac
 	(29, 147, 'bank_transfer', 'pending', 134000.00, NULL, NULL, '2026-02-05 08:39:36.140'),
 	(30, 148, 'bank_transfer', 'pending', 124000.00, NULL, NULL, '2026-02-05 17:51:11.567'),
 	(31, 149, 'cod', 'pending', 134000.00, NULL, NULL, '2026-02-05 18:27:31.689'),
-	(32, 150, 'cod', 'pending', 114200.00, NULL, NULL, '2026-02-05 18:33:09.235');
+	(32, 150, 'cod', 'pending', 114200.00, NULL, NULL, '2026-02-05 18:33:09.235'),
+	(33, 151, 'cod', 'pending', 284000.00, NULL, NULL, '2026-02-11 03:52:25.695'),
+	(34, 152, 'cod', 'pending', 134000.00, NULL, NULL, '2026-02-11 04:03:05.533'),
+	(35, 153, 'cod', 'pending', 134000.00, NULL, NULL, '2026-02-11 04:12:24.880'),
+	(36, 154, 'cod', 'pending', 134000.00, NULL, NULL, '2026-02-11 04:17:40.813'),
+	(44, 162, 'cod', 'paid', 124000.00, NULL, '2026-02-11 08:25:59.731', '2026-02-11 06:17:04.148'),
+	(45, 163, 'cod', 'paid', 124000.00, NULL, '2026-02-11 08:25:52.816', '2026-02-11 06:21:30.817');
 
 -- Dumping structure for table fashion_store.permissions
 DROP TABLE IF EXISTS `permissions`;
@@ -1190,72 +1346,72 @@ CREATE TABLE IF NOT EXISTS `products` (
   KEY `idx_products_brand` (`brand_id`),
   CONSTRAINT `products_brand_id_fkey` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `products_category_id_fkey` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=63 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=70 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table fashion_store.products: ~62 rows (approximately)
 INSERT INTO `products` (`id`, `category_id`, `sku`, `size`, `name`, `slug`, `description`, `base_price`, `compare_at_price`, `is_active`, `created_at`, `updated_at`, `brand_id`, `cost_price`, `height`, `length`, `meta_description`, `meta_keywords`, `meta_title`, `tags`, `tax_rate`, `weight`, `width`) VALUES
-	(1, 1, '89', NULL, 'Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short', 'set-bo-ao-thun-nu-form-rong-tay-lo', '<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>', 70000.00, 65000.00, 1, '2026-01-22 21:09:18.582', '2026-02-05 12:20:58.524', 1, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
-	(2, 7, 'TSHIRT-NU-001', NULL, 'Áo thun nữ oversize Basic', 'ao-thun-nu-oversize-basic', 'Áo thun oversize...', 99000.00, 129000.00, 1, '2026-01-22 21:09:18.582', '2026-02-05 12:20:58.530', NULL, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
-	(3, 8, 'SHORT-NU-001', NULL, 'Quần short nữ lưng thun', 'quan-short-nu-lung-thun', 'Quần short nữ...', 89000.00, 119000.00, 1, '2026-01-22 21:09:18.582', '2026-02-05 12:20:58.535', NULL, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
-	(4, 6, 'TSHIRT-NAM-001', NULL, 'Áo thun nam cổ tròn Premium', 'ao-thun-nam-co-tron-premium', 'Vải dày dặn...', 109000.00, 149000.00, 1, '2026-01-22 21:09:18.582', '2026-02-05 12:20:58.540', 2, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
-	(5, 7, 'JEAN-NAM-001', NULL, 'Quần jean nam slimfit', 'quan-jean-nam-slimfit', 'Jean co giãn...', 249000.00, 299000.00, 1, '2026-01-22 21:09:18.582', '2026-02-05 16:32:38.992', 3, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
-	(6, 8, 'BAG-001', NULL, 'Túi tote canvas', 'tui-tote-canvas', 'Túi tote canvas...', 79000.00, 99000.00, 1, '2026-01-22 21:09:18.582', '2026-02-05 12:20:58.550', NULL, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
-	(7, NULL, 'CAP-001', NULL, 'Mũ lưỡi trai basic', 'mu-luoi-trai-basic', 'Mũ basic...', 59000.00, 49997.00, 1, '2026-01-22 21:09:18.582', '2026-02-05 12:20:58.554', NULL, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
-	(8, 6, 'DRESS-001', NULL, 'Đầm Maxi Hoa Nhí Vintage', 'dam-maxi-hoa-nhi-vintage', '<p>Đầm maxi voan lụa in hoa, phù hợp đi biển.</p>', 350000.00, 450000.00, 1, '2026-01-22 21:09:18.582', '2026-02-05 12:20:58.559', 1, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
-	(9, 7, 'JACKET-NAM-001', NULL, 'Áo Khoác Bomber Varsity', 'ao-khoac-bomber-varsity', '<p>Áo khoác phong cách bóng chày.</p>', 450000.00, 600000.00, 1, '2026-01-22 21:09:18.582', '2026-02-05 12:20:58.563', 3, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
-	(10, 11, 'BELT-001', NULL, 'Thắt lưng da nam cao cấp', 'that-lung-da-nam', 'Da bò thật 100%.', 150000.00, 200000.00, 1, '2026-01-22 21:09:18.582', '2026-02-05 12:20:58.568', 4, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(11, 7, 'HOODIE-NU-001', NULL, 'Áo Hoodie Nữ Zip Kéo', 'ao-hoodie-nu-zip-keo', 'Nỉ bông dày dặn.', 180000.00, 250000.00, 1, '2026-01-22 21:09:18.582', '2026-02-05 12:20:58.572', NULL, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(12, 8, 'SKIRT-001', NULL, 'Chân váy xếp ly Tennis', 'chan-vay-xep-ly-tennis', 'Vải Kaki đứng form.', 120000.00, 160000.00, 1, '2026-01-22 21:09:18.582', '2026-02-05 12:20:58.576', NULL, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(13, NULL, 'SKU-1769144617093-0', NULL, 'Áo thun nam basic', 'ao-thun-nam-basic-4776', '<p>Sản phẩm Áo thun nam basic chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 247000.00, 296400.00, 1, '2025-12-02 13:54:31.814', '2026-02-05 12:20:58.628', 4, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(14, 11, 'SKU-1769144617106-1', NULL, 'Áo polo premium', 'ao-polo-premium-9651', '<p>Sản phẩm Áo polo premium chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 367000.00, 440400.00, 1, '2025-08-06 10:20:46.915', '2026-02-05 12:20:58.735', 3, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(15, 11, 'SKU-1769144617116-2', NULL, 'Áo sơ mi công sở', 'ao-so-mi-cong-so-2552', '<p>Sản phẩm Áo sơ mi công sở chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 401000.00, 481200.00, 1, '2025-09-20 03:03:17.152', '2026-02-05 12:20:58.700', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(16, NULL, 'SKU-1769144617125-3', NULL, 'Áo khoác bomber', 'ao-khoac-bomber-1564', '<p>Sản phẩm Áo khoác bomber chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 394000.00, 472800.00, 1, '2025-11-18 05:22:41.559', '2026-02-05 12:20:58.646', 4, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(17, 10, 'SKU-1769144617133-4', NULL, 'Quần jean slim fit', 'quan-jean-slim-fit-1484', '<p>Sản phẩm Quần jean slim fit chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 419000.00, 502800.00, 1, '2025-11-16 16:01:19.676', '2026-02-05 12:20:58.650', 3, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(18, NULL, 'SKU-1769144617142-5', NULL, 'Quần kaki classic', 'quan-kaki-classic-9282', '<p>Sản phẩm Quần kaki classic chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 161000.00, 193200.00, 1, '2025-09-24 12:33:15.542', '2026-02-05 12:20:58.693', 4, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(19, 11, 'SKU-1769144617149-6', NULL, 'Quần short thể thao', 'quan-short-the-thao-3494', '<p>Sản phẩm Quần short thể thao chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 317000.00, 380400.00, 1, '2025-06-21 05:12:25.111', '2026-02-05 12:20:58.762', 4, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(20, NULL, 'SKU-1769144617156-7', NULL, 'Quần jogger', 'quan-jogger-2679', '<p>Sản phẩm Quần jogger chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 261000.00, 313200.00, 1, '2025-12-09 12:45:22.541', '2026-02-05 12:20:58.618', 3, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(21, NULL, 'SKU-1769144617163-8', NULL, 'Đầm maxi hoa', 'dam-maxi-hoa-3484', '<p>Sản phẩm Đầm maxi hoa chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 374000.00, 448800.00, 1, '2026-01-03 11:53:32.440', '2026-02-05 12:20:58.589', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(22, 10, 'SKU-1769144617168-9', NULL, 'Đầm công sở thanh lịch', 'dam-cong-so-thanh-lich-4143', '<p>Sản phẩm Đầm công sở thanh lịch chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 464000.00, 556800.00, 1, '2025-12-17 04:05:01.411', '2026-02-05 12:20:58.610', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(23, NULL, 'SKU-1769144617176-10', NULL, 'Chân váy xếp ly', 'chan-vay-xep-ly-4599', '<p>Sản phẩm Chân váy xếp ly chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 474000.00, 568800.00, 1, '2025-06-26 18:49:28.896', '2026-02-05 12:20:58.758', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(24, 1, 'SKU-1769144617183-11', NULL, 'Áo croptop nữ', 'ao-croptop-nu-5564', '<p>Sản phẩm Áo croptop nữ chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 295000.00, 354000.00, 1, '2025-09-08 18:41:08.241', '2026-02-05 12:20:58.705', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(25, 11, 'SKU-1769144617191-12', NULL, 'Áo hoodie unisex', 'ao-hoodie-unisex-8722', '<p>Sản phẩm Áo hoodie unisex chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 483000.00, 579600.00, 1, '2025-12-18 18:25:22.978', '2026-02-05 12:20:58.606', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(26, NULL, 'SKU-1769144617201-13', NULL, 'Áo len cổ lọ', 'ao-len-co-lo-8832', '<p>Sản phẩm Áo len cổ lọ chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 305000.00, 366000.00, 1, '2025-08-15 16:54:28.993', '2026-02-05 12:20:58.731', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(27, NULL, 'SKU-1769144617208-14', NULL, 'Áo blazer nữ', 'ao-blazer-nu-9219', '<p>Sản phẩm Áo blazer nữ chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 378000.00, 453600.00, 1, '2025-12-28 10:12:07.235', '2026-02-05 12:20:58.598', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(28, NULL, 'SKU-1769144617216-15', NULL, 'Áo cardigan mỏng', 'ao-cardigan-mong-4989', '<p>Sản phẩm Áo cardigan mỏng chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 54000.00, 64800.00, 1, '2025-10-01 12:29:14.637', '2026-02-05 12:20:58.673', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(29, 10, 'SKU-1769144617224-16', NULL, 'Túi tote canvas', 'tui-tote-canvas-8922', '<p>Sản phẩm Túi tote canvas chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 74000.00, 88800.00, 1, '2025-09-06 04:16:48.487', '2026-02-05 12:20:58.708', 4, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(30, 11, 'SKU-1769144617231-17', NULL, 'Balo laptop', 'balo-laptop-5523', '<p>Sản phẩm Balo laptop chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 448000.00, 537600.00, 1, '2025-06-12 16:46:00.831', '2026-02-05 12:20:58.776', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(31, 8, 'SKU-1769144617239-18', NULL, 'Ví da nam', 'vi-da-nam-4878', '<p>Sản phẩm Ví da nam chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 174000.00, 208800.00, 1, '2025-12-01 08:12:32.852', '2026-02-05 12:20:58.632', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(32, 7, 'SKU-1769144617247-19', NULL, 'Túi đeo chéo mini', 'tui-deo-cheo-mini-7691', '<p>Sản phẩm Túi đeo chéo mini chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 211000.00, 253200.00, 1, '2025-11-22 12:23:52.790', '2026-02-05 12:20:58.642', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(33, NULL, 'SKU-1769144617258-20', NULL, 'Giày sneaker trắng', 'giay-sneaker-trang-2722', '<p>Sản phẩm Giày sneaker trắng chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 68000.00, 81600.00, 1, '2025-06-16 02:31:31.477', '2026-02-05 12:20:58.767', 3, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(34, NULL, 'SKU-1769144617264-21', NULL, 'Giày oxford nam', 'giay-oxford-nam-1376', '<p>Sản phẩm Giày oxford nam chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 335000.00, 402000.00, 1, '2025-12-31 13:16:59.379', '2026-02-05 12:20:58.594', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(35, NULL, 'SKU-1769144617272-22', NULL, 'Sandal nữ', 'sandal-nu-2797', '<p>Sản phẩm Sandal nữ chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 313000.00, 375600.00, 1, '2025-07-03 03:10:33.628', '2026-02-05 12:20:58.749', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(36, 6, 'SKU-1769144617280-23', NULL, 'Dép quai ngang', 'dep-quai-ngang-8523', '<p>Sản phẩm Dép quai ngang chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 428000.00, 513600.00, 1, '2025-08-26 11:23:31.576', '2026-02-05 12:20:58.723', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(37, 7, 'SKU-1769144617288-24', NULL, 'Mũ lưỡi trai', 'mu-luoi-trai-4273', '<p>Sản phẩm Mũ lưỡi trai chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 219000.00, 262800.00, 1, '2026-01-10 00:46:15.144', '2026-02-05 12:20:58.581', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(38, NULL, 'SKU-1769144617294-25', NULL, 'Mũ bucket hat', 'mu-bucket-hat-8531', '<p>Sản phẩm Mũ bucket hat chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 276000.00, 331200.00, 1, '2025-07-16 02:43:56.888', '2026-02-05 12:20:58.740', 3, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(39, NULL, 'SKU-1769144617301-26', NULL, 'Khăn choàng cashmere', 'khan-choang-cashmere-4927', '<p>Sản phẩm Khăn choàng cashmere chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 475000.00, 570000.00, 1, '2025-08-31 22:29:40.577', '2026-02-05 12:20:58.720', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(40, NULL, 'SKU-1769144617307-27', NULL, 'Thắt lưng da cao cấp', 'that-lung-da-cao-cap-4983', '<p>Sản phẩm Thắt lưng da cao cấp chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 331000.00, 397200.00, 1, '2025-10-25 15:38:43.155', '2026-02-05 12:20:58.661', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(41, NULL, 'SKU-1769144617313-28', NULL, 'Áo thun oversize', 'ao-thun-oversize-7522', '<p>Sản phẩm Áo thun oversize chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 117000.00, 140400.00, 1, '2025-09-29 22:21:31.747', '2026-02-05 12:20:58.685', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(42, 7, 'SKU-1769144617319-29', NULL, 'Áo flannel kẻ sọc', 'ao-flannel-ke-soc-7014', '<p>Sản phẩm Áo flannel kẻ sọc chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 158000.00, 189600.00, 1, '2025-10-20 01:55:57.512', '2026-02-05 12:20:58.665', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(43, 7, 'SKU-1769144617325-30', NULL, 'Vest nam công sở', 'vest-nam-cong-so-6976', '<p>Sản phẩm Vest nam công sở chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 329000.00, 394800.00, 1, '2025-06-03 12:32:35.486', '2026-02-05 12:20:58.786', 3, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(44, NULL, 'SKU-1769144617331-31', NULL, 'Áo gile len', 'ao-gile-len-6760', '<p>Sản phẩm Áo gile len chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 260000.00, 312000.00, 1, '2026-01-04 22:17:00.119', '2026-02-05 12:20:58.585', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(45, 8, 'SKU-1769144617337-32', NULL, 'Quần culottes', 'quan-culottes-5427', '<p>Sản phẩm Quần culottes chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 398000.00, 477600.00, 1, '2025-09-30 05:19:38.709', '2026-02-05 12:20:58.681', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(46, NULL, 'SKU-1769144617343-33', NULL, 'Quần ống rộng', 'quan-ong-rong-6403', '<p>Sản phẩm Quần ống rộng chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 475000.00, 570000.00, 1, '2025-11-01 17:05:52.673', '2026-02-05 12:20:58.658', 3, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(47, NULL, 'SKU-1769144617351-34', NULL, 'Quần legging', 'quan-legging-4098', '<p>Sản phẩm Quần legging chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 420000.00, 504000.00, 1, '2025-08-24 23:46:05.506', '2026-02-05 12:20:58.728', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(48, 8, 'SKU-1769144617357-35', NULL, 'Chân váy midi', 'chan-vay-midi-9664', '<p>Sản phẩm Chân váy midi chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 74000.00, 88800.00, 1, '2025-06-14 10:16:44.785', '2026-02-05 12:20:58.772', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(49, NULL, 'SKU-1769144617363-36', NULL, 'Set bộ thể thao', 'set-bo-the-thao-3965', '<p>Sản phẩm Set bộ thể thao chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 180000.00, 216000.00, 1, '2025-06-30 03:50:04.973', '2026-02-05 12:20:58.754', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(50, NULL, 'SKU-1769144617368-37', NULL, 'Đồ ngủ pijama', 'do-ngu-pijama-9059', '<p>Sản phẩm Đồ ngủ pijama chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 282000.00, 338400.00, 1, '2025-12-16 17:49:47.910', '2026-02-05 12:20:58.615', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(51, NULL, 'SKU-1769144617377-38', NULL, 'Áo bra thể thao', 'ao-bra-the-thao-8164', '<p>Sản phẩm Áo bra thể thao chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 112000.00, 134400.00, 1, '2025-06-05 09:17:05.647', '2026-02-05 12:20:58.781', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(52, NULL, 'SKU-1769144617384-39', NULL, 'Quần đùi bơi', 'quan-dui-boi-8853', '<p>Sản phẩm Quần đùi bơi chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 62000.00, 74400.00, 1, '2025-09-21 18:46:07.408', '2026-02-05 12:20:58.696', 3, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(53, 1, 'SKU-1769144617390-40', NULL, 'Áo thun in họa tiết', 'ao-thun-in-hoa-tiet-6637', '<p>Sản phẩm Áo thun in họa tiết chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 286000.00, 343200.00, 1, '2025-09-03 22:36:20.186', '2026-02-05 12:20:58.713', 4, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(54, NULL, 'SKU-1769144617397-41', NULL, 'Áo tank top', 'ao-tank-top-9183', '<p>Sản phẩm Áo tank top chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 164000.00, 196800.00, 1, '2025-11-08 05:05:22.697', '2026-02-05 12:20:58.653', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(55, 7, 'SKU-1769144617404-42', NULL, 'Áo ba lỗ gym', 'ao-ba-lo-gym-9574', '<p>Sản phẩm Áo ba lỗ gym chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 384000.00, 460800.00, 1, '2025-12-18 23:01:27.565', '2026-02-05 12:20:58.602', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(56, 7, 'SKU-1769144617410-43', NULL, 'Áo khoác gió', 'ao-khoac-gio-7917', '<p>Sản phẩm Áo khoác gió chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 350000.00, 420000.00, 1, '2025-07-06 05:23:07.856', '2026-02-05 12:20:58.744', 4, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(57, 10, 'SKU-1769144617416-44', NULL, 'Quần baggy', 'quan-baggy-1109', '<p>Sản phẩm Quần baggy chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 383000.00, 459600.00, 1, '2025-10-17 21:32:21.876', '2026-02-05 12:20:58.668', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(58, NULL, 'SKU-1769144617422-45', NULL, 'Quần tây âu', 'quan-tay-au-4117', '<p>Sản phẩm Quần tây âu chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 484000.00, 580800.00, 1, '2025-09-01 10:38:56.683', '2026-02-05 12:20:58.716', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(59, NULL, 'SKU-1769144617428-46', NULL, 'Váy xòe vintage', 'vay-xoe-vintage-5187', '<p>Sản phẩm Váy xòe vintage chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 416000.00, 499200.00, 1, '2025-11-24 15:57:39.080', '2026-02-05 12:20:58.637', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(60, 8, 'SKU-1769144617433-47', NULL, 'Đầm body sexy', 'dam-body-sexy-7904', '<p>Sản phẩm Đầm body sexy chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 70000.00, 84000.00, 1, '2025-12-08 14:07:04.685', '2026-02-05 12:20:58.623', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(61, 8, 'SKU-1769144617438-48', NULL, 'Áo len gấu', 'ao-len-gau-9264', '<p>Sản phẩm Áo len gấu chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 435000.00, 522000.00, 1, '2025-09-25 10:45:33.627', '2026-02-05 12:20:58.688', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
-	(62, NULL, 'SKU-1769144617446-49', NULL, 'Set váy công chúa', 'set-vay-cong-chua-7730', '<p>Sản phẩm Set váy công chúa chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 183000.00, 219600.00, 1, '2025-09-30 12:20:14.981', '2026-02-05 12:20:58.677', 4, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00);
+	(1, 1, 'SKU-U5SHAF', NULL, 'Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short', 'set-bo-ao-thun-nu-form-rong-tay-lo', '<p></p><p>Khám phá bản giao hưởng giữa sự thoải mái và phong cách thời thượng với <strong>Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ và Quần Short</strong>. Đây là lựa chọn hoàn mỹ dành cho những quý cô hiện đại, luôn tìm kiếm sự tự do trong tâm hồn và sự phóng khoáng trong diện mạo thường nhật.</p><p></p><p>Chiếc áo thun với thiết kế form rộng đặc trưng kết hợp cùng phần tay lỡ tinh tế, không chỉ khéo léo che đi những khuyết điểm mà còn tôn vinh vẻ đẹp tối giản đầy cuốn hút. Đi cùng là chiếc quần short năng động, tạo nên một tổng thể hài hòa, mang đậm hơi thở của nhịp sống đô thị. Điểm nhấn của bộ trang phục nằm ở chất liệu vải cao cấp, mềm mại và thoáng mát, mang lại cảm giác nhẹ tênh như đang vỗ về làn da trong từng chuyển động.</p><ul><li><p><strong>Thiết kế:</strong> Kiểu dáng Oversize thời thượng, mang lại sự thoải mái tuyệt đối và phù hợp với mọi vóc dáng.</p></li><li><p><strong>Chi tiết:</strong> Tay áo lỡ trẻ trung, kết hợp cùng đường may tinh xảo, bền bỉ qua thời gian.</p></li><li><p><strong>Chất liệu:</strong> Sợi vải cao cấp với khả năng thấm hút vượt trội, giữ cho cơ thể luôn khô thoáng và dễ chịu.</p></li><li><p><strong>Ứng dụng:</strong> Hoàn hảo cho những buổi dạo phố, gặp gỡ bạn bè hay những phút giây thư giãn sang trọng tại gia.</p></li></ul><p>Set trang phục này chính là tuyên ngôn về sự tự tin và phong cách sống năng động. Đã đến lúc làm mới tủ đồ của bạn bằng một thiết kế tinh tế, nơi sự tiện dụng gặp gỡ nét quyến rũ không thể chối từ.</p>', 70000.00, 65000.00, 1, '2026-01-22 21:09:18.582', '2026-02-15 14:18:23.805', 1, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(2, 7, 'TSHIRT-NU-001', NULL, 'Áo thun nữ oversize Basic', 'ao-thun-nu-oversize-basic', 'Áo thun oversize...', 99000.00, 129000.00, 1, '2026-01-22 21:09:18.582', '2026-02-15 14:58:23.891', NULL, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(3, 8, 'SHORT-NU-001', NULL, 'Quần short nữ lưng thun', 'quan-short-nu-lung-thun', 'Quần short nữ...', 89000.00, 119000.00, 1, '2026-01-22 21:09:18.582', '2026-02-15 14:57:55.931', NULL, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
+	(4, 6, 'TSHIRT-NAM-001', NULL, 'Áo thun nam cổ tròn Premium', 'ao-thun-nam-co-tron-premium', 'Vải dày dặn...', 109000.00, 149000.00, 1, '2026-01-22 21:09:18.582', '2026-02-15 14:57:55.955', 2, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
+	(5, 7, 'JEAN-NAM-001', NULL, 'Quần jean nam slimfit', 'quan-jean-nam-slimfit', 'Jean co giãn...', 249000.00, 299000.00, 1, '2026-01-22 21:09:18.582', '2026-02-15 14:57:55.962', 3, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
+	(6, 8, 'BAG-001', NULL, 'Túi tote canvas', 'tui-tote-canvas', 'Túi tote canvas...', 79000.00, 99000.00, 1, '2026-01-22 21:09:18.582', '2026-02-15 14:57:55.970', NULL, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
+	(7, NULL, 'CAP-001', NULL, 'Mũ lưỡi trai basic', 'mu-luoi-trai-basic', 'Mũ basic...', 59000.00, 49997.00, 1, '2026-01-22 21:09:18.582', '2026-02-15 14:57:55.978', NULL, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
+	(8, 6, 'DRESS-001', NULL, 'Đầm Maxi Hoa Nhí Vintage', 'dam-maxi-hoa-nhi-vintage', '<p>Đầm maxi voan lụa in hoa, phù hợp đi biển.</p>', 350000.00, 450000.00, 1, '2026-01-22 21:09:18.582', '2026-02-15 14:57:55.985', 1, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
+	(9, 7, 'JACKET-NAM-001', NULL, 'Áo Khoác Bomber Varsity', 'ao-khoac-bomber-varsity', '<p>Áo khoác phong cách bóng chày.</p>', 450000.00, 600000.00, 1, '2026-01-22 21:09:18.582', '2026-02-15 14:57:55.992', 3, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
+	(10, 11, 'BELT-001', NULL, 'Thắt lưng da nam cao cấp', 'that-lung-da-nam', 'Da bò thật 100%.', 150000.00, 200000.00, 1, '2026-01-22 21:09:18.582', '2026-02-16 06:29:57.704', 4, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(11, 7, 'HOODIE-NU-001', NULL, 'Áo Hoodie Nữ Zip Kéo', 'ao-hoodie-nu-zip-keo', 'Nỉ bông dày dặn.', 180000.00, 250000.00, 1, '2026-01-22 21:09:18.582', '2026-02-15 14:57:56.006', NULL, 0.00, 0.00, 0.00, NULL, '', '', '', 0.00, 0.00, 0.00),
+	(12, 8, 'SKIRT-001', NULL, 'Chân váy xếp ly Tennis', 'chan-vay-xep-ly-tennis', 'Vải Kaki đứng form.', 120000.00, 160000.00, 1, '2026-01-22 21:09:18.582', '2026-02-15 14:58:35.865', NULL, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(13, NULL, 'SKU-1769144617093-0', NULL, 'Áo thun nam basic', 'ao-thun-nam-basic-4776', '<p>Sản phẩm Áo thun nam basic chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 247000.00, 296400.00, 1, '2025-12-02 13:54:31.814', '2026-02-15 14:57:56.117', 4, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(14, 11, 'SKU-1769144617106-1', NULL, 'Áo polo premium', 'ao-polo-premium-9651', '<p>Sản phẩm Áo polo premium chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 367000.00, 440400.00, 1, '2025-08-06 10:20:46.915', '2026-02-15 15:01:57.775', 3, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(15, 11, 'SKU-1769144617116-2', NULL, 'Áo sơ mi công sở', 'ao-so-mi-cong-so-2552', '<p>Sản phẩm Áo sơ mi công sở chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 401000.00, 481200.00, 1, '2025-09-20 03:03:17.152', '2026-02-15 14:57:56.253', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(16, NULL, 'SKU-1769144617125-3', NULL, 'Áo khoác bomber', 'ao-khoac-bomber-1564', '<p>Sản phẩm Áo khoác bomber chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 394000.00, 472800.00, 1, '2025-11-18 05:22:41.559', '2026-02-15 14:58:53.284', 4, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(17, 10, 'SKU-1769144617133-4', NULL, 'Quần jean slim fit', 'quan-jean-slim-fit-1484', '<p>Sản phẩm Quần jean slim fit chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 419000.00, 502800.00, 1, '2025-11-16 16:01:19.676', '2026-02-15 14:57:56.149', 3, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(18, NULL, 'SKU-1769144617142-5', NULL, 'Quần kaki classic', 'quan-kaki-classic-9282', '<p>Sản phẩm Quần kaki classic chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 161000.00, 193200.00, 1, '2025-09-24 12:33:15.542', '2026-02-15 15:00:51.378', 4, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(19, 11, 'SKU-1769144617149-6', NULL, 'Quần short thể thao', 'quan-short-the-thao-3494', '<p>Sản phẩm Quần short thể thao chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 317000.00, 380400.00, 1, '2025-06-21 05:12:25.111', '2026-02-15 14:57:56.361', 4, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(20, NULL, 'SKU-1769144617156-7', NULL, 'Quần jogger', 'quan-jogger-2679', '<p>Sản phẩm Quần jogger chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 261000.00, 313200.00, 1, '2025-12-09 12:45:22.541', '2026-02-15 14:57:56.103', 3, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(21, NULL, 'SKU-1769144617163-8', NULL, 'Đầm maxi hoa', 'dam-maxi-hoa-3484', '<p>Sản phẩm Đầm maxi hoa chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 374000.00, 448800.00, 1, '2026-01-03 11:53:32.440', '2026-02-15 14:57:56.038', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(22, 10, 'SKU-1769144617168-9', NULL, 'Đầm công sở thanh lịch', 'dam-cong-so-thanh-lich-4143', '<p>Sản phẩm Đầm công sở thanh lịch chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 464000.00, 556800.00, 1, '2025-12-17 04:05:01.411', '2026-02-15 14:57:56.073', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(23, NULL, 'SKU-1769144617176-10', NULL, 'Chân váy xếp ly', 'chan-vay-xep-ly-4599', '<p>Sản phẩm Chân váy xếp ly chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 474000.00, 568800.00, 1, '2025-06-26 18:49:28.896', '2026-02-15 14:57:56.355', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(24, 1, 'SKU-1769144617183-11', NULL, 'Áo croptop nữ', 'ao-croptop-nu-5564', '<p>Sản phẩm Áo croptop nữ chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 295000.00, 354000.00, 1, '2025-09-08 18:41:08.241', '2026-02-15 15:01:08.629', 1, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(25, 11, 'SKU-1769144617191-12', NULL, 'Áo hoodie unisex', 'ao-hoodie-unisex-8722', '<p>Sản phẩm Áo hoodie unisex chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 483000.00, 579600.00, 1, '2025-12-18 18:25:22.978', '2026-02-15 14:57:56.067', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(26, NULL, 'SKU-1769144617201-13', NULL, 'Áo len cổ lọ', 'ao-len-co-lo-8832', '<p>Sản phẩm Áo len cổ lọ chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 305000.00, 366000.00, 1, '2025-08-15 16:54:28.993', '2026-02-15 15:01:44.919', 2, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(27, NULL, 'SKU-1769144617208-14', NULL, 'Áo blazer nữ', 'ao-blazer-nu-9219', '<p>Sản phẩm Áo blazer nữ chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 378000.00, 453600.00, 1, '2025-12-28 10:12:07.235', '2026-02-15 14:57:56.053', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(28, NULL, 'SKU-1769144617216-15', NULL, 'Áo cardigan mỏng', 'ao-cardigan-mong-4989', '<p>Sản phẩm Áo cardigan mỏng chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 54000.00, 64800.00, 1, '2025-10-01 12:29:14.637', '2026-02-15 14:59:15.208', 2, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(29, 10, 'SKU-1769144617224-16', NULL, 'Túi tote canvas', 'tui-tote-canvas-8922', '<p>Sản phẩm Túi tote canvas chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 74000.00, 88800.00, 1, '2025-09-06 04:16:48.487', '2026-02-15 14:57:56.267', 4, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(30, 11, 'SKU-1769144617231-17', NULL, 'Balo laptop', 'balo-laptop-5523', '<p>Sản phẩm Balo laptop chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 448000.00, 537600.00, 1, '2025-06-12 16:46:00.831', '2026-02-15 14:57:56.381', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(31, 8, 'SKU-1769144617239-18', NULL, 'Ví da nam', 'vi-da-nam-4878', '<p>Sản phẩm Ví da nam chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 174000.00, 208800.00, 1, '2025-12-01 08:12:32.852', '2026-02-15 14:57:56.123', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(32, 7, 'SKU-1769144617247-19', NULL, 'Túi đeo chéo mini', 'tui-deo-cheo-mini-7691', '<p>Sản phẩm Túi đeo chéo mini chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 211000.00, 253200.00, 1, '2025-11-22 12:23:52.790', '2026-02-15 14:57:56.136', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(33, NULL, 'SKU-1769144617258-20', NULL, 'Giày sneaker trắng', 'giay-sneaker-trang-2722', '<p>Sản phẩm Giày sneaker trắng chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 68000.00, 81600.00, 1, '2025-06-16 02:31:31.477', '2026-02-15 14:57:56.367', 3, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(34, NULL, 'SKU-1769144617264-21', NULL, 'Giày oxford nam', 'giay-oxford-nam-1376', '<p>Sản phẩm Giày oxford nam chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 335000.00, 402000.00, 1, '2025-12-31 13:16:59.379', '2026-02-15 14:57:56.046', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(35, NULL, 'SKU-1769144617272-22', NULL, 'Sandal nữ', 'sandal-nu-2797', '<p>Sản phẩm Sandal nữ chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 313000.00, 375600.00, 1, '2025-07-03 03:10:33.628', '2026-02-15 14:57:56.342', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(36, 6, 'SKU-1769144617280-23', NULL, 'Dép quai ngang', 'dep-quai-ngang-8523', '<p>Sản phẩm Dép quai ngang chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 428000.00, 513600.00, 1, '2025-08-26 11:23:31.576', '2026-02-15 14:57:56.293', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(37, 7, 'SKU-1769144617288-24', NULL, 'Mũ lưỡi trai', 'mu-luoi-trai-4273', '<p>Sản phẩm Mũ lưỡi trai chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 219000.00, 262800.00, 1, '2026-01-10 00:46:15.144', '2026-02-15 14:57:56.023', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(38, NULL, 'SKU-1769144617294-25', NULL, 'Mũ bucket hat', 'mu-bucket-hat-8531', '<p>Sản phẩm Mũ bucket hat chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 276000.00, 331200.00, 1, '2025-07-16 02:43:56.888', '2026-02-15 14:57:56.319', 3, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(39, NULL, 'SKU-1769144617301-26', NULL, 'Khăn choàng cashmere', 'khan-choang-cashmere-4927', '<p>Sản phẩm Khăn choàng cashmere chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 475000.00, 570000.00, 1, '2025-08-31 22:29:40.577', '2026-02-15 15:01:33.810', 2, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(40, NULL, 'SKU-1769144617307-27', NULL, 'Thắt lưng da cao cấp', 'that-lung-da-cao-cap-4983', '<p>Sản phẩm Thắt lưng da cao cấp chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 331000.00, 397200.00, 1, '2025-10-25 15:38:43.155', '2026-02-15 14:57:56.169', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(41, NULL, 'SKU-1769144617313-28', NULL, 'Áo thun oversize', 'ao-thun-oversize-7522', '<p>Sản phẩm Áo thun oversize chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 117000.00, 140400.00, 1, '2025-09-29 22:21:31.747', '2026-02-15 14:57:56.210', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(42, 7, 'SKU-1769144617319-29', NULL, 'Áo flannel kẻ sọc', 'ao-flannel-ke-soc-7014', '<p>Sản phẩm Áo flannel kẻ sọc chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 158000.00, 189600.00, 1, '2025-10-20 01:55:57.512', '2026-02-15 14:57:56.176', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(43, 7, 'SKU-1769144617325-30', NULL, 'Vest nam công sở', 'vest-nam-cong-so-6976', '<p>Sản phẩm Vest nam công sở chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 329000.00, 394800.00, 1, '2025-06-03 12:32:35.486', '2026-02-15 15:02:08.967', 3, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(44, NULL, 'SKU-1769144617331-31', NULL, 'Áo gile len', 'ao-gile-len-6760', '<p>Sản phẩm Áo gile len chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 260000.00, 312000.00, 1, '2026-01-04 22:17:00.119', '2026-02-15 14:57:56.030', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(45, 8, 'SKU-1769144617337-32', NULL, 'Quần culottes', 'quan-culottes-5427', '<p>Sản phẩm Quần culottes chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 398000.00, 477600.00, 1, '2025-09-30 05:19:38.709', '2026-02-15 15:00:11.460', 2, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(46, NULL, 'SKU-1769144617343-33', NULL, 'Quần ống rộng', 'quan-ong-rong-6403', '<p>Sản phẩm Quần ống rộng chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 475000.00, 570000.00, 1, '2025-11-01 17:05:52.673', '2026-02-15 14:57:56.162', 3, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(47, NULL, 'SKU-1769144617351-34', NULL, 'Quần legging', 'quan-legging-4098', '<p>Sản phẩm Quần legging chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 420000.00, 504000.00, 1, '2025-08-24 23:46:05.506', '2026-02-15 14:57:56.299', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(48, 8, 'SKU-1769144617357-35', NULL, 'Chân váy midi', 'chan-vay-midi-9664', '<p>Sản phẩm Chân váy midi chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 74000.00, 88800.00, 1, '2025-06-14 10:16:44.785', '2026-02-15 14:57:56.374', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(49, NULL, 'SKU-1769144617363-36', NULL, 'Set bộ thể thao', 'set-bo-the-thao-3965', '<p>Sản phẩm Set bộ thể thao chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 180000.00, 216000.00, 1, '2025-06-30 03:50:04.973', '2026-02-15 14:57:56.349', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(50, NULL, 'SKU-1769144617368-37', NULL, 'Đồ ngủ pijama', 'do-ngu-pijama-9059', '<p>Sản phẩm Đồ ngủ pijama chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 282000.00, 338400.00, 1, '2025-12-16 17:49:47.910', '2026-02-15 14:57:56.096', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(51, NULL, 'SKU-1769144617377-38', NULL, 'Áo bra thể thao', 'ao-bra-the-thao-8164', '<p>Sản phẩm Áo bra thể thao chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 112000.00, 134400.00, 1, '2025-06-05 09:17:05.647', '2026-02-15 14:57:56.387', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(52, NULL, 'SKU-1769144617384-39', NULL, 'Quần đùi bơi', 'quan-dui-boi-8853', '<p>Sản phẩm Quần đùi bơi chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 62000.00, 74400.00, 1, '2025-09-21 18:46:07.408', '2026-02-15 14:57:56.247', 3, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(53, 1, 'SKU-1769144617390-40', NULL, 'Áo thun in họa tiết', 'ao-thun-in-hoa-tiet-6637', '<p>Sản phẩm Áo thun in họa tiết chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 286000.00, 343200.00, 1, '2025-09-03 22:36:20.186', '2026-02-15 15:01:23.286', 4, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(54, NULL, 'SKU-1769144617397-41', NULL, 'Áo tank top', 'ao-tank-top-9183', '<p>Sản phẩm Áo tank top chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 164000.00, 196800.00, 1, '2025-11-08 05:05:22.697', '2026-02-15 14:57:56.156', 1, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(55, 7, 'SKU-1769144617404-42', NULL, 'Áo ba lỗ gym', 'ao-ba-lo-gym-9574', '<p>Sản phẩm Áo ba lỗ gym chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 384000.00, 460800.00, 1, '2025-12-18 23:01:27.565', '2026-02-15 14:58:17.520', 2, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(56, 7, 'SKU-1769144617410-43', NULL, 'Áo khoác gió', 'ao-khoac-gio-7917', '<p>Sản phẩm Áo khoác gió chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 350000.00, 420000.00, 1, '2025-07-06 05:23:07.856', '2026-02-15 14:57:56.325', 4, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(57, 10, 'SKU-1769144617416-44', NULL, 'Quần baggy', 'quan-baggy-1109', '<p>Sản phẩm Quần baggy chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 383000.00, 459600.00, 1, '2025-10-17 21:32:21.876', '2026-02-15 14:57:56.183', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(58, NULL, 'SKU-1769144617422-45', NULL, 'Quần tây âu', 'quan-tay-au-4117', '<p>Sản phẩm Quần tây âu chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 484000.00, 580800.00, 1, '2025-09-01 10:38:56.683', '2026-02-15 14:57:56.280', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(59, NULL, 'SKU-1769144617428-46', NULL, 'Váy xòe vintage', 'vay-xoe-vintage-5187', '<p>Sản phẩm Váy xòe vintage chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 416000.00, 499200.00, 1, '2025-11-24 15:57:39.080', '2026-02-15 14:57:56.130', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(60, 8, 'SKU-1769144617433-47', NULL, 'Đầm body sexy', 'dam-body-sexy-7904', '<p>Sản phẩm Đầm body sexy chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 70000.00, 84000.00, 1, '2025-12-08 14:07:04.685', '2026-02-15 14:57:56.110', 2, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00),
+	(61, 8, 'SKU-1769144617438-48', NULL, 'Áo len gấu', 'ao-len-gau-9264', '<p>Sản phẩm Áo len gấu chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 435000.00, 522000.00, 1, '2025-09-25 10:45:33.627', '2026-02-15 15:00:41.500', 2, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00),
+	(62, NULL, 'SKU-1769144617446-49', NULL, 'Set váy công chúa', 'set-vay-cong-chua-7730', '<p>Sản phẩm Set váy công chúa chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>', 183000.00, 219600.00, 1, '2025-09-30 12:20:14.981', '2026-02-15 14:59:42.760', 4, 0.00, 0.00, 0.00, '', '', '', '', 0.00, 0.00, 0.00);
 
 -- Dumping structure for table fashion_store.product_attributes
 DROP TABLE IF EXISTS `product_attributes`;
@@ -1264,7 +1420,7 @@ CREATE TABLE IF NOT EXISTS `product_attributes` (
   `option_id` bigint(20) unsigned NOT NULL,
   `option_value_id` bigint(20) unsigned NOT NULL,
   `created_at` datetime(3) NOT NULL DEFAULT current_timestamp(3),
-  PRIMARY KEY (`product_id`,`option_id`),
+  PRIMARY KEY (`product_id`,`option_id`,`option_value_id`),
   KEY `idx_pa_option_value` (`option_value_id`),
   KEY `idx_pa_option` (`option_id`),
   CONSTRAINT `product_attributes_option_id_fkey` FOREIGN KEY (`option_id`) REFERENCES `options` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -1272,7 +1428,14 @@ CREATE TABLE IF NOT EXISTS `product_attributes` (
   CONSTRAINT `product_attributes_product_id_fkey` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.product_attributes: ~0 rows (approximately)
+-- Dumping data for table fashion_store.product_attributes: ~6 rows (approximately)
+INSERT INTO `product_attributes` (`product_id`, `option_id`, `option_value_id`, `created_at`) VALUES
+	(1, 2, 10, '2026-02-15 14:18:23.827'),
+	(1, 2, 11, '2026-02-15 14:18:23.834'),
+	(1, 2, 12, '2026-02-15 14:18:23.836'),
+	(1, 2, 13, '2026-02-15 14:18:23.838'),
+	(1, 19, 68, '2026-02-15 14:18:23.841'),
+	(1, 19, 69, '2026-02-15 14:18:23.843');
 
 -- Dumping structure for table fashion_store.product_collections
 DROP TABLE IF EXISTS `product_collections`;
@@ -1303,21 +1466,65 @@ CREATE TABLE IF NOT EXISTS `product_images` (
   KEY `idx_pi_variant` (`variant_id`),
   CONSTRAINT `product_images_product_id_fkey` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `product_images_variant_id_fkey` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=135 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=285 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.product_images: ~11 rows (approximately)
+-- Dumping data for table fashion_store.product_images: ~57 rows (approximately)
 INSERT INTO `product_images` (`id`, `product_id`, `url`, `alt_text`, `is_primary`, `sort_order`, `created_at`, `variant_id`) VALUES
-	(11, 11, 'http://localhost:4000/uploads/sample-hoodie-001.webp', NULL, 1, 0, '2026-01-22 21:09:18.616', NULL),
-	(12, 12, 'http://localhost:4000/uploads/sample-skirt-001.webp', NULL, 1, 0, '2026-01-22 21:09:18.616', NULL),
-	(125, 4, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lwcfcbnhjil7f6.webp', NULL, 1, 0, '2026-02-05 12:14:04.652', NULL),
-	(126, 4, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lwcg803cj0t5cd.webp', NULL, 0, 1, '2026-02-05 12:14:04.652', NULL),
-	(128, 6, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mji5y8dmf9j941.webp', NULL, 1, 0, '2026-02-05 12:14:16.270', NULL),
-	(129, 1, 'http://localhost:4000/uploads/1769094301311-794242468.png', NULL, 1, 0, '2026-02-05 12:16:03.299', NULL),
-	(130, 1, 'http://localhost:4000/uploads/1769094312782-549414451.webp', NULL, 0, 1, '2026-02-05 12:16:03.299', NULL),
-	(131, 2, 'http://localhost:4000/uploads/1769093962807-640257785.webp', NULL, 1, 0, '2026-02-05 12:16:11.690', NULL),
-	(132, 2, 'http://localhost:4000/uploads/1769093971996-308099457.png', NULL, 0, 1, '2026-02-05 12:16:11.690', NULL),
-	(133, 3, 'http://localhost:4000/uploads/1769094378404-581998447.webp', NULL, 1, 0, '2026-02-05 12:16:18.405', NULL),
-	(134, 5, 'https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mal3kghpvi6wb0.webp', NULL, 1, 0, '2026-02-05 16:32:39.018', NULL);
+	(212, 1, '/uploads/1769094301311-794242468.png', NULL, 1, 0, '2026-02-15 14:18:23.893', NULL),
+	(213, 1, '/uploads/1769094312782-549414451.webp', NULL, 0, 1, '2026-02-15 14:18:23.893', NULL),
+	(215, 3, 'https://down-vn.img.susercontent.com/file/vn-11134207-7ra0g-m8d8a41iocjmc4.webp', NULL, 1, 0, '2026-02-15 14:57:55.952', NULL),
+	(216, 4, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lwcfcbnhjil7f6.webp', NULL, 1, 0, '2026-02-15 14:57:55.960', NULL),
+	(217, 4, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lwcg803cj0t5cd.webp', NULL, 0, 1, '2026-02-15 14:57:55.960', NULL),
+	(218, 5, 'https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mal3kghpvi6wb0.webp', NULL, 1, 0, '2026-02-15 14:57:55.967', NULL),
+	(219, 6, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mji5y8dmf9j941.webp', NULL, 1, 0, '2026-02-15 14:57:55.974', NULL),
+	(220, 7, 'https://down-vn.img.susercontent.com/file/sg-11134253-82250-mhgmlgp2vklic8.webp', NULL, 1, 0, '2026-02-15 14:57:55.982', NULL),
+	(221, 8, 'https://down-vn.img.susercontent.com/file/e23d06abd3108c3f43a99d32366efd4d.webp', NULL, 1, 0, '2026-02-15 14:57:55.989', NULL),
+	(222, 9, 'https://down-vn.img.susercontent.com/file/sg-11134201-7repq-m1oyedhx1gzj51.webp', NULL, 1, 0, '2026-02-15 14:57:55.996', NULL),
+	(224, 11, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lm17po7g3t274e.webp', NULL, 1, 0, '2026-02-15 14:57:56.011', NULL),
+	(226, 37, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lny4bkkttfui15.webp', NULL, 1, 0, '2026-02-15 14:57:56.027', NULL),
+	(227, 44, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lny4bkktl0fu4b.webp', NULL, 1, 0, '2026-02-15 14:57:56.035', NULL),
+	(228, 44, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lny4bkkttfui15.webp', NULL, 0, 1, '2026-02-15 14:57:56.035', NULL),
+	(229, 44, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lny4bkktp8564f.webp', NULL, 0, 2, '2026-02-15 14:57:56.035', NULL),
+	(230, 21, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjha2cza1gjm7b.webp', NULL, 1, 0, '2026-02-15 14:57:56.043', NULL),
+	(231, 21, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjha6t59w26b6b.webp', NULL, 0, 1, '2026-02-15 14:57:56.043', NULL),
+	(232, 34, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjp3df8qocnaf0.webp', NULL, 1, 0, '2026-02-15 14:57:56.050', NULL),
+	(233, 34, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-loc9t5mas6if3e.webp', NULL, 0, 1, '2026-02-15 14:57:56.050', NULL),
+	(234, 27, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ln5m15hbkjx481.webp', NULL, 1, 0, '2026-02-15 14:57:56.057', NULL),
+	(235, 27, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ln5m15hblyhke8.webp', NULL, 0, 1, '2026-02-15 14:57:56.057', NULL),
+	(238, 25, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mieblrvophc672.webp', NULL, 1, 0, '2026-02-15 14:57:56.070', NULL),
+	(239, 22, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mezia1671pu680.webp', NULL, 1, 0, '2026-02-15 14:57:56.077', NULL),
+	(240, 50, 'https://down-vn.img.susercontent.com/file/sg-11134201-822wr-mi37u7ohb8cj0c@resize_w450_nl.webp', NULL, 1, 0, '2026-02-15 14:57:56.100', NULL),
+	(241, 20, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mh0rm0x8r5e3b6.webp', NULL, 1, 0, '2026-02-15 14:57:56.107', NULL),
+	(242, 60, 'https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mk6qt9f18efc49.webp', NULL, 1, 0, '2026-02-15 14:57:56.114', NULL),
+	(243, 13, 'https://down-vn.img.susercontent.com/file/vn-11134207-7ra0g-m8bmegrol8qv17@resize_w450_nl.webp', NULL, 1, 0, '2026-02-15 14:57:56.120', NULL),
+	(244, 31, 'https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mdrl8bpd07ut79@resize_w450_nl.webp', NULL, 1, 0, '2026-02-15 14:57:56.127', NULL),
+	(245, 59, 'https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-md46ixrubogs8b@resize_w450_nl.webp', NULL, 1, 0, '2026-02-15 14:57:56.133', NULL),
+	(246, 32, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ln6z6jl52eyb7e@resize_w450_nl.webp', NULL, 1, 0, '2026-02-15 14:57:56.141', NULL),
+	(248, 17, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mj5gw2v3a22r91.webp', NULL, 1, 0, '2026-02-15 14:57:56.154', NULL),
+	(249, 54, 'https://down-vn.img.susercontent.com/file/vn-11134201-23020-0v0mr4ujj1nvcf@resize_w450_nl.webp', NULL, 1, 0, '2026-02-15 14:57:56.160', NULL),
+	(250, 46, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhcsyhbukg0c67.webp', NULL, 1, 0, '2026-02-15 14:57:56.167', NULL),
+	(251, 40, 'https://down-vn.img.susercontent.com/file/vn-11134207-7ra0g-m9gr9w0lc29u8e_tn', NULL, 1, 0, '2026-02-15 14:57:56.173', NULL),
+	(252, 42, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhvnrmpfkb2899_tn', NULL, 1, 0, '2026-02-15 14:57:56.180', NULL),
+	(253, 57, 'https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m4ey9vx7mwunc3_tn', NULL, 1, 0, '2026-02-15 14:57:56.187', NULL),
+	(257, 41, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lkvzoziyky4ra6_tn', NULL, 1, 0, '2026-02-15 14:57:56.230', NULL),
+	(260, 52, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lw9pnjwr6g9lf1_tn', NULL, 1, 0, '2026-02-15 14:57:56.251', NULL),
+	(261, 15, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lu7l06ichn3380_tn', NULL, 1, 0, '2026-02-15 14:57:56.258', NULL),
+	(263, 29, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-miqzmtm7lds81e_tn', NULL, 1, 0, '2026-02-15 14:57:56.271', NULL),
+	(265, 58, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mimtue2lwjk3c7_tn', NULL, 1, 0, '2026-02-15 14:57:56.284', NULL),
+	(267, 36, 'https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m19gu2hx115oa7_tn', NULL, 1, 0, '2026-02-15 14:57:56.296', NULL),
+	(268, 47, 'https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mcuw0sekhvzzd8_tn', NULL, 1, 0, '2026-02-15 14:57:56.302', NULL),
+	(271, 38, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lukf3caqkphuf0_tn', NULL, 1, 0, '2026-02-15 14:57:56.322', NULL),
+	(272, 56, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mh1seceslcsv0c.webp', NULL, 1, 0, '2026-02-15 14:57:56.329', NULL),
+	(273, 35, 'https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mk29h9qjgb9cb2_tn', NULL, 1, 0, '2026-02-15 14:57:56.345', NULL),
+	(274, 49, 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mfytljk5kiku97@resize_w450_nl.webp', NULL, 1, 0, '2026-02-15 14:57:56.351', NULL),
+	(275, 23, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lo2849935bzh9f_tn', NULL, 1, 0, '2026-02-15 14:57:56.359', NULL),
+	(276, 19, 'https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m58ghfd1xizb37_tn', NULL, 1, 0, '2026-02-15 14:57:56.364', NULL),
+	(277, 33, 'https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m0l9q29rkkgf43.webp', NULL, 1, 0, '2026-02-15 14:57:56.371', NULL),
+	(278, 48, 'https://down-vn.img.susercontent.com/file/vn-11134207-7ra0g-ma5gzhh7nquw46_tn', NULL, 1, 0, '2026-02-15 14:57:56.378', NULL),
+	(279, 30, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzlnm1e4p8dd2b_tn', NULL, 1, 0, '2026-02-15 14:57:56.384', NULL),
+	(280, 51, 'https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mk7ydel8ra4o65_tn', NULL, 1, 0, '2026-02-15 14:57:56.409', NULL),
+	(282, 55, 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lynvu1p69cptba.webp', NULL, 1, 0, '2026-02-15 14:58:17.544', NULL),
+	(284, 10, 'https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mdmkyqmn0g1bc6.webp', NULL, 1, 0, '2026-02-16 06:29:57.711', NULL);
 
 -- Dumping structure for table fashion_store.product_reviews
 DROP TABLE IF EXISTS `product_reviews`;
@@ -1343,7 +1550,7 @@ CREATE TABLE IF NOT EXISTS `product_reviews` (
 -- Dumping data for table fashion_store.product_reviews: ~52 rows (approximately)
 INSERT INTO `product_reviews` (`id`, `product_id`, `user_id`, `rating`, `title`, `content`, `author_name`, `status`, `is_verified`, `helpful_count`, `created_at`, `updated_at`) VALUES
 	(1, 5, 6, 5, 'ssv', 'ssv', 'Hoang ADMIN', 'approved', 0, 0, '2026-01-24 09:45:20.709', '2026-01-26 04:18:56.009'),
-	(2, 2, 2, 5, 'Áo thun đẹp', 'Vải cotton dày dặn, form rộng đúng ý mình. Mặc rất mát.', 'Khánh', 'approved', 1, 5, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
+	(2, 2, 2, 5, 'Áo thun đẹp', 'Vải cotton dày dặn, form rộng đúng ý mình. Mặc rất mát.', 'Khánh', 'approved', 1, 6, '2026-01-30 15:15:19.000', '2026-02-14 04:00:53.088'),
 	(3, 6, 2, 4, 'Túi tote ổn', 'Túi vải canvas dày, in hình sắc nét. Đựng vừa laptop 14 inch.', 'Khánh', 'approved', 1, 2, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
 	(4, 4, 3, 5, 'Hài lòng', 'Áo thun nam chất lượng, co giãn tốt. Giao hàng nhanh.', 'Minh', 'approved', 1, 1, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
 	(5, 35, 3, 5, 'Sandal êm chân', 'Đi rất êm, đế cao su chống trượt tốt. Size chuẩn.', 'Minh', 'approved', 1, 4, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
@@ -1352,7 +1559,7 @@ INSERT INTO `product_reviews` (`id`, `product_id`, `user_id`, `rating`, `title`,
 	(8, 10, 4, 5, 'Thắt lưng xịn', 'Da thật 100%, mặt khóa kim loại sáng bóng. Đóng gói hộp sang trọng.', 'Linh', 'approved', 1, 3, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
 	(9, 50, 4, 4, 'Pijama lụa', 'Vải lụa mát, đường may kỹ. Mặc ngủ rất thoải mái.', 'Linh', 'approved', 1, 6, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
 	(10, 8, 5, 5, 'Váy tặng vợ', 'Mua tặng vợ dịp sinh nhật, cô ấy rất thích. Vải voan nhẹ nhàng.', 'Tuấn Dev', 'approved', 1, 8, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
-	(11, 2, 6, 5, 'Test sản phẩm', 'Chất lượng sản phẩm tốt, đúng mô tả. Đóng gói cẩn thận.', 'Hoang ADMIN', 'approved', 1, 0, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
+	(11, 2, 6, 5, 'Test sản phẩm', 'Chất lượng sản phẩm tốt, đúng mô tả. Đóng gói cẩn thận.', 'Hoang ADMIN', 'approved', 1, 1, '2026-01-30 15:15:19.000', '2026-02-14 04:00:47.358'),
 	(12, 21, 9, 5, 'Đầm maxi xinh', 'Họa tiết hoa nhí vintage, mặc đi biển chụp ảnh sống ảo hết ý.', 'Lê Lan', 'approved', 1, 15, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
 	(13, 35, 9, 4, 'Sandal đi mưa', 'Sandal quai dù đi mưa thoải mái, nhanh khô. Giá hợp lý.', 'Lê Lan', 'approved', 1, 2, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
 	(14, 52, 9, 5, 'Quần bơi nam', 'Quần bơi chất liệu co giãn, mau khô. Họa tiết trẻ trung.', 'Lê Lan', 'approved', 1, 1, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
@@ -1393,7 +1600,7 @@ INSERT INTO `product_reviews` (`id`, `product_id`, `user_id`, `rating`, `title`,
 	(49, 52, 44, 5, 'Quần short bơi', 'Chất lượng tốt so với tầm giá. Sẽ ủng hộ shop thêm.', 'Hồ Tuấn', 'approved', 1, 3, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
 	(50, 62, 50, 5, 'Váy công chúa', 'Váy bồng bềnh như hình. Mặc đi tiệc ai cũng khen.', 'Hồ Tuấn', 'approved', 1, 25, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
 	(51, 28, 59, 4, 'Cardigan mỏng nhẹ', 'Áo mỏng nhẹ, mặc mùa thu ok. Màu be dễ phối đồ.', 'Hoang customer', 'approved', 1, 2, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
-	(52, 2, 59, 5, 'Áo thun basic', 'Chất vải cotton 100% thấm hút mồ hôi. Form rộng thoải mái.', 'Hoang customer', 'approved', 1, 5, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000');
+	(52, 2, 59, 5, 'Áo thun basic', 'Chất vải cotton 100% thấm hút mồ hôi. Form rộng thoải mái.', 'Hoang customer', 'approved', 1, 6, '2026-01-30 15:15:19.000', '2026-02-14 04:00:45.815');
 
 -- Dumping structure for table fashion_store.product_variants
 DROP TABLE IF EXISTS `product_variants`;
@@ -1417,54 +1624,54 @@ CREATE TABLE IF NOT EXISTS `product_variants` (
   UNIQUE KEY `product_variants_variant_sku_key` (`variant_sku`),
   KEY `idx_variants_product` (`product_id`),
   CONSTRAINT `product_variants_product_id_fkey` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=221 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=239 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.product_variants: ~220 rows (approximately)
+-- Dumping data for table fashion_store.product_variants: ~228 rows (approximately)
 INSERT INTO `product_variants` (`id`, `product_id`, `variant_sku`, `price`, `compare_at_price`, `cost`, `stock_qty`, `is_active`, `created_at`, `updated_at`, `height`, `image_url`, `length`, `weight`, `width`) VALUES
-	(1, 2, 'TSHIRT-NU-001-BLACK-M', 99000.00, 129000.00, NULL, 34, 1, '2026-01-22 21:09:18.601', '2026-02-05 18:33:09.232', NULL, NULL, NULL, NULL, NULL),
-	(2, 2, 'TSHIRT-NU-001-WHITE-L', 99000.00, 129000.00, NULL, 35, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:16:11.687', NULL, NULL, NULL, NULL, NULL),
-	(3, 3, 'SHORT-NU-001-BLACK-M', 89000.00, 119000.00, NULL, 101, 1, '2026-01-22 21:09:18.601', '2026-02-05 17:59:00.142', NULL, NULL, NULL, NULL, NULL),
+	(1, 2, 'TSHIRT-NU-001-BLACK-M', 99000.00, 129000.00, NULL, 31, 1, '2026-01-22 21:09:18.601', '2026-02-15 14:58:23.898', NULL, NULL, NULL, NULL, NULL),
+	(2, 2, 'TSHIRT-NU-001-WHITE-L', 99000.00, 129000.00, NULL, 35, 1, '2026-01-22 21:09:18.601', '2026-02-15 14:58:23.906', NULL, NULL, NULL, NULL, NULL),
+	(3, 3, 'SHORT-NU-001-BLACK-M', 89000.00, 119000.00, NULL, 99, 1, '2026-01-22 21:09:18.601', '2026-02-11 06:21:30.815', NULL, NULL, NULL, NULL, NULL),
 	(4, 3, 'SHORT-NU-001-GREY-L', 89000.00, 119000.00, NULL, 25, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:16:18.403', NULL, NULL, NULL, NULL, NULL),
 	(5, 4, 'TSHIRT-NAM-001-BLACK-L', 109000.00, 149000.00, NULL, 59, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:14:04.649', NULL, NULL, NULL, NULL, NULL),
 	(6, 4, 'TSHIRT-NAM-001-WHITE-XL', 109000.00, 149000.00, NULL, 30, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:14:04.650', NULL, NULL, NULL, NULL, NULL),
-	(7, 5, 'JEAN-NAM-001-BLACK-M', 249000.00, 299000.00, NULL, 10, 1, '2026-01-22 21:09:18.601', '2026-02-05 17:59:00.042', NULL, NULL, NULL, NULL, NULL),
+	(7, 5, 'JEAN-NAM-001-BLACK-M', 249000.00, 299000.00, NULL, 9, 1, '2026-01-22 21:09:18.601', '2026-02-11 03:52:25.682', NULL, NULL, NULL, NULL, NULL),
 	(8, 5, 'JEAN-NAM-001-GREY-L', 249000.00, 299000.00, NULL, 10, 1, '2026-01-22 21:09:18.601', '2026-02-05 16:32:39.014', NULL, NULL, NULL, NULL, NULL),
 	(9, 6, 'BAG-001-WHITE-M', 79000.00, 99000.00, NULL, 70, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:14:16.267', NULL, NULL, NULL, NULL, NULL),
 	(10, 6, 'BAG-001-BLACK-M', 79000.00, 99000.00, NULL, 55, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:14:16.268', NULL, NULL, NULL, NULL, NULL),
-	(11, 7, 'CAP-001-BLACK-M', 59000.00, 79000.00, NULL, 105, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:05:31.820', NULL, NULL, NULL, NULL, NULL),
-	(12, 7, 'CAP-001-WHITE-M', 59000.00, 79000.00, NULL, 65, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:05:31.822', NULL, NULL, NULL, NULL, NULL),
-	(13, 1, 'set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang', 75000.00, 94000.00, NULL, 100, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:16:03.295', NULL, NULL, NULL, NULL, NULL),
+	(11, 7, 'CAP-001-BLACK-M', 59000.00, 79000.00, NULL, 105, 1, '2026-01-22 21:09:18.601', '2026-02-11 07:50:43.490', NULL, NULL, NULL, NULL, NULL),
+	(12, 7, 'CAP-001-WHITE-M', 59000.00, 79000.00, NULL, 65, 1, '2026-01-22 21:09:18.601', '2026-02-11 07:50:43.491', NULL, NULL, NULL, NULL, NULL),
+	(13, 1, 'SKU-7SAJFI', 75000.00, 94000.00, NULL, 30, 1, '2026-01-22 21:09:18.601', '2026-02-15 14:18:23.846', NULL, NULL, NULL, NULL, NULL),
 	(14, 8, 'DRESS-001-YELLOW-S', 350000.00, 450000.00, NULL, 10, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:08:58.673', NULL, NULL, NULL, NULL, NULL),
 	(15, 8, 'DRESS-001-YELLOW-M', 350000.00, 450000.00, NULL, 12, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:08:58.674', NULL, NULL, NULL, NULL, NULL),
 	(16, 9, 'JACKET-NAM-001-BLACK-L', 450000.00, 600000.00, NULL, 8, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:09:03.277', NULL, NULL, NULL, NULL, NULL),
 	(17, 9, 'JACKET-NAM-001-BLACK-XL', 450000.00, 600000.00, NULL, 5, 1, '2026-01-22 21:09:18.601', '2026-02-05 12:09:03.278', NULL, NULL, NULL, NULL, NULL),
-	(18, 10, 'BELT-001-BROWN-FREE', 150000.00, 200000.00, NULL, 50, 1, '2026-01-22 21:09:18.601', '2026-01-22 14:24:39.223', NULL, NULL, NULL, NULL, NULL),
-	(19, 11, 'HOODIE-NU-001-GREY-M', 180000.00, 250000.00, NULL, 30, 1, '2026-01-22 21:09:18.601', NULL, NULL, NULL, NULL, NULL, NULL),
-	(20, 12, 'SKIRT-001-WHITE-S', 120000.00, 160000.00, NULL, 25, 1, '2026-01-22 21:09:18.601', NULL, NULL, NULL, NULL, NULL, NULL),
+	(18, 10, 'BELT-001-BROWN-FREE', 150000.00, 200000.00, NULL, 50, 1, '2026-01-22 21:09:18.601', '2026-02-16 06:29:57.708', NULL, NULL, NULL, NULL, NULL),
+	(19, 11, 'HOODIE-NU-001-GREY-M', 180000.00, 250000.00, NULL, 30, 1, '2026-01-22 21:09:18.601', '2026-02-11 08:28:45.128', NULL, NULL, NULL, NULL, NULL),
+	(20, 12, 'SKIRT-001-WHITE-S', 120000.00, 160000.00, NULL, 25, 1, '2026-01-22 21:09:18.601', '2026-02-15 14:58:35.868', NULL, NULL, NULL, NULL, NULL),
 	(21, 13, 'SKU-1769144617093-0-S', 247000.00, 296400.00, NULL, 67, 1, '2026-01-23 05:03:37.099', '2026-01-23 05:03:37.099', NULL, NULL, NULL, NULL, NULL),
 	(22, 13, 'SKU-1769144617093-0-M', 247000.00, 296400.00, NULL, 68, 1, '2026-01-23 05:03:37.101', '2026-01-23 05:03:37.101', NULL, NULL, NULL, NULL, NULL),
 	(23, 13, 'SKU-1769144617093-0-L', 247000.00, 296400.00, NULL, 14, 1, '2026-01-23 05:03:37.104', '2026-01-23 05:03:37.104', NULL, NULL, NULL, NULL, NULL),
 	(24, 13, 'SKU-1769144617093-0-XL', 247000.00, 296400.00, NULL, 58, 1, '2026-01-23 05:03:37.105', '2026-01-23 05:03:37.105', NULL, NULL, NULL, NULL, NULL),
-	(25, 14, 'SKU-1769144617106-1-S', 367000.00, 440400.00, NULL, 47, 1, '2026-01-23 05:03:37.109', '2026-01-23 05:03:37.109', NULL, NULL, NULL, NULL, NULL),
-	(26, 14, 'SKU-1769144617106-1-M', 367000.00, 440400.00, NULL, 30, 1, '2026-01-23 05:03:37.111', '2026-01-23 05:03:37.111', NULL, NULL, NULL, NULL, NULL),
-	(27, 14, 'SKU-1769144617106-1-L', 367000.00, 440400.00, NULL, 59, 1, '2026-01-23 05:03:37.114', '2026-01-23 05:03:37.114', NULL, NULL, NULL, NULL, NULL),
-	(28, 14, 'SKU-1769144617106-1-XL', 367000.00, 440400.00, NULL, 60, 1, '2026-01-23 05:03:37.116', '2026-01-23 05:03:37.116', NULL, NULL, NULL, NULL, NULL),
+	(25, 14, 'SKU-1769144617106-1-S', 367000.00, 440400.00, NULL, 47, 1, '2026-01-23 05:03:37.109', '2026-02-15 15:01:57.779', NULL, NULL, NULL, NULL, NULL),
+	(26, 14, 'SKU-1769144617106-1-M', 367000.00, 440400.00, NULL, 30, 1, '2026-01-23 05:03:37.111', '2026-02-15 15:01:57.781', NULL, NULL, NULL, NULL, NULL),
+	(27, 14, 'SKU-1769144617106-1-L', 367000.00, 440400.00, NULL, 59, 1, '2026-01-23 05:03:37.114', '2026-02-15 15:01:57.782', NULL, NULL, NULL, NULL, NULL),
+	(28, 14, 'SKU-1769144617106-1-XL', 367000.00, 440400.00, NULL, 60, 1, '2026-01-23 05:03:37.116', '2026-02-15 15:01:57.784', NULL, NULL, NULL, NULL, NULL),
 	(29, 15, 'SKU-1769144617116-2-S', 401000.00, 481200.00, NULL, 24, 1, '2026-01-23 05:03:37.119', '2026-01-23 05:03:37.119', NULL, NULL, NULL, NULL, NULL),
 	(30, 15, 'SKU-1769144617116-2-M', 401000.00, 481200.00, NULL, 30, 1, '2026-01-23 05:03:37.121', '2026-01-23 05:03:37.121', NULL, NULL, NULL, NULL, NULL),
 	(31, 15, 'SKU-1769144617116-2-L', 401000.00, 481200.00, NULL, 86, 1, '2026-01-23 05:03:37.123', '2026-01-23 05:03:37.123', NULL, NULL, NULL, NULL, NULL),
 	(32, 15, 'SKU-1769144617116-2-XL', 401000.00, 481200.00, NULL, 85, 1, '2026-01-23 05:03:37.124', '2026-01-23 05:03:37.124', NULL, NULL, NULL, NULL, NULL),
-	(33, 16, 'SKU-1769144617125-3-S', 394000.00, 472800.00, NULL, 29, 1, '2026-01-23 05:03:37.129', '2026-01-23 05:03:37.129', NULL, NULL, NULL, NULL, NULL),
-	(34, 16, 'SKU-1769144617125-3-M', 394000.00, 472800.00, NULL, 43, 1, '2026-01-23 05:03:37.130', '2026-01-23 05:03:37.130', NULL, NULL, NULL, NULL, NULL),
-	(35, 16, 'SKU-1769144617125-3-L', 394000.00, 472800.00, NULL, 84, 1, '2026-01-23 05:03:37.131', '2026-01-23 05:03:37.131', NULL, NULL, NULL, NULL, NULL),
-	(36, 16, 'SKU-1769144617125-3-XL', 394000.00, 472800.00, NULL, 13, 1, '2026-01-23 05:03:37.132', '2026-01-23 05:03:37.132', NULL, NULL, NULL, NULL, NULL),
+	(33, 16, 'SKU-1769144617125-3-S', 394000.00, 472800.00, NULL, 29, 1, '2026-01-23 05:03:37.129', '2026-02-15 14:58:53.289', NULL, NULL, NULL, NULL, NULL),
+	(34, 16, 'SKU-1769144617125-3-M', 394000.00, 472800.00, NULL, 43, 1, '2026-01-23 05:03:37.130', '2026-02-15 14:58:53.292', NULL, NULL, NULL, NULL, NULL),
+	(35, 16, 'SKU-1769144617125-3-L', 394000.00, 472800.00, NULL, 84, 1, '2026-01-23 05:03:37.131', '2026-02-15 14:58:53.294', NULL, NULL, NULL, NULL, NULL),
+	(36, 16, 'SKU-1769144617125-3-XL', 394000.00, 472800.00, NULL, 13, 1, '2026-01-23 05:03:37.132', '2026-02-15 14:58:53.296', NULL, NULL, NULL, NULL, NULL),
 	(37, 17, 'SKU-1769144617133-4-S', 419000.00, 502800.00, NULL, 88, 1, '2026-01-23 05:03:37.137', '2026-01-23 05:03:37.137', NULL, NULL, NULL, NULL, NULL),
 	(38, 17, 'SKU-1769144617133-4-M', 419000.00, 502800.00, NULL, 27, 1, '2026-01-23 05:03:37.138', '2026-01-23 05:03:37.138', NULL, NULL, NULL, NULL, NULL),
 	(39, 17, 'SKU-1769144617133-4-L', 419000.00, 502800.00, NULL, 89, 1, '2026-01-23 05:03:37.139', '2026-01-23 05:03:37.139', NULL, NULL, NULL, NULL, NULL),
 	(40, 17, 'SKU-1769144617133-4-XL', 419000.00, 502800.00, NULL, 57, 1, '2026-01-23 05:03:37.141', '2026-01-23 05:03:37.141', NULL, NULL, NULL, NULL, NULL),
-	(41, 18, 'SKU-1769144617142-5-S', 161000.00, 193200.00, NULL, 19, 1, '2026-01-23 05:03:37.145', '2026-01-23 05:03:37.145', NULL, NULL, NULL, NULL, NULL),
-	(42, 18, 'SKU-1769144617142-5-M', 161000.00, 193200.00, NULL, 36, 1, '2026-01-23 05:03:37.146', '2026-01-23 05:03:37.146', NULL, NULL, NULL, NULL, NULL),
-	(43, 18, 'SKU-1769144617142-5-L', 161000.00, 193200.00, NULL, 30, 1, '2026-01-23 05:03:37.148', '2026-01-23 05:03:37.148', NULL, NULL, NULL, NULL, NULL),
-	(44, 18, 'SKU-1769144617142-5-XL', 161000.00, 193200.00, NULL, 98, 1, '2026-01-23 05:03:37.149', '2026-01-23 05:03:37.149', NULL, NULL, NULL, NULL, NULL),
+	(41, 18, 'SKU-1769144617142-5-S', 161000.00, 193200.00, NULL, 19, 1, '2026-01-23 05:03:37.145', '2026-02-15 15:00:51.381', NULL, NULL, NULL, NULL, NULL),
+	(42, 18, 'SKU-1769144617142-5-M', 161000.00, 193200.00, NULL, 36, 1, '2026-01-23 05:03:37.146', '2026-02-15 15:00:51.383', NULL, NULL, NULL, NULL, NULL),
+	(43, 18, 'SKU-1769144617142-5-L', 161000.00, 193200.00, NULL, 30, 1, '2026-01-23 05:03:37.148', '2026-02-15 15:00:51.386', NULL, NULL, NULL, NULL, NULL),
+	(44, 18, 'SKU-1769144617142-5-XL', 161000.00, 193200.00, NULL, 98, 1, '2026-01-23 05:03:37.149', '2026-02-15 15:00:51.388', NULL, NULL, NULL, NULL, NULL),
 	(45, 19, 'SKU-1769144617149-6-S', 317000.00, 380400.00, NULL, 99, 1, '2026-01-23 05:03:37.152', '2026-01-23 05:03:37.152', NULL, NULL, NULL, NULL, NULL),
 	(46, 19, 'SKU-1769144617149-6-M', 317000.00, 380400.00, NULL, 87, 1, '2026-01-23 05:03:37.153', '2026-01-23 05:03:37.153', NULL, NULL, NULL, NULL, NULL),
 	(47, 19, 'SKU-1769144617149-6-L', 317000.00, 380400.00, NULL, 74, 1, '2026-01-23 05:03:37.154', '2026-01-23 05:03:37.154', NULL, NULL, NULL, NULL, NULL),
@@ -1485,26 +1692,26 @@ INSERT INTO `product_variants` (`id`, `product_id`, `variant_sku`, `price`, `com
 	(62, 23, 'SKU-1769144617176-10-M', 474000.00, 568800.00, NULL, 69, 1, '2026-01-23 05:03:37.179', '2026-01-23 05:03:37.179', NULL, NULL, NULL, NULL, NULL),
 	(63, 23, 'SKU-1769144617176-10-L', 474000.00, 568800.00, NULL, 14, 1, '2026-01-23 05:03:37.180', '2026-01-23 05:03:37.180', NULL, NULL, NULL, NULL, NULL),
 	(64, 23, 'SKU-1769144617176-10-XL', 474000.00, 568800.00, NULL, 70, 1, '2026-01-23 05:03:37.181', '2026-01-23 05:03:37.181', NULL, NULL, NULL, NULL, NULL),
-	(65, 24, 'SKU-1769144617183-11-S', 295000.00, 354000.00, NULL, 85, 1, '2026-01-23 05:03:37.185', '2026-01-23 05:03:37.185', NULL, NULL, NULL, NULL, NULL),
-	(66, 24, 'SKU-1769144617183-11-M', 295000.00, 354000.00, NULL, 44, 1, '2026-01-23 05:03:37.187', '2026-01-23 05:03:37.187', NULL, NULL, NULL, NULL, NULL),
-	(67, 24, 'SKU-1769144617183-11-L', 295000.00, 354000.00, NULL, 59, 1, '2026-01-23 05:03:37.189', '2026-01-23 05:03:37.189', NULL, NULL, NULL, NULL, NULL),
-	(68, 24, 'SKU-1769144617183-11-XL', 295000.00, 354000.00, NULL, 41, 1, '2026-01-23 05:03:37.191', '2026-01-23 05:03:37.191', NULL, NULL, NULL, NULL, NULL),
+	(65, 24, 'SKU-1769144617183-11-S', 295000.00, 354000.00, NULL, 85, 1, '2026-01-23 05:03:37.185', '2026-02-15 15:01:08.632', NULL, NULL, NULL, NULL, NULL),
+	(66, 24, 'SKU-1769144617183-11-M', 295000.00, 354000.00, NULL, 44, 1, '2026-01-23 05:03:37.187', '2026-02-15 15:01:08.634', NULL, NULL, NULL, NULL, NULL),
+	(67, 24, 'SKU-1769144617183-11-L', 295000.00, 354000.00, NULL, 59, 1, '2026-01-23 05:03:37.189', '2026-02-15 15:01:08.636', NULL, NULL, NULL, NULL, NULL),
+	(68, 24, 'SKU-1769144617183-11-XL', 295000.00, 354000.00, NULL, 41, 1, '2026-01-23 05:03:37.191', '2026-02-15 15:01:08.638', NULL, NULL, NULL, NULL, NULL),
 	(69, 25, 'SKU-1769144617191-12-S', 483000.00, 579600.00, NULL, 66, 1, '2026-01-23 05:03:37.196', '2026-01-23 05:03:37.196', NULL, NULL, NULL, NULL, NULL),
 	(70, 25, 'SKU-1769144617191-12-M', 483000.00, 579600.00, NULL, 82, 1, '2026-01-23 05:03:37.198', '2026-01-23 05:03:37.198', NULL, NULL, NULL, NULL, NULL),
 	(71, 25, 'SKU-1769144617191-12-L', 483000.00, 579600.00, NULL, 79, 1, '2026-01-23 05:03:37.199', '2026-01-23 05:03:37.199', NULL, NULL, NULL, NULL, NULL),
 	(72, 25, 'SKU-1769144617191-12-XL', 483000.00, 579600.00, NULL, 97, 1, '2026-01-23 05:03:37.200', '2026-01-23 05:03:37.200', NULL, NULL, NULL, NULL, NULL),
-	(73, 26, 'SKU-1769144617201-13-S', 305000.00, 366000.00, NULL, 18, 1, '2026-01-23 05:03:37.204', '2026-01-23 05:03:37.204', NULL, NULL, NULL, NULL, NULL),
-	(74, 26, 'SKU-1769144617201-13-M', 305000.00, 366000.00, NULL, 19, 1, '2026-01-23 05:03:37.205', '2026-01-23 05:03:37.205', NULL, NULL, NULL, NULL, NULL),
-	(75, 26, 'SKU-1769144617201-13-L', 305000.00, 366000.00, NULL, 35, 1, '2026-01-23 05:03:37.206', '2026-01-23 05:03:37.206', NULL, NULL, NULL, NULL, NULL),
-	(76, 26, 'SKU-1769144617201-13-XL', 305000.00, 366000.00, NULL, 91, 1, '2026-01-23 05:03:37.207', '2026-01-23 05:03:37.207', NULL, NULL, NULL, NULL, NULL),
+	(73, 26, 'SKU-1769144617201-13-S', 305000.00, 366000.00, NULL, 18, 1, '2026-01-23 05:03:37.204', '2026-02-15 15:01:44.922', NULL, NULL, NULL, NULL, NULL),
+	(74, 26, 'SKU-1769144617201-13-M', 305000.00, 366000.00, NULL, 19, 1, '2026-01-23 05:03:37.205', '2026-02-15 15:01:44.924', NULL, NULL, NULL, NULL, NULL),
+	(75, 26, 'SKU-1769144617201-13-L', 305000.00, 366000.00, NULL, 35, 1, '2026-01-23 05:03:37.206', '2026-02-15 15:01:44.927', NULL, NULL, NULL, NULL, NULL),
+	(76, 26, 'SKU-1769144617201-13-XL', 305000.00, 366000.00, NULL, 91, 1, '2026-01-23 05:03:37.207', '2026-02-15 15:01:44.929', NULL, NULL, NULL, NULL, NULL),
 	(77, 27, 'SKU-1769144617208-14-S', 378000.00, 453600.00, NULL, 50, 1, '2026-01-23 05:03:37.210', '2026-01-23 05:03:37.210', NULL, NULL, NULL, NULL, NULL),
 	(78, 27, 'SKU-1769144617208-14-M', 378000.00, 453600.00, NULL, 30, 1, '2026-01-23 05:03:37.212', '2026-01-23 05:03:37.212', NULL, NULL, NULL, NULL, NULL),
 	(79, 27, 'SKU-1769144617208-14-L', 378000.00, 453600.00, NULL, 12, 1, '2026-01-23 05:03:37.213', '2026-01-23 05:03:37.213', NULL, NULL, NULL, NULL, NULL),
 	(80, 27, 'SKU-1769144617208-14-XL', 378000.00, 453600.00, NULL, 91, 1, '2026-01-23 05:03:37.215', '2026-01-23 05:03:37.215', NULL, NULL, NULL, NULL, NULL),
-	(81, 28, 'SKU-1769144617216-15-S', 54000.00, 64800.00, NULL, 9, 1, '2026-01-23 05:03:37.219', '2026-01-26 04:20:36.136', NULL, NULL, NULL, NULL, NULL),
-	(82, 28, 'SKU-1769144617216-15-M', 54000.00, 64800.00, NULL, 65, 1, '2026-01-23 05:03:37.220', '2026-01-23 05:03:37.220', NULL, NULL, NULL, NULL, NULL),
-	(83, 28, 'SKU-1769144617216-15-L', 54000.00, 64800.00, NULL, 23, 1, '2026-01-23 05:03:37.221', '2026-01-23 05:03:37.221', NULL, NULL, NULL, NULL, NULL),
-	(84, 28, 'SKU-1769144617216-15-XL', 54000.00, 64800.00, NULL, 96, 1, '2026-01-23 05:03:37.223', '2026-01-23 05:03:37.223', NULL, NULL, NULL, NULL, NULL),
+	(81, 28, 'SKU-1769144617216-15-S', 54000.00, 64800.00, NULL, 9, 1, '2026-01-23 05:03:37.219', '2026-02-15 14:59:15.212', NULL, NULL, NULL, NULL, NULL),
+	(82, 28, 'SKU-1769144617216-15-M', 54000.00, 64800.00, NULL, 65, 1, '2026-01-23 05:03:37.220', '2026-02-15 14:59:15.214', NULL, NULL, NULL, NULL, NULL),
+	(83, 28, 'SKU-1769144617216-15-L', 54000.00, 64800.00, NULL, 23, 1, '2026-01-23 05:03:37.221', '2026-02-15 14:59:15.216', NULL, NULL, NULL, NULL, NULL),
+	(84, 28, 'SKU-1769144617216-15-XL', 54000.00, 64800.00, NULL, 96, 1, '2026-01-23 05:03:37.223', '2026-02-15 14:59:15.217', NULL, NULL, NULL, NULL, NULL),
 	(85, 29, 'SKU-1769144617224-16-S', 74000.00, 88800.00, NULL, 88, 1, '2026-01-23 05:03:37.227', '2026-01-23 05:03:37.227', NULL, NULL, NULL, NULL, NULL),
 	(86, 29, 'SKU-1769144617224-16-M', 74000.00, 88800.00, NULL, 86, 1, '2026-01-23 05:03:37.228', '2026-01-23 05:03:37.228', NULL, NULL, NULL, NULL, NULL),
 	(87, 29, 'SKU-1769144617224-16-L', 74000.00, 88800.00, NULL, 66, 1, '2026-01-23 05:03:37.229', '2026-01-23 05:03:37.229', NULL, NULL, NULL, NULL, NULL),
@@ -1545,10 +1752,10 @@ INSERT INTO `product_variants` (`id`, `product_id`, `variant_sku`, `price`, `com
 	(122, 38, 'SKU-1769144617294-25-M', 276000.00, 331200.00, NULL, 82, 1, '2026-01-23 05:03:37.298', '2026-01-23 05:03:37.298', NULL, NULL, NULL, NULL, NULL),
 	(123, 38, 'SKU-1769144617294-25-L', 276000.00, 331200.00, NULL, 22, 1, '2026-01-23 05:03:37.299', '2026-01-23 05:03:37.299', NULL, NULL, NULL, NULL, NULL),
 	(124, 38, 'SKU-1769144617294-25-XL', 276000.00, 331200.00, NULL, 32, 1, '2026-01-23 05:03:37.300', '2026-01-23 05:03:37.300', NULL, NULL, NULL, NULL, NULL),
-	(125, 39, 'SKU-1769144617301-26-S', 475000.00, 570000.00, NULL, 11, 1, '2026-01-23 05:03:37.303', '2026-01-23 05:03:37.303', NULL, NULL, NULL, NULL, NULL),
-	(126, 39, 'SKU-1769144617301-26-M', 475000.00, 570000.00, NULL, 44, 1, '2026-01-23 05:03:37.304', '2026-01-23 05:03:37.304', NULL, NULL, NULL, NULL, NULL),
-	(127, 39, 'SKU-1769144617301-26-L', 475000.00, 570000.00, NULL, 92, 1, '2026-01-23 05:03:37.305', '2026-01-23 05:03:37.305', NULL, NULL, NULL, NULL, NULL),
-	(128, 39, 'SKU-1769144617301-26-XL', 475000.00, 570000.00, NULL, 86, 1, '2026-01-23 05:03:37.306', '2026-01-23 05:03:37.306', NULL, NULL, NULL, NULL, NULL),
+	(125, 39, 'SKU-1769144617301-26-S', 475000.00, 570000.00, NULL, 11, 1, '2026-01-23 05:03:37.303', '2026-02-15 15:01:33.814', NULL, NULL, NULL, NULL, NULL),
+	(126, 39, 'SKU-1769144617301-26-M', 475000.00, 570000.00, NULL, 44, 1, '2026-01-23 05:03:37.304', '2026-02-15 15:01:33.817', NULL, NULL, NULL, NULL, NULL),
+	(127, 39, 'SKU-1769144617301-26-L', 475000.00, 570000.00, NULL, 92, 1, '2026-01-23 05:03:37.305', '2026-02-15 15:01:33.819', NULL, NULL, NULL, NULL, NULL),
+	(128, 39, 'SKU-1769144617301-26-XL', 475000.00, 570000.00, NULL, 86, 1, '2026-01-23 05:03:37.306', '2026-02-15 15:01:33.822', NULL, NULL, NULL, NULL, NULL),
 	(129, 40, 'SKU-1769144617307-27-S', 331000.00, 397200.00, NULL, 15, 1, '2026-01-23 05:03:37.309', '2026-01-23 05:03:37.309', NULL, NULL, NULL, NULL, NULL),
 	(130, 40, 'SKU-1769144617307-27-M', 331000.00, 397200.00, NULL, 65, 1, '2026-01-23 05:03:37.310', '2026-01-23 05:03:37.310', NULL, NULL, NULL, NULL, NULL),
 	(131, 40, 'SKU-1769144617307-27-L', 331000.00, 397200.00, NULL, 42, 1, '2026-01-23 05:03:37.311', '2026-01-23 05:03:37.311', NULL, NULL, NULL, NULL, NULL),
@@ -1561,18 +1768,18 @@ INSERT INTO `product_variants` (`id`, `product_id`, `variant_sku`, `price`, `com
 	(138, 42, 'SKU-1769144617319-29-M', 158000.00, 189600.00, NULL, 95, 1, '2026-01-23 05:03:37.323', '2026-01-23 05:03:37.323', NULL, NULL, NULL, NULL, NULL),
 	(139, 42, 'SKU-1769144617319-29-L', 158000.00, 189600.00, NULL, 28, 1, '2026-01-23 05:03:37.324', '2026-01-23 05:03:37.324', NULL, NULL, NULL, NULL, NULL),
 	(140, 42, 'SKU-1769144617319-29-XL', 158000.00, 189600.00, NULL, 26, 1, '2026-01-23 05:03:37.325', '2026-01-23 05:03:37.325', NULL, NULL, NULL, NULL, NULL),
-	(141, 43, 'SKU-1769144617325-30-S', 329000.00, 394800.00, NULL, 69, 1, '2026-01-23 05:03:37.327', '2026-01-23 05:03:37.327', NULL, NULL, NULL, NULL, NULL),
-	(142, 43, 'SKU-1769144617325-30-M', 329000.00, 394800.00, NULL, 63, 1, '2026-01-23 05:03:37.329', '2026-01-23 05:03:37.329', NULL, NULL, NULL, NULL, NULL),
-	(143, 43, 'SKU-1769144617325-30-L', 329000.00, 394800.00, NULL, 75, 1, '2026-01-23 05:03:37.330', '2026-01-23 05:03:37.330', NULL, NULL, NULL, NULL, NULL),
-	(144, 43, 'SKU-1769144617325-30-XL', 329000.00, 394800.00, NULL, 21, 1, '2026-01-23 05:03:37.331', '2026-01-23 05:03:37.331', NULL, NULL, NULL, NULL, NULL),
+	(141, 43, 'SKU-1769144617325-30-S', 329000.00, 394800.00, NULL, 69, 1, '2026-01-23 05:03:37.327', '2026-02-15 15:02:08.969', NULL, NULL, NULL, NULL, NULL),
+	(142, 43, 'SKU-1769144617325-30-M', 329000.00, 394800.00, NULL, 63, 1, '2026-01-23 05:03:37.329', '2026-02-15 15:02:08.971', NULL, NULL, NULL, NULL, NULL),
+	(143, 43, 'SKU-1769144617325-30-L', 329000.00, 394800.00, NULL, 75, 1, '2026-01-23 05:03:37.330', '2026-02-15 15:02:08.973', NULL, NULL, NULL, NULL, NULL),
+	(144, 43, 'SKU-1769144617325-30-XL', 329000.00, 394800.00, NULL, 21, 1, '2026-01-23 05:03:37.331', '2026-02-15 15:02:08.974', NULL, NULL, NULL, NULL, NULL),
 	(145, 44, 'SKU-1769144617331-31-S', 260000.00, 312000.00, NULL, 10, 1, '2026-01-23 05:03:37.333', '2026-01-23 05:03:37.333', NULL, NULL, NULL, NULL, NULL),
 	(146, 44, 'SKU-1769144617331-31-M', 260000.00, 312000.00, NULL, 47, 1, '2026-01-23 05:03:37.334', '2026-01-23 05:03:37.334', NULL, NULL, NULL, NULL, NULL),
 	(147, 44, 'SKU-1769144617331-31-L', 260000.00, 312000.00, NULL, 94, 1, '2026-01-23 05:03:37.335', '2026-01-23 05:03:37.335', NULL, NULL, NULL, NULL, NULL),
 	(148, 44, 'SKU-1769144617331-31-XL', 260000.00, 312000.00, NULL, 96, 1, '2026-01-23 05:03:37.336', '2026-01-23 05:03:37.336', NULL, NULL, NULL, NULL, NULL),
-	(149, 45, 'SKU-1769144617337-32-S', 398000.00, 477600.00, NULL, 55, 1, '2026-01-23 05:03:37.339', '2026-01-23 05:03:37.339', NULL, NULL, NULL, NULL, NULL),
-	(150, 45, 'SKU-1769144617337-32-M', 398000.00, 477600.00, NULL, 50, 1, '2026-01-23 05:03:37.340', '2026-01-23 05:03:37.340', NULL, NULL, NULL, NULL, NULL),
-	(151, 45, 'SKU-1769144617337-32-L', 398000.00, 477600.00, NULL, 100, 1, '2026-01-23 05:03:37.341', '2026-01-23 05:03:37.341', NULL, NULL, NULL, NULL, NULL),
-	(152, 45, 'SKU-1769144617337-32-XL', 398000.00, 477600.00, NULL, 85, 1, '2026-01-23 05:03:37.342', '2026-01-23 05:03:37.342', NULL, NULL, NULL, NULL, NULL),
+	(149, 45, 'SKU-1769144617337-32-S', 398000.00, 477600.00, NULL, 55, 1, '2026-01-23 05:03:37.339', '2026-02-15 15:00:11.465', NULL, NULL, NULL, NULL, NULL),
+	(150, 45, 'SKU-1769144617337-32-M', 398000.00, 477600.00, NULL, 50, 1, '2026-01-23 05:03:37.340', '2026-02-15 15:00:11.468', NULL, NULL, NULL, NULL, NULL),
+	(151, 45, 'SKU-1769144617337-32-L', 398000.00, 477600.00, NULL, 100, 1, '2026-01-23 05:03:37.341', '2026-02-15 15:00:11.470', NULL, NULL, NULL, NULL, NULL),
+	(152, 45, 'SKU-1769144617337-32-XL', 398000.00, 477600.00, NULL, 85, 1, '2026-01-23 05:03:37.342', '2026-02-15 15:00:11.472', NULL, NULL, NULL, NULL, NULL),
 	(153, 46, 'SKU-1769144617343-33-S', 475000.00, 570000.00, NULL, 69, 1, '2026-01-23 05:03:37.346', '2026-01-23 05:03:37.346', NULL, NULL, NULL, NULL, NULL),
 	(154, 46, 'SKU-1769144617343-33-M', 475000.00, 570000.00, NULL, 82, 1, '2026-01-23 05:03:37.348', '2026-01-23 05:03:37.348', NULL, NULL, NULL, NULL, NULL),
 	(155, 46, 'SKU-1769144617343-33-L', 475000.00, 570000.00, NULL, 17, 1, '2026-01-23 05:03:37.349', '2026-01-23 05:03:37.349', NULL, NULL, NULL, NULL, NULL),
@@ -1601,18 +1808,18 @@ INSERT INTO `product_variants` (`id`, `product_id`, `variant_sku`, `price`, `com
 	(178, 52, 'SKU-1769144617384-39-M', 62000.00, 74400.00, NULL, 65, 1, '2026-01-23 05:03:37.387', '2026-01-23 05:03:37.387', NULL, NULL, NULL, NULL, NULL),
 	(179, 52, 'SKU-1769144617384-39-L', 62000.00, 74400.00, NULL, 20, 1, '2026-01-23 05:03:37.388', '2026-01-23 05:03:37.388', NULL, NULL, NULL, NULL, NULL),
 	(180, 52, 'SKU-1769144617384-39-XL', 62000.00, 74400.00, NULL, 83, 1, '2026-01-23 05:03:37.390', '2026-01-23 05:03:37.390', NULL, NULL, NULL, NULL, NULL),
-	(181, 53, 'SKU-1769144617390-40-S', 286000.00, 343200.00, NULL, 40, 1, '2026-01-23 05:03:37.393', '2026-01-23 05:03:37.393', NULL, NULL, NULL, NULL, NULL),
-	(182, 53, 'SKU-1769144617390-40-M', 286000.00, 343200.00, NULL, 87, 1, '2026-01-23 05:03:37.394', '2026-01-23 05:03:37.394', NULL, NULL, NULL, NULL, NULL),
-	(183, 53, 'SKU-1769144617390-40-L', 286000.00, 343200.00, NULL, 55, 1, '2026-01-23 05:03:37.395', '2026-01-23 05:03:37.395', NULL, NULL, NULL, NULL, NULL),
-	(184, 53, 'SKU-1769144617390-40-XL', 286000.00, 343200.00, NULL, 54, 1, '2026-01-23 05:03:37.396', '2026-01-23 05:03:37.396', NULL, NULL, NULL, NULL, NULL),
+	(181, 53, 'SKU-1769144617390-40-S', 286000.00, 343200.00, NULL, 40, 1, '2026-01-23 05:03:37.393', '2026-02-15 15:01:23.290', NULL, NULL, NULL, NULL, NULL),
+	(182, 53, 'SKU-1769144617390-40-M', 286000.00, 343200.00, NULL, 87, 1, '2026-01-23 05:03:37.394', '2026-02-15 15:01:23.293', NULL, NULL, NULL, NULL, NULL),
+	(183, 53, 'SKU-1769144617390-40-L', 286000.00, 343200.00, NULL, 55, 1, '2026-01-23 05:03:37.395', '2026-02-15 15:01:23.295', NULL, NULL, NULL, NULL, NULL),
+	(184, 53, 'SKU-1769144617390-40-XL', 286000.00, 343200.00, NULL, 54, 1, '2026-01-23 05:03:37.396', '2026-02-15 15:01:23.297', NULL, NULL, NULL, NULL, NULL),
 	(185, 54, 'SKU-1769144617397-41-S', 164000.00, 196800.00, NULL, 39, 1, '2026-01-23 05:03:37.399', '2026-01-23 05:03:37.399', NULL, NULL, NULL, NULL, NULL),
 	(186, 54, 'SKU-1769144617397-41-M', 164000.00, 196800.00, NULL, 20, 1, '2026-01-23 05:03:37.401', '2026-01-23 05:03:37.401', NULL, NULL, NULL, NULL, NULL),
 	(187, 54, 'SKU-1769144617397-41-L', 164000.00, 196800.00, NULL, 92, 1, '2026-01-23 05:03:37.402', '2026-01-23 05:03:37.402', NULL, NULL, NULL, NULL, NULL),
 	(188, 54, 'SKU-1769144617397-41-XL', 164000.00, 196800.00, NULL, 35, 1, '2026-01-23 05:03:37.403', '2026-01-23 05:03:37.403', NULL, NULL, NULL, NULL, NULL),
-	(189, 55, 'SKU-1769144617404-42-S', 384000.00, 460800.00, NULL, 60, 1, '2026-01-23 05:03:37.406', '2026-01-23 05:03:37.406', NULL, NULL, NULL, NULL, NULL),
-	(190, 55, 'SKU-1769144617404-42-M', 384000.00, 460800.00, NULL, 92, 1, '2026-01-23 05:03:37.407', '2026-01-23 05:03:37.407', NULL, NULL, NULL, NULL, NULL),
-	(191, 55, 'SKU-1769144617404-42-L', 384000.00, 460800.00, NULL, 24, 1, '2026-01-23 05:03:37.408', '2026-01-23 05:03:37.408', NULL, NULL, NULL, NULL, NULL),
-	(192, 55, 'SKU-1769144617404-42-XL', 384000.00, 460800.00, NULL, 99, 1, '2026-01-23 05:03:37.409', '2026-01-23 05:03:37.409', NULL, NULL, NULL, NULL, NULL),
+	(189, 55, 'SKU-1769144617404-42-S', 384000.00, 460800.00, NULL, 60, 1, '2026-01-23 05:03:37.406', '2026-02-15 14:58:17.529', NULL, NULL, NULL, NULL, NULL),
+	(190, 55, 'SKU-1769144617404-42-M', 384000.00, 460800.00, NULL, 92, 1, '2026-01-23 05:03:37.407', '2026-02-15 14:58:17.534', NULL, NULL, NULL, NULL, NULL),
+	(191, 55, 'SKU-1769144617404-42-L', 384000.00, 460800.00, NULL, 24, 1, '2026-01-23 05:03:37.408', '2026-02-15 14:58:17.538', NULL, NULL, NULL, NULL, NULL),
+	(192, 55, 'SKU-1769144617404-42-XL', 384000.00, 460800.00, NULL, 99, 1, '2026-01-23 05:03:37.409', '2026-02-15 14:58:17.541', NULL, NULL, NULL, NULL, NULL),
 	(193, 56, 'SKU-1769144617410-43-S', 350000.00, 420000.00, NULL, 55, 1, '2026-01-23 05:03:37.412', '2026-01-23 05:03:37.412', NULL, NULL, NULL, NULL, NULL),
 	(194, 56, 'SKU-1769144617410-43-M', 350000.00, 420000.00, NULL, 31, 1, '2026-01-23 05:03:37.413', '2026-01-23 05:03:37.413', NULL, NULL, NULL, NULL, NULL),
 	(195, 56, 'SKU-1769144617410-43-L', 350000.00, 420000.00, NULL, 25, 1, '2026-01-23 05:03:37.414', '2026-01-23 05:03:37.414', NULL, NULL, NULL, NULL, NULL),
@@ -1633,14 +1840,22 @@ INSERT INTO `product_variants` (`id`, `product_id`, `variant_sku`, `price`, `com
 	(210, 60, 'SKU-1769144617433-47-M', 70000.00, 84000.00, NULL, 62, 1, '2026-01-23 05:03:37.436', '2026-01-23 05:03:37.436', NULL, NULL, NULL, NULL, NULL),
 	(211, 60, 'SKU-1769144617433-47-L', 70000.00, 84000.00, NULL, 71, 1, '2026-01-23 05:03:37.437', '2026-01-23 05:03:37.437', NULL, NULL, NULL, NULL, NULL),
 	(212, 60, 'SKU-1769144617433-47-XL', 70000.00, 84000.00, NULL, 21, 1, '2026-01-23 05:03:37.437', '2026-01-23 05:03:37.437', NULL, NULL, NULL, NULL, NULL),
-	(213, 61, 'SKU-1769144617438-48-S', 435000.00, 522000.00, NULL, 93, 1, '2026-01-23 05:03:37.441', '2026-01-23 05:03:37.441', NULL, NULL, NULL, NULL, NULL),
-	(214, 61, 'SKU-1769144617438-48-M', 435000.00, 522000.00, NULL, 63, 1, '2026-01-23 05:03:37.443', '2026-01-23 05:03:37.443', NULL, NULL, NULL, NULL, NULL),
-	(215, 61, 'SKU-1769144617438-48-L', 435000.00, 522000.00, NULL, 38, 1, '2026-01-23 05:03:37.444', '2026-01-23 05:03:37.444', NULL, NULL, NULL, NULL, NULL),
-	(216, 61, 'SKU-1769144617438-48-XL', 435000.00, 522000.00, NULL, 41, 1, '2026-01-23 05:03:37.445', '2026-01-23 05:03:37.445', NULL, NULL, NULL, NULL, NULL),
-	(217, 62, 'SKU-1769144617446-49-S', 183000.00, 219600.00, NULL, 40, 1, '2026-01-23 05:03:37.448', '2026-01-23 05:03:37.448', NULL, NULL, NULL, NULL, NULL),
-	(218, 62, 'SKU-1769144617446-49-M', 183000.00, 219600.00, NULL, 49, 1, '2026-01-23 05:03:37.449', '2026-01-23 05:03:37.449', NULL, NULL, NULL, NULL, NULL),
-	(219, 62, 'SKU-1769144617446-49-L', 183000.00, 219600.00, NULL, 100, 1, '2026-01-23 05:03:37.450', '2026-01-23 05:03:37.450', NULL, NULL, NULL, NULL, NULL),
-	(220, 62, 'SKU-1769144617446-49-XL', 183000.00, 219600.00, NULL, 66, 1, '2026-01-23 05:03:37.451', '2026-01-23 05:03:37.451', NULL, NULL, NULL, NULL, NULL);
+	(213, 61, 'SKU-1769144617438-48-S', 435000.00, 522000.00, NULL, 93, 1, '2026-01-23 05:03:37.441', '2026-02-15 15:00:41.504', NULL, NULL, NULL, NULL, NULL),
+	(214, 61, 'SKU-1769144617438-48-M', 435000.00, 522000.00, NULL, 63, 1, '2026-01-23 05:03:37.443', '2026-02-15 15:00:41.507', NULL, NULL, NULL, NULL, NULL),
+	(215, 61, 'SKU-1769144617438-48-L', 435000.00, 522000.00, NULL, 38, 1, '2026-01-23 05:03:37.444', '2026-02-15 15:00:41.508', NULL, NULL, NULL, NULL, NULL),
+	(216, 61, 'SKU-1769144617438-48-XL', 435000.00, 522000.00, NULL, 41, 1, '2026-01-23 05:03:37.445', '2026-02-15 15:00:41.511', NULL, NULL, NULL, NULL, NULL),
+	(217, 62, 'SKU-1769144617446-49-S', 183000.00, 219600.00, NULL, 40, 1, '2026-01-23 05:03:37.448', '2026-02-15 14:59:42.764', NULL, NULL, NULL, NULL, NULL),
+	(218, 62, 'SKU-1769144617446-49-M', 183000.00, 219600.00, NULL, 49, 1, '2026-01-23 05:03:37.449', '2026-02-15 14:59:42.766', NULL, NULL, NULL, NULL, NULL),
+	(219, 62, 'SKU-1769144617446-49-L', 183000.00, 219600.00, NULL, 100, 1, '2026-01-23 05:03:37.450', '2026-02-15 14:59:42.768', NULL, NULL, NULL, NULL, NULL),
+	(220, 62, 'SKU-1769144617446-49-XL', 183000.00, 219600.00, NULL, 66, 1, '2026-01-23 05:03:37.451', '2026-02-15 14:59:42.770', NULL, NULL, NULL, NULL, NULL),
+	(231, 1, 'SKU-EH6UJZ', 75000.00, NULL, NULL, 20, 1, '2026-02-11 09:01:47.741', '2026-02-15 14:18:23.849', NULL, NULL, NULL, NULL, NULL),
+	(232, 1, 'SKU-YWTRLS', 75000.00, NULL, NULL, 6, 1, '2026-02-11 09:01:47.744', '2026-02-15 14:18:23.855', NULL, NULL, NULL, NULL, NULL),
+	(233, 1, 'SKU-CRK3FH', 75000.00, NULL, NULL, 2, 1, '2026-02-11 09:01:47.747', '2026-02-15 14:18:23.860', NULL, NULL, NULL, NULL, NULL),
+	(234, 1, 'SKU-US63ZB', 75000.00, NULL, NULL, 12, 1, '2026-02-11 09:01:47.749', '2026-02-15 14:18:23.865', NULL, NULL, NULL, NULL, NULL),
+	(235, 1, 'SKU-DSJY3A', 75000.00, NULL, NULL, 24, 1, '2026-02-11 09:01:47.751', '2026-02-15 14:18:23.870', NULL, NULL, NULL, NULL, NULL),
+	(236, 1, 'SKU-IDQWF4', 75000.00, NULL, NULL, 32, 1, '2026-02-11 09:01:47.754', '2026-02-15 14:18:23.875', NULL, NULL, NULL, NULL, NULL),
+	(237, 1, 'SKU-60BU0M', 75000.00, NULL, NULL, 19, 1, '2026-02-11 09:01:47.756', '2026-02-15 14:18:23.880', NULL, NULL, NULL, NULL, NULL),
+	(238, 1, 'SKU-TDNZL3', 75000.00, NULL, NULL, 18, 1, '2026-02-11 09:01:47.759', '2026-02-15 14:18:23.886', NULL, NULL, NULL, NULL, NULL);
 
 -- Dumping structure for table fashion_store.settings
 DROP TABLE IF EXISTS `settings`;
@@ -1653,31 +1868,31 @@ CREATE TABLE IF NOT EXISTS `settings` (
 
 -- Dumping data for table fashion_store.settings: ~25 rows (approximately)
 INSERT INTO `settings` (`key`, `value`, `updated_at`) VALUES
-	('google_client_id', '', '2026-02-06 00:50:41.000'),
-	('legal_entity_name', '', '2026-02-06 00:50:41.000'),
-	('maintenance_mode', 'false', '2026-02-06 00:50:41.000'),
-	('payment_bank_account', '0935818922', '2026-02-06 00:50:41.000'),
-	('payment_bank_account_name', 'TONG VAN HOANG', '2026-02-06 00:50:41.000'),
-	('payment_bank_enabled', 'true', '2026-02-06 00:50:41.000'),
-	('payment_bank_id', 'MBank', '2026-02-06 00:50:41.000'),
-	('payment_bank_info', 'Ngân hàng: MB Bank\nSTK: 0935818922\nChủ TK: TONG VAN HOANG\nNội dung: [Mã đơn hàng]', '2026-02-06 00:50:41.000'),
-	('payment_cod_enabled', 'true', '2026-02-06 00:50:41.000'),
-	('payment_momo_enabled', 'true', '2026-02-06 00:50:41.000'),
-	('payment_momo_qrcode', '', '2026-02-06 00:50:41.000'),
-	('payment_vnpay_enabled', 'false', '2026-02-06 00:50:41.000'),
-	('payment_vnpay_hash_secret', '123', '2026-02-06 00:50:41.000'),
-	('payment_vnpay_tmn_code', 'hoang', '2026-02-06 00:50:41.000'),
-	('payment_vnpay_url', '', '2026-02-06 00:50:41.000'),
-	('physical_address', '', '2026-02-06 00:50:41.000'),
-	('seo_indexing', 'false', '2026-02-06 00:50:41.000'),
-	('shipping_free_threshold', '500000', '2026-02-06 00:50:41.000'),
-	('shipping_max_days', '5', '2026-02-06 00:50:41.000'),
-	('shipping_min_days', '3', '2026-02-06 00:50:41.000'),
-	('shipping_standard_fee', '30000', '2026-02-06 00:50:41.000'),
-	('store_logo', '/uploads/logo-1770285092759-877006750.png', '2026-02-06 00:50:41.000'),
-	('store_name', 'Fashion Store', '2026-02-06 00:50:41.000'),
-	('support_email', 'FashionStore@gmail.com', '2026-02-06 00:50:41.000'),
-	('support_phone', '0935818000', '2026-02-06 00:50:41.000');
+	('google_client_id', '', '2026-02-11 13:53:35.000'),
+	('legal_entity_name', '', '2026-02-11 13:53:35.000'),
+	('maintenance_mode', 'false', '2026-02-11 13:53:35.000'),
+	('payment_bank_account', '0935818922', '2026-02-11 13:53:35.000'),
+	('payment_bank_account_name', 'TONG VAN HOANG', '2026-02-11 13:53:35.000'),
+	('payment_bank_enabled', 'true', '2026-02-11 13:53:35.000'),
+	('payment_bank_id', 'MBank', '2026-02-11 13:53:35.000'),
+	('payment_bank_info', 'Ngân hàng: MB Bank\nSTK: 0935818922\nChủ TK: TONG VAN HOANG\nNội dung: [Mã đơn hàng]', '2026-02-11 13:53:35.000'),
+	('payment_cod_enabled', 'true', '2026-02-11 13:53:35.000'),
+	('payment_momo_enabled', 'true', '2026-02-11 13:53:35.000'),
+	('payment_momo_qrcode', '', '2026-02-11 13:53:35.000'),
+	('payment_vnpay_enabled', 'false', '2026-02-11 13:53:35.000'),
+	('payment_vnpay_hash_secret', '123', '2026-02-11 13:53:35.000'),
+	('payment_vnpay_tmn_code', 'hoang', '2026-02-11 13:53:35.000'),
+	('payment_vnpay_url', '', '2026-02-11 13:53:35.000'),
+	('physical_address', '', '2026-02-11 13:53:35.000'),
+	('seo_indexing', 'false', '2026-02-11 13:53:35.000'),
+	('shipping_free_threshold', '500000', '2026-02-11 13:53:35.000'),
+	('shipping_max_days', '5', '2026-02-11 13:53:35.000'),
+	('shipping_min_days', '3', '2026-02-11 13:53:35.000'),
+	('shipping_standard_fee', '30000', '2026-02-11 13:53:35.000'),
+	('store_logo', '/uploads/logo-1770285092759-877006750.png', '2026-02-11 13:53:35.000'),
+	('store_name', 'Fashion Store', '2026-02-11 13:53:35.000'),
+	('support_email', 'FashionStore@gmail.com', '2026-02-11 13:53:35.000'),
+	('support_phone', '0935818000', '2026-02-11 13:53:35.000');
 
 -- Dumping structure for table fashion_store.shipments
 DROP TABLE IF EXISTS `shipments`;
@@ -1693,9 +1908,9 @@ CREATE TABLE IF NOT EXISTS `shipments` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `shipments_order_id_key` (`order_id`),
   CONSTRAINT `shipments_order_id_fkey` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.shipments: ~29 rows (approximately)
+-- Dumping data for table fashion_store.shipments: ~33 rows (approximately)
 INSERT INTO `shipments` (`id`, `order_id`, `carrier`, `tracking_code`, `status`, `shipped_at`, `delivered_at`, `created_at`) VALUES
 	(4, 122, NULL, NULL, 'pending', NULL, NULL, '2026-01-23 16:55:08.737'),
 	(5, 123, NULL, NULL, 'pending', NULL, NULL, '2026-01-26 03:54:22.044'),
@@ -1725,7 +1940,13 @@ INSERT INTO `shipments` (`id`, `order_id`, `carrier`, `tracking_code`, `status`,
 	(29, 147, NULL, NULL, 'pending', NULL, NULL, '2026-02-05 08:39:36.141'),
 	(30, 148, NULL, NULL, 'pending', NULL, NULL, '2026-02-05 17:51:11.568'),
 	(31, 149, NULL, NULL, 'pending', NULL, NULL, '2026-02-05 18:27:31.690'),
-	(32, 150, NULL, NULL, 'pending', NULL, NULL, '2026-02-05 18:33:09.236');
+	(32, 150, NULL, NULL, 'pending', NULL, NULL, '2026-02-05 18:33:09.236'),
+	(33, 151, NULL, NULL, 'pending', NULL, NULL, '2026-02-11 03:52:25.698'),
+	(34, 152, NULL, NULL, 'pending', NULL, NULL, '2026-02-11 04:03:05.536'),
+	(35, 153, NULL, NULL, 'pending', NULL, NULL, '2026-02-11 04:12:24.884'),
+	(36, 154, NULL, NULL, 'pending', NULL, NULL, '2026-02-11 04:17:40.815'),
+	(44, 162, NULL, NULL, 'delivered', NULL, '2026-02-11 08:25:59.730', '2026-02-11 06:17:04.149'),
+	(45, 163, NULL, NULL, 'delivered', '2026-02-11 08:24:59.565', '2026-02-11 08:25:52.815', '2026-02-11 06:21:30.818');
 
 -- Dumping structure for table fashion_store.shipping_addresses
 DROP TABLE IF EXISTS `shipping_addresses`;
@@ -1747,12 +1968,9 @@ CREATE TABLE IF NOT EXISTS `shipping_addresses` (
   PRIMARY KEY (`id`),
   KEY `idx_addr_user` (`user_id`),
   CONSTRAINT `shipping_addresses_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.shipping_addresses: ~2 rows (approximately)
-INSERT INTO `shipping_addresses` (`id`, `user_id`, `full_name`, `phone`, `address_line1`, `address_line2`, `city`, `province`, `country`, `postal_code`, `is_default`, `type`, `created_at`, `updated_at`) VALUES
-	(1, 59, 'Hoang customer', '0935818725', '321', NULL, '321', '123', 'VN', NULL, 1, 'Nhà riêng', '2026-01-29 08:12:58.937', '2026-01-29 09:29:21.083'),
-	(2, 59, 'bla', '0935818725', '321', NULL, '111', '111', 'VN', NULL, 0, 'Văn phòng', '2026-01-29 08:13:06.712', '2026-01-29 09:29:21.083');
+-- Dumping data for table fashion_store.shipping_addresses: ~1 rows (approximately)
 
 -- Dumping structure for table fashion_store.shipping_methods
 DROP TABLE IF EXISTS `shipping_methods`;
@@ -1806,15 +2024,15 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `users_google_id_key` (`google_id`),
   KEY `idx_users_role` (`role`),
   CONSTRAINT `users_role_fkey` FOREIGN KEY (`role`) REFERENCES `permissions` (`name`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.users: ~57 rows (approximately)
+-- Dumping data for table fashion_store.users: ~77 rows (approximately)
 INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `full_name`, `phone`, `role`, `status`, `created_at`, `updated_at`, `address_line1`, `address_line2`, `city`, `country`, `province`, `avatar_url`, `google_id`, `two_factor_enabled`, `two_factor_expires`, `two_factor_otp`) VALUES
 	(2, 'khanh', 'khanh@example.com', '$2a$10$samplehashsamplehashsamplehashsamplehashsamplehashsampl', 'Khánh', '0900000002', 'customer', 'active', '2025-12-13 21:29:23.000', '2026-02-01 06:38:37.959', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 1, NULL, NULL),
 	(3, 'minh', 'minh@example.com', '$2a$10$samplehashsamplehashsamplehashsamplehashsamplehashsampl', 'Minh', '0900000003', 'customer', 'active', '2025-12-13 21:29:23.000', NULL, NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
 	(4, 'linh', 'linh@example.com', '$2a$10$samplehashsamplehashsamplehashsamplehashsamplehashsampl', 'Linh', '0900000004', 'customer', 'active', '2025-12-13 21:29:23.000', NULL, NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
 	(5, 'tuan_dev', 'tuan@example.com', '$2a$10$samplehashsamplehashsamplehashsamplehashsamplehashsampl', 'Tuấn Dev', '0900000005', 'customer', 'active', '2025-12-23 10:00:00.000', NULL, NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(6, 'hoang', 'hoang@gmail.com', '$2a$10$Tj8QmKZIo/T9OYrb2ai0iOhYhJDQpq6XdBQyjARjAZq7C8pH2C8UO', 'Hoang ADMIN', '', 'admin', 'active', '2026-01-22 13:54:42.000', '2026-01-23 17:40:10.731', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(6, 'hoang', 'hoang@gmail.com', '$2a$10$d6JltjvGJURdNiC0A/GB2.V63XGQAJJbHzJizNkgEdm4UHaTWU3OC', 'Hoang ADMIN', '', 'admin', 'active', '2026-01-22 13:54:42.000', '2026-02-11 05:54:06.583', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
 	(7, 'user_1_7041', 'long1@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Nguyễn Long', '0934656327', 'customer', 'active', '2025-06-20 23:51:22.981', '2026-01-23 07:56:07.444', '12 Võ Văn Tần', 'Thủ Đức', 'Quận 1', 'VN', 'Đà Nẵng', NULL, NULL, 0, NULL, NULL),
 	(8, 'user_2_7041', 'mai2@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hồ Mai', '0819860543', 'customer', 'blocked', '2025-09-15 23:53:23.507', '2026-01-23 07:56:01.720', '398 Võ Văn Tần', 'Phú Nhuận', 'Đống Đa', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL),
 	(9, 'user_3_7041', 'lan3@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Lê Lan', '0984518917', 'customer', 'active', '2025-09-25 03:03:45.630', '2026-01-23 05:03:37.052', '489 Điện Biên Phủ', 'Tân Bình', 'Đống Đa', 'VN', 'TP.HCM', NULL, NULL, 0, NULL, NULL),
@@ -1865,8 +2083,28 @@ INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `full_name`, `p
 	(54, 'user_48_7042', 'duc48@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Bùi Đức', '0987366364', 'customer', 'active', '2025-10-12 17:29:34.208', '2026-01-23 05:03:37.052', '460 Pasteur', 'Phú Nhuận', 'Cầu Giấy', 'VN', 'TP.HCM', NULL, NULL, 0, NULL, NULL),
 	(55, 'user_49_7042', 'hung49@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Ngô Hùng', '0819943586', 'customer', 'active', '2025-04-28 14:14:05.631', '2026-01-23 05:03:37.052', '438 Nam Kỳ Khởi Nghĩa', 'Đống Đa', 'Bình Thạnh', 'VN', 'Hải Phòng', NULL, NULL, 0, NULL, NULL),
 	(56, 'user_50_7042', 'ha50@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Võ Hà', '0852308122', 'customer', 'active', '2025-04-20 18:03:45.701', '2026-01-23 05:03:37.052', '299 Pasteur', 'Tân Bình', 'Phú Nhuận', 'VN', 'Huế', NULL, NULL, 0, NULL, NULL),
-	(59, 'hoang1', 'hoangdra2004@gmail.com', '$2a$10$AzTRIS.cGb6JaQsZDPeRUeZAp9gGHDwFY3tjDBrYYWhWmDuLu4DqO', 'Hoang customer', '0935818725', 'staff', 'active', '2026-01-26 04:19:43.878', '2026-02-05 18:13:12.872', '321', NULL, '321', 'VN', '123', NULL, NULL, 0, NULL, NULL),
-	(60, 'tongvanhoang782004', 'tongvanhoang782004@gmail.com', NULL, 'Tống Văn Hoàng', '', 'customer', 'active', '2026-01-29 10:03:09.596', '2026-02-06 04:01:26.967', '', NULL, '', 'VN', '', 'http://localhost:4000/uploads/1769687593335-248426637.jpg', '113035088560920067892', 0, NULL, NULL);
+	(60, 'tongvanhoang782004', 'tongvanhoang782004@gmail.com', NULL, 'Tống Văn Hoàng', '', 'customer', 'active', '2026-01-29 10:03:09.596', '2026-02-06 04:01:26.967', '', NULL, '', 'VN', '', 'http://localhost:4000/uploads/1769687593335-248426637.jpg', '113035088560920067892', 0, NULL, NULL),
+	(66, 'qa_admin_1770784498046', 'qa_admin_1770784498046@example.com', '$2a$10$8kj61XTltIipIldAmsIPl.63thrhSRQj3WH1KBnXIJREC4mmuwLi.', 'QA Admin User', '', 'admin', 'active', '2026-02-11 04:34:58.176', '2026-02-15 13:25:36.811', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(69, 'debug_admin_1770784558699', 'debug_admin_1770784558699@example.com', '$2a$10$iOM6xRCFnjW/5FxN.uoVQe.kP948QYJ/lZssXUqjxSlOpEkViPsHa', 'Debug Admin', '', 'admin', 'active', '2026-02-11 04:35:59.423', '2026-02-11 05:36:53.585', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(70, 'qa_admin_1770784609098', 'qa_admin_1770784609098@example.com', '$2a$10$5E9WsLfDZMKm0uXp7ikENOroCcXObdbIt/Fgxak0tmfhAGDRsTtPe', 'QA Admin User', '', 'admin', 'active', '2026-02-11 04:36:49.225', '2026-02-11 05:34:08.211', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(72, 'qa_admin_1770784637750', 'qa_admin_1770784637750@example.com', '$2a$10$mzHPa5VJUmU3oENPxPaMAeEkHWwPkkV3z/PNuQJ6cu1ZuXEoXf3/K', 'QA Admin User', NULL, 'admin', 'active', '2026-02-11 04:37:17.915', '2026-02-11 04:37:17.944', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(74, 'qa_admin_1770784702225', 'qa_admin_1770784702225@example.com', '$2a$10$paEy6Z1rynfWrPM.CE3IOejkb/75cQ2jFxH6t6qYai6DNvq9qMOc.', 'QA Admin User', NULL, 'admin', 'active', '2026-02-11 04:38:22.422', '2026-02-11 04:38:22.439', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(76, 'qa_admin_1770784726616', 'qa_admin_1770784726616@example.com', '$2a$10$pWPoaimgiRgwRtoB3W3gEe5hZGahWguf2g8TuuEcL36lFLmdx6Tny', 'QA Admin User', NULL, 'admin', 'active', '2026-02-11 04:38:46.811', '2026-02-11 04:38:46.839', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(78, 'phuc', '123@gmail.com', '$2a$10$v2xzLMiQVN20nCnwXe.FzuxXkAreIprDiPWQFubtzH/1doiPoIMNy', 'Phúc Staff', '', 'admin', 'active', '2026-02-11 04:47:57.735', '2026-02-11 04:53:05.365', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(79, 'admin_a_1770785413267', 'admin_a_1770785413267@ex.com', '$2a$10$tQzdPFuTceW7GiwLfg8s5uMOx1GxXxJVtnwqqXNFczpQ4axkq9.vm', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:50:13.397', '2026-02-11 04:50:13.414', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(80, 'admin_b_1770785413267', 'admin_b_1770785413267@ex.com', '$2a$10$jHAyrAv5VnD/0Kq4bGFKMO3WtGyjNw3O8dCftb4XlTtrl7CnoYtYW', 'Admin B', NULL, 'customer', 'active', '2026-02-11 04:50:13.497', '2026-02-11 04:50:13.511', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(81, 'admin_a_1770785444081', 'admin_a_1770785444081@ex.com', '$2a$10$cNjBwEoCk0cUOYcc.mg0huXXhFOXlMPBxAYJOmK9j9zIghB5fbS5.', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:50:44.264', '2026-02-11 04:50:44.284', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(82, 'admin_b_1770785444081', 'admin_b_1770785444081@ex.com', '$2a$10$kGkssThfFJAlRDVNOezj9u1F4YWiPOe2BkQf5x.smewbYqaebLC0e', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:50:44.372', '2026-02-11 04:50:44.378', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(83, 'admin_a_1770785461674', 'admin_a_1770785461674@ex.com', '$2a$10$YCwaPye1zbIYXfqkhnJzaes8BcYLbMD/L46vNsB2pgGHOfExmmtJy', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:51:01.804', '2026-02-11 04:51:01.817', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(84, 'admin_b_1770785461674', 'admin_b_1770785461674@ex.com', '$2a$10$d2FbRt6WHgu1zIFgkmhH8e8mxdRH6CaPEBTg6CRPEDHB2kqNrveqK', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:51:01.904', '2026-02-11 04:51:01.910', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(85, 'cust_c_1770785461919', 'cust_c_1770785461919@ex.com', '$2a$10$bE4gQn0ZrBNmrWRROnLjiecg81km/le5wiQU46EfWDahwdZXj4Rbe', 'Customer C UPDATED', NULL, 'customer', 'active', '2026-02-11 04:51:02.003', '2026-02-11 04:51:02.015', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(86, 'admin_a_1770785746664', 'admin_a_1770785746664@ex.com', '$2a$10$a57hNmw/tRb6W2untrCdb..sN01mPWt7QxdV3QX7lvKgUgqRVFLIK', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:55:46.796', '2026-02-11 04:55:46.810', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(87, 'admin_b_1770785746664', 'admin_b_1770785746664@ex.com', '$2a$10$oohWGTVnPCXtkJ.aJH3fTex8QWGsNlQtU4k1QrzNRkvNcG/RD5lCe', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:55:46.923', '2026-02-11 04:55:46.934', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(88, 'admin_a_1770785805640', 'admin_a_1770785805640@ex.com', '$2a$10$qDhFBgrol2QzUZQrjbEiie1Zvd9F5aFpNmyIuyvAm1pcK61mroZhC', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:56:45.777', '2026-02-11 04:56:45.805', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(89, 'admin_b_1770785805640', 'admin_b_1770785805640@ex.com', '$2a$10$CANn2t8BLadhaWAudA1GwufrXJ9Mb7/zBwiQACxg2seuASpTWDxXC', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:56:45.893', '2026-02-11 04:56:45.898', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(90, 'admin_a_1770785862197', 'admin_a_1770785862197@ex.com', '$2a$10$hIJZy.etCKDxHsk8HcxQ..2nYej4pIjnqjQI3UBlm3GXne.hc.4p2', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:57:42.387', '2026-02-11 04:57:42.407', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(91, 'admin_b_1770785862197', 'admin_b_1770785862197@ex.com', '$2a$10$anN4NFV/8BMfLbbM/dKsJOnB8pp6lJmZaGRvSKRPA18/TJBoOUDum', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:57:42.492', '2026-02-11 04:57:42.499', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
+	(92, 'manager_d_1770785862510', 'manager_d_1770785862510@ex.com', '$2a$10$oWJxYKKHwnqr5VuEbeTyr.0hVjn7iYMz.0B9r35fg13jn4gnGsy6e', 'Manager D', NULL, 'manager', 'active', '2026-02-11 04:57:42.586', '2026-02-11 04:57:42.592', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL);
 
 -- Dumping structure for table fashion_store.variant_option_values
 DROP TABLE IF EXISTS `variant_option_values`;
@@ -1879,11 +2117,9 @@ CREATE TABLE IF NOT EXISTS `variant_option_values` (
   CONSTRAINT `variant_option_values_variant_id_fkey` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.variant_option_values: ~14 rows (approximately)
+-- Dumping data for table fashion_store.variant_option_values: ~28 rows (approximately)
 INSERT INTO `variant_option_values` (`variant_id`, `option_value_id`) VALUES
-	(1, 1),
 	(1, 6),
-	(2, 2),
 	(2, 7),
 	(3, 1),
 	(3, 6),
@@ -1894,7 +2130,23 @@ INSERT INTO `variant_option_values` (`variant_id`, `option_value_id`) VALUES
 	(16, 1),
 	(16, 11),
 	(20, 2),
-	(20, 9);
+	(20, 9),
+	(231, 10),
+	(231, 68),
+	(232, 10),
+	(232, 69),
+	(233, 11),
+	(233, 68),
+	(234, 11),
+	(234, 69),
+	(235, 12),
+	(235, 68),
+	(236, 12),
+	(236, 69),
+	(237, 13),
+	(237, 68),
+	(238, 13),
+	(238, 69);
 
 -- Dumping structure for table fashion_store.wishlists
 DROP TABLE IF EXISTS `wishlists`;
@@ -1905,13 +2157,13 @@ CREATE TABLE IF NOT EXISTS `wishlists` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `wishlists_user_id_key` (`user_id`),
   CONSTRAINT `wishlists_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.wishlists: ~2 rows (approximately)
+-- Dumping data for table fashion_store.wishlists: ~3 rows (approximately)
 INSERT INTO `wishlists` (`id`, `user_id`, `created_at`) VALUES
 	(3, 6, '2026-01-24 07:19:09.579'),
-	(4, 59, '2026-01-26 04:19:44.030'),
-	(5, 60, '2026-01-29 10:03:09.707');
+	(5, 60, '2026-01-29 10:03:09.707'),
+	(6, 78, '2026-02-11 04:53:12.246');
 
 -- Dumping structure for table fashion_store.wishlist_items
 DROP TABLE IF EXISTS `wishlist_items`;
@@ -1925,13 +2177,13 @@ CREATE TABLE IF NOT EXISTS `wishlist_items` (
   KEY `idx_wl_product` (`product_id`),
   CONSTRAINT `wishlist_items_product_id_fkey` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `wishlist_items_wishlist_id_fkey` FOREIGN KEY (`wishlist_id`) REFERENCES `wishlists` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table fashion_store.wishlist_items: ~3 rows (approximately)
 INSERT INTO `wishlist_items` (`id`, `wishlist_id`, `product_id`, `created_at`) VALUES
-	(7, 4, 2, '2026-01-29 07:27:48.413'),
-	(8, 4, 3, '2026-01-29 07:29:04.310'),
-	(12, 5, 1, '2026-01-29 12:10:24.242');
+	(12, 5, 1, '2026-01-29 12:10:24.242'),
+	(14, 3, 1, '2026-02-17 09:56:08.903'),
+	(15, 3, 2, '2026-02-17 09:56:26.248');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
