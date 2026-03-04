@@ -5,6 +5,7 @@ import { AuthRequest } from '../middlewares/auth.middleware.js';
 import { createProductSchema, updateProductSchema } from '../validators/product.validator.js';
 import { Prisma } from '@prisma/client';
 import { logActivity } from '../services/logger.service.js';
+import { deepDiff, createDeleteSnapshot } from '../utils/deepDiff.js';
 import { getIO } from '../socket.js';
 
 // Helper to convert BigInt to string for JSON serialization
@@ -14,17 +15,8 @@ const serialize = (data: any) => {
   ));
 };
 
-// Helper to get diff between two objects
-const getDiff = (oldData: any, newData: any) => {
-  const diff: any = {};
-  Object.keys(newData).forEach(key => {
-    if (key === 'variants' || key === 'images' || key === 'attributes') return; // Skip complex relations for simple diff
-    if (oldData[key] !== undefined && newData[key] !== undefined && oldData[key] != newData[key]) {
-      diff[key] = { from: oldData[key], to: newData[key] };
-    }
-  });
-  return diff;
-};
+// Helper to get diff between two objects (using deepDiff utility)
+const getDiff = deepDiff;
 
 // Generate slug from name
 const generateSlug = (name: string) => {
@@ -481,6 +473,13 @@ export const deleteProduct = async (
       });
     }
 
+    // Snapshot before delete for forensics
+    const productToDelete = await prisma.products.findUnique({
+      where: { id: productId },
+      include: { product_variants: true, category: true }
+    });
+    const snapshot = productToDelete ? createDeleteSnapshot(serialize(productToDelete)) : {};
+
     await prisma.products.delete({
       where: { id: productId }
     });
@@ -490,6 +489,7 @@ export const deleteProduct = async (
       action: 'Xóa sản phẩm',
       entity_type: 'product',
       entity_id: String(id),
+      details: { deleted_data: snapshot },
       ip_address: req.ip,
       user_agent: req.get('User-Agent')
     });
@@ -790,6 +790,9 @@ export const updateCategory = async (
     const { id } = req.params;
     const { name, slug, parent_id, is_active, sort_order } = req.body;
 
+    // Fetch old data for diff
+    const oldCategory = await prisma.categories.findUnique({ where: { id: BigInt(id as string) } });
+
     const category = await prisma.categories.update({
       where: { id: BigInt(id as string) },
       data: {
@@ -801,12 +804,14 @@ export const updateCategory = async (
       }
     });
 
+    const diff = oldCategory ? deepDiff(serialize(oldCategory), serialize(category)) : {};
+
     await logActivity({
       user_id: BigInt(req.user?.id || 0),
       action: 'Cập nhật danh mục',
       entity_type: 'category',
       entity_id: String(id),
-      details: { updates: req.body },
+      details: { diff },
       ip_address: req.ip,
       user_agent: req.get('User-Agent')
     });
@@ -853,6 +858,10 @@ export const deleteCategory = async (
       });
     }
 
+    // Snapshot before delete
+    const catToDelete = await prisma.categories.findUnique({ where: { id: categoryId } });
+    const snapshot = catToDelete ? createDeleteSnapshot(serialize(catToDelete)) : {};
+
     await prisma.categories.delete({
       where: { id: categoryId }
     });
@@ -862,6 +871,7 @@ export const deleteCategory = async (
       action: 'Xóa danh mục',
       entity_type: 'category',
       entity_id: String(id),
+      details: { deleted_data: snapshot },
       ip_address: req.ip,
       user_agent: req.get('User-Agent')
     });
@@ -1030,6 +1040,16 @@ export const createUser = async (
       }
     });
 
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Tạo người dùng',
+      entity_type: 'user',
+      entity_id: String(user.id),
+      details: { email, full_name, role: role || 'customer' },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.status(201).json({
       success: true,
       data: serialize(user)
@@ -1061,6 +1081,16 @@ export const updateUser = async (
     if (province !== undefined) updateData.province = province;
     if (country !== undefined) updateData.country = country;
 
+    // Fetch old data for diff
+    const oldUser = await prisma.users.findUnique({
+      where: { id: BigInt(id as string) },
+      select: {
+        id: true, username: true, email: true, full_name: true, phone: true,
+        role: true, status: true, address_line1: true, address_line2: true,
+        city: true, province: true, country: true, created_at: true
+      }
+    });
+
 // ... inside updateUser ...
     const user = await prisma.users.update({
       where: { id: BigInt(id as string) },
@@ -1080,6 +1110,18 @@ export const updateUser = async (
         country: true,
         created_at: true
       }
+    });
+
+    // Log with old→new diff
+    const diff = oldUser ? deepDiff(serialize(oldUser), serialize(user)) : {};
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Cập nhật người dùng',
+      entity_type: 'user',
+      entity_id: String(id),
+      details: { diff },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
     });
 
     if (status === 'blocked') {
@@ -1471,6 +1513,13 @@ export const deleteUser = async (
         });
     }
 
+    // Snapshot before delete
+    const userToDelete = await prisma.users.findUnique({
+      where: { id: userId },
+      select: { id: true, username: true, email: true, full_name: true, role: true, status: true, created_at: true }
+    });
+    const snapshot = userToDelete ? createDeleteSnapshot(serialize(userToDelete)) : {};
+
     await prisma.users.delete({
       where: { id: userId }
     });
@@ -1480,6 +1529,7 @@ export const deleteUser = async (
       action: 'Xóa người dùng',
       entity_type: 'user',
       entity_id: String(id),
+      details: { deleted_data: snapshot },
       ip_address: req.ip,
       user_agent: req.get('User-Agent')
     });

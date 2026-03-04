@@ -174,6 +174,16 @@ export const login = async (
         token
       }
     });
+
+    // Audit: Log successful login
+    logActivity({
+      user_id: user.id,
+      action: 'Đăng nhập',
+      entity_type: 'auth',
+      details: { method: 'password', username: user.username, role: user.role },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    }).catch(() => {});
   } catch (error) {
     next(error);
   }
@@ -400,6 +410,16 @@ export const googleLogin = async (
         token
       }
     });
+
+    // Audit: Log Google login
+    logActivity({
+      user_id: user.id,
+      action: 'Đăng nhập',
+      entity_type: 'auth',
+      details: { method: 'google', email: user.email, role: user.role },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    }).catch(() => {});
 
   } catch (error) {
     next(error);
