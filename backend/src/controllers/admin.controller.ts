@@ -1188,6 +1188,11 @@ export const getAnalytics = async (
        return res.status(400).json({ success: false, error: { message: 'Invalid date format' } });
     }
 
+    // Previous Period calculation for Trends
+    const durationMs = end.getTime() - start.getTime();
+    const prevStart = new Date(start.getTime() - durationMs);
+    const prevEnd = new Date(start.getTime() - 1);
+
     // 1. Efficient Aggregations (No more findMany all orders)
     
     // Total Revenue & Orders (Strict "Realized" Logic: Paid + Completed)
@@ -1269,6 +1274,21 @@ export const getAnalytics = async (
         }
     });
 
+    // Previous Customer Stats
+    const prevNewCustomers = await prisma.users.count({
+        where: {
+            role: 'customer',
+            created_at: { gte: prevStart, lte: prevEnd }
+        }
+    });
+
+    const recentCustomers = await prisma.users.findMany({
+        where: { role: 'customer' },
+        orderBy: { created_at: 'desc' },
+        take: 5,
+        select: { id: true, full_name: true, status: true, avatar_url: true }
+    });
+
     // 6. Aggregated Category Stats
     // This is tricky without complex joins. We can approximate or use raw query.
     // For safety/speed, let's use raw query again.
@@ -1316,6 +1336,25 @@ export const getAnalytics = async (
     const realizedOrders = revenueStats._count.id || 0;
     const aov = realizedOrders > 0 ? totalRevenue / realizedOrders : 0;
 
+    // Calculate Trends
+    const prevRevenueStats = await prisma.orders.aggregate({
+        where: {
+            created_at: { gte: prevStart, lte: prevEnd },
+            status: { in: ['paid', 'completed'] }
+        },
+        _sum: { grand_total: true }
+    });
+    
+    const prevTotalRevenue = Number(prevRevenueStats._sum.grand_total || 0);
+    const revenueTrend = prevTotalRevenue > 0 ? ((totalRevenue - prevTotalRevenue) / prevTotalRevenue) * 100 : (totalRevenue > 0 ? 100 : 0);
+    
+    // Total Customers trend: (Current Total / Previous Total)
+    const prevTotalCustomers = totalCustomers - newCustomers;
+    const activeCustomersTrend = prevTotalCustomers > 0 ? ((totalCustomers - prevTotalCustomers) / prevTotalCustomers) * 100 : (totalCustomers > 0 ? 100 : 0);
+    
+    // New Customers Trend
+    const newCustomersTrend = prevNewCustomers > 0 ? ((newCustomers - prevNewCustomers) / prevNewCustomers) * 100 : (newCustomers > 0 ? 100 : 0);
+
     res.json({
       success: true,
       data: serialize({
@@ -1325,7 +1364,12 @@ export const getAnalytics = async (
           realizedOrders, // Only paid/completed (for internal tracking if needed)
           aov,
           totalCustomers,
-          newCustomers
+          newCustomers,
+          trends: {
+             revenue: parseFloat(revenueTrend.toFixed(1)),
+             activeCustomers: parseFloat(activeCustomersTrend.toFixed(1)),
+             newCustomers: parseFloat(newCustomersTrend.toFixed(1))
+          }
         },
         charts: {
             revenue: revenueOverTime.map(r => ({
@@ -1339,7 +1383,8 @@ export const getAnalytics = async (
             })),
             categories: categoryStats
         },
-        topProducts
+        topProducts,
+        recentCustomers
       })
     });
 

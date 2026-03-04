@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft,
   Package,
@@ -29,7 +29,9 @@ const statusOptions = [
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
+  const backToList = `/admin/orders${location.search || ''}`;
   const [order, setOrder] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -48,7 +50,7 @@ export default function OrderDetailPage() {
       setSelectedStatus(response.data.data.status);
     } catch (error) {
       toast.error('Không thể tải thông tin đơn hàng');
-      navigate('/admin/orders');
+      navigate(backToList);
     } finally {
       setIsLoading(false);
     }
@@ -97,7 +99,7 @@ export default function OrderDetailPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
           <Link 
-            to="/admin/orders" 
+            to={backToList} 
             className="p-2 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5 text-secondary-600 dark:text-secondary-400" />

@@ -63,11 +63,15 @@ class _AddressListScreenState extends State<AddressListScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text('Xóa địa chỉ', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Xóa địa chỉ',
+          style: TextStyle(color: Color(0xFF140E1B)),
+        ),
         content: const Text(
           'Bạn có chắc muốn xóa địa chỉ này?',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Colors.grey),
         ),
         actions: [
           TextButton(
@@ -121,38 +125,42 @@ class _AddressListScreenState extends State<AddressListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFFF7F6F8),
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: const Color(0xFFF7F6F8),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: const Color(0xFF140E1B),
+            size: 20,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Địa chỉ giao hàng',
           style: TextStyle(
-            color: Colors.white,
+            color: const Color(0xFF140E1B),
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add, color: Color(0xFFD4AF37)),
+            icon: const Icon(Icons.add, color: Color(0xFF7F19E6)),
             onPressed: () => _openAddressForm(),
           ),
         ],
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFD4AF37)),
+              child: CircularProgressIndicator(color: Color(0xFF7F19E6)),
             )
           : _addresses.isEmpty
           ? _buildEmptyState()
           : RefreshIndicator(
               onRefresh: _loadAddresses,
-              color: const Color(0xFFD4AF37),
+              color: const Color(0xFF7F19E6),
               child: ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: _addresses.length,
@@ -171,15 +179,12 @@ class _AddressListScreenState extends State<AddressListScreen> {
           Icon(
             Icons.location_off_outlined,
             size: 64,
-            color: Colors.white.withValues(alpha: 0.1),
+            color: Colors.grey.shade200,
           ),
           const SizedBox(height: 16),
           Text(
             'Chưa có địa chỉ nào',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
-              fontSize: 16,
-            ),
+            style: TextStyle(color: Colors.grey.shade500, fontSize: 16),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
@@ -187,8 +192,8 @@ class _AddressListScreenState extends State<AddressListScreen> {
             icon: const Icon(Icons.add, size: 18),
             label: const Text('Thêm địa chỉ'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD4AF37),
-              foregroundColor: Colors.black,
+              backgroundColor: const Color(0xFF7F19E6),
+              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -204,12 +209,12 @@ class _AddressListScreenState extends State<AddressListScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF141414),
+        color: const Color(0xFFFFFFFF),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: address.isDefault
-              ? const Color(0xFFD4AF37).withValues(alpha: 0.4)
-              : Colors.white.withValues(alpha: 0.06),
+              ? const Color(0xFF7F19E6).withValues(alpha: 0.4)
+              : Colors.grey.shade200,
         ),
       ),
       child: Column(
@@ -226,7 +231,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                         Text(
                           address.fullName,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: const Color(0xFF140E1B),
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                           ),
@@ -247,7 +252,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                             child: const Text(
                               'Mặc định',
                               style: TextStyle(
-                                color: Color(0xFFD4AF37),
+                                color: Color(0xFF7F19E6),
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -259,7 +264,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                     Text(
                       address.phone,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
+                        color: Colors.grey.shade600,
                         fontSize: 13,
                       ),
                     ),
@@ -269,15 +274,12 @@ class _AddressListScreenState extends State<AddressListScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.06),
+                  color: const Color(0xFFF7F6F8),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   address.type,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.5),
-                    fontSize: 11,
-                  ),
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
                 ),
               ),
             ],
@@ -286,7 +288,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
           Text(
             address.fullAddress,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
+              color: Colors.grey.shade700,
               fontSize: 13,
               height: 1.4,
             ),
@@ -327,7 +329,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
     VoidCallback onTap, {
     Color? color,
   }) {
-    final c = color ?? Colors.white.withValues(alpha: 0.5);
+    final c = color ?? Colors.grey.shade500;
     return GestureDetector(
       onTap: onTap,
       child: Row(
@@ -415,9 +417,12 @@ class _AddressFormScreenState extends State<_AddressFormScreen> {
 
       Map<String, dynamic> res;
       if (isEditing) {
-        res = await authService.updateAddress(widget.address!.id, address);
+        res = await authService.updateAddress(
+          widget.address!.id,
+          address.toJson(),
+        );
       } else {
-        res = await authService.addAddress(address);
+        res = await authService.addAddress(address.toJson());
       }
 
       if (!mounted) return;
@@ -460,18 +465,22 @@ class _AddressFormScreenState extends State<_AddressFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFFF7F6F8),
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: const Color(0xFFF7F6F8),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: const Color(0xFF140E1B),
+            size: 20,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           isEditing ? 'Sửa địa chỉ' : 'Thêm địa chỉ',
           style: const TextStyle(
-            color: Colors.white,
+            color: const Color(0xFF140E1B),
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -552,17 +561,21 @@ class _AddressFormScreenState extends State<_AddressFormScreen> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF141414),
+                  color: const Color(0xFFFFFFFF),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
                 child: SwitchListTile(
                   title: const Text(
                     'Đặt làm mặc định',
-                    style: TextStyle(color: Colors.white, fontSize: 14),
+                    style: TextStyle(
+                      color: const Color(0xFF140E1B),
+                      fontSize: 14,
+                    ),
                   ),
                   value: _isDefault,
                   onChanged: (v) => setState(() => _isDefault = v),
-                  activeColor: const Color(0xFFD4AF37),
+                  activeColor: const Color(0xFF7F19E6),
                   activeTrackColor: const Color(
                     0xFFD4AF37,
                   ).withValues(alpha: 0.3),
@@ -576,8 +589,8 @@ class _AddressFormScreenState extends State<_AddressFormScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _save,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD4AF37),
-                    foregroundColor: Colors.black,
+                    backgroundColor: const Color(0xFF7F19E6),
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -589,7 +602,7 @@ class _AddressFormScreenState extends State<_AddressFormScreen> {
                           width: 22,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.black,
+                            color: const Color(0xFFF7F6F8),
                           ),
                         )
                       : Text(
@@ -616,13 +629,11 @@ class _AddressFormScreenState extends State<_AddressFormScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xFFD4AF37).withValues(alpha: 0.15)
-              : const Color(0xFF141414),
+              ? const Color(0xFF7F19E6).withValues(alpha: 0.15)
+              : const Color(0xFFFFFFFF),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: selected
-                ? const Color(0xFFD4AF37)
-                : Colors.white.withValues(alpha: 0.08),
+            color: selected ? const Color(0xFF7F19E6) : Colors.grey.shade200,
           ),
         ),
         child: Row(
@@ -631,13 +642,13 @@ class _AddressFormScreenState extends State<_AddressFormScreen> {
             Icon(
               icon,
               size: 18,
-              color: selected ? const Color(0xFFD4AF37) : Colors.grey,
+              color: selected ? const Color(0xFF7F19E6) : Colors.grey,
             ),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                color: selected ? const Color(0xFFD4AF37) : Colors.white,
+                color: selected ? const Color(0xFF7F19E6) : const Color(0xFF140E1B),
                 fontSize: 13,
               ),
             ),
@@ -658,31 +669,24 @@ class _AddressFormScreenState extends State<_AddressFormScreen> {
       controller: ctrl,
       validator: validator,
       keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white, fontSize: 15),
+      style: const TextStyle(color: const Color(0xFF140E1B), fontSize: 15),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(
-          color: Colors.white.withValues(alpha: 0.3),
-          fontSize: 15,
-        ),
-        prefixIcon: Icon(
-          icon,
-          color: Colors.white.withValues(alpha: 0.4),
-          size: 20,
-        ),
+        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 15),
+        prefixIcon: Icon(icon, color: Colors.grey.shade500, size: 20),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.06),
+        fillColor: const Color(0xFFF7F6F8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          borderSide: BorderSide(color: Colors.grey.shade200),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFD4AF37), width: 1),
+          borderSide: const BorderSide(color: Color(0xFF7F19E6), width: 1),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

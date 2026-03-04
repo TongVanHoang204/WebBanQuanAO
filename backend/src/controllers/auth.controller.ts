@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { prisma } from '../server.js';
 import { ApiError } from '../middlewares/error.middleware.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
@@ -126,14 +127,16 @@ export const login = async (
     const userWith2FA = user as any; 
     
     if (userWith2FA.two_factor_enabled) {
-       // Generate OTP
-       const otp = Math.floor(100000 + Math.random() * 900000).toString();
+       // Generate OTP using crypto-safe random
+       const otp = crypto.randomInt(100000, 999999).toString();
        const expires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-       // DEBUG: Log OTP to console
-       console.log('====================================================');
-       console.log(`>>> 2FA OTP CODE for ${user.email}: ${otp}`);
-       console.log('====================================================');
+       // DEBUG: Log OTP to console (development only)
+       if (process.env.NODE_ENV === 'development') {
+         console.log('====================================================');
+         console.log(`>>> 2FA OTP CODE for ${user.email}: ${otp}`);
+         console.log('====================================================');
+       }
 
        // Save OTP
        await prisma.users.update({
@@ -520,6 +523,14 @@ export const changePassword = async (
       throw new ApiError(400, 'Please provide current and new password');
     }
 
+    if (new_password.length < 6) {
+      throw new ApiError(400, 'New password must be at least 6 characters');
+    }
+
+    if (new_password.length > 100) {
+      throw new ApiError(400, 'Password too long');
+    }
+
     const user = await prisma.users.findUnique({
       where: { id: req.user.id }
     });
@@ -573,8 +584,8 @@ export const forgotPassword = async (
       });
     }
 
-    // Generate reset token
-    const resetToken = Math.random().toString(36).substring(2, 10).toUpperCase();
+    // Generate crypto-safe reset token
+    const resetToken = crypto.randomBytes(16).toString('hex').toUpperCase();
     const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     // Save token to user record (using the 2FA fields as temporary storage)
@@ -586,7 +597,9 @@ export const forgotPassword = async (
       } as any
     });
 
-    console.log(`[RESET PASSWORD] Token for ${email}: ${resetToken}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[RESET PASSWORD] Token for ${email}: ${resetToken}`);
+    }
 
     // Send real email with reset link
     sendResetPasswordEmail(email, resetToken).catch(console.error);

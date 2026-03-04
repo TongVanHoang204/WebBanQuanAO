@@ -127,8 +127,18 @@ export default function CheckoutPage() {
     setError('');
     
     // Validate Form
-    if (!formData.customer_phone || formData.customer_phone.length < 10) {
-        toast.error('Vui lòng nhập số điện thoại hợp lệ');
+    if (!formData.customer_name || formData.customer_name.trim() === '') {
+        toast.error('Vui lòng nhập họ tên');
+        isSubmittingRef.current = false;
+        return;
+    }
+    if (!formData.customer_phone || formData.customer_phone.length < 10 || formData.customer_phone.length > 11) {
+        toast.error('Số điện thoại phải từ 10-11 số');
+        isSubmittingRef.current = false;
+        return;
+    }
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        toast.error('Email không hợp lệ');
         isSubmittingRef.current = false;
         return;
     }

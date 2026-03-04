@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -9,10 +10,9 @@ android {
     
     // THAY ĐỔI QUAN TRỌNG: Cấu hình cứng phiên bản SDK
     compileSdk = 36
-    buildToolsVersion = "35.0.0" 
+    buildToolsVersion = "36.1.0"
 
-    // CHÚ Ý: Đã comment dòng dưới để tránh lỗi tìm NDK 25.0.1
-    // ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -35,10 +35,21 @@ android {
         versionName = "1.0.0"
     }
 
+    signingConfigs {
+        create("my_debug") {
+            storeFile = file("android_debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("my_debug")
+        }
         release {
-            // Dùng key debug để chạy release mode (chỉ dùng cho dev)
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("my_debug")
         }
     }
 }

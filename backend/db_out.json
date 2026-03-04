@@ -1,0 +1,14 @@
+{
+  "reviews": [
+    {
+      "Table": "product_reviews",
+      "Create Table": "CREATE TABLE `product_reviews` (\n  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,\n  `product_id` bigint(20) unsigned NOT NULL,\n  `user_id` bigint(20) unsigned DEFAULT NULL,\n  `rating` tinyint(4) NOT NULL DEFAULT 5,\n  `title` varchar(255) DEFAULT NULL,\n  `content` text DEFAULT NULL,\n  `author_name` varchar(200) DEFAULT NULL,\n  `status` enum('pending','approved','rejected','hidden') NOT NULL DEFAULT 'pending',\n  `is_verified` tinyint(1) NOT NULL DEFAULT 0,\n  `helpful_count` int(11) NOT NULL DEFAULT 0,\n  `created_at` datetime(3) NOT NULL DEFAULT current_timestamp(3),\n  `updated_at` datetime(3) DEFAULT NULL,\n  PRIMARY KEY (`id`),\n  KEY `idx_reviews_product` (`product_id`),\n  KEY `idx_reviews_user` (`user_id`),\n  KEY `idx_reviews_status` (`status`),\n  CONSTRAINT `product_reviews_product_id_fkey` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,\n  CONSTRAINT `product_reviews_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    }
+  ],
+  "users": [
+    {
+      "Table": "users",
+      "Create Table": "CREATE TABLE `users` (\n  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,\n  `username` varchar(50) NOT NULL,\n  `email` varchar(255) NOT NULL,\n  `password_hash` varchar(255) DEFAULT NULL,\n  `full_name` varchar(200) DEFAULT NULL,\n  `phone` varchar(30) DEFAULT NULL,\n  `google_id` varchar(255) DEFAULT NULL,\n  `avatar_url` varchar(1000) DEFAULT NULL,\n  `role` varchar(100) NOT NULL DEFAULT 'customer',\n  `status` enum('active','blocked') NOT NULL DEFAULT 'active',\n  `two_factor_enabled` tinyint(1) NOT NULL DEFAULT 0,\n  `two_factor_otp` varchar(10) DEFAULT NULL,\n  `two_factor_expires` datetime(3) DEFAULT NULL,\n  `address_line1` varchar(255) DEFAULT NULL,\n  `address_line2` varchar(255) DEFAULT NULL,\n  `city` varchar(120) DEFAULT NULL,\n  `province` varchar(120) DEFAULT NULL,\n  `country` varchar(50) DEFAULT 'VN',\n  `created_at` datetime(3) NOT NULL DEFAULT current_timestamp(3),\n  `updated_at` datetime(3) DEFAULT NULL,\n  `reward_points` int(11) NOT NULL DEFAULT 0,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `users_username_key` (`username`),\n  UNIQUE KEY `users_email_key` (`email`),\n  UNIQUE KEY `users_google_id_key` (`google_id`),\n  KEY `idx_users_role` (`role`),\n  CONSTRAINT `users_role_fkey` FOREIGN KEY (`role`) REFERENCES `permissions` (`name`) ON UPDATE CASCADE\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    }
+  ]
+}

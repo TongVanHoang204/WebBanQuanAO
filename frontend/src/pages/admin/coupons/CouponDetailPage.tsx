@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Ticket, ArrowLeft, Save, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Ticket, ArrowLeft, Save, Loader2, Sparkles } from 'lucide-react';
 import { couponService } from '../../../services/coupon.service';
 import { toast } from 'react-hot-toast';
 
 export default function CouponDetailPage() {
   const { id } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
+  const backToList = `/admin/coupons${location.search || ''}`;
   const isEdit = id && id !== 'new';
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm({
     defaultValues: {
       code: '',
       type: 'percent',
@@ -45,17 +46,25 @@ export default function CouponDetailPage() {
           });
         } catch (error) {
           toast.error('Không thể tải thông tin mã giảm giá');
-          navigate('/admin/coupons');
+          navigate(backToList);
         } finally {
           setLoading(false);
         }
       };
       fetchCoupon();
     }
-  }, [id, isEdit, reset, navigate]);
+  }, [id, isEdit, reset, navigate, backToList]);
+
+  const couponType = watch('type');
 
   const onSubmit = async (data: any) => {
     try {
+      // Validate dates
+      if (data.start_at && data.end_at && new Date(data.end_at) <= new Date(data.start_at)) {
+        toast.error('Ngày kết thúc phải sau ngày bắt đầu');
+        return;
+      }
+      
       setSaving(true);
       const payload = {
         ...data,
@@ -73,7 +82,7 @@ export default function CouponDetailPage() {
         await couponService.createCoupon(payload);
         toast.success('Tạo mã khuyến mãi thành công');
       }
-      navigate('/admin/coupons');
+      navigate(backToList);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
     } finally {
@@ -94,7 +103,7 @@ export default function CouponDetailPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link
-          to="/admin/coupons"
+          to={backToList}
           className="p-2 text-secondary-500 hover:bg-secondary-100 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -159,9 +168,19 @@ export default function CouponDetailPage() {
               </label>
               <input
                 type="number"
-                {...register('value', { required: true, min: 0 })}
+                {...register('value', { 
+                  required: 'Vui lòng nhập giá trị',
+                  min: { value: 0, message: 'Giá trị phải >= 0' },
+                  validate: (val) => {
+                    if (couponType === 'percent' && Number(val) > 100) {
+                      return 'Phần trăm không được vượt quá 100%';
+                    }
+                    return true;
+                  }
+                })}
                 className="w-full px-4 py-2 bg-secondary-50 dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-700 rounded-lg focus:ring-2 focus:ring-primary-500 dark:text-white"
               />
+              {errors.value && <p className="text-red-500 text-xs mt-1">{errors.value.message as string}</p>}
             </div>
 
             {/* Min Subtotal */}
@@ -183,7 +202,8 @@ export default function CouponDetailPage() {
               </label>
               <input
                 type="number"
-                {...register('usage_limit')}
+                min="0"
+                {...register('usage_limit', { min: { value: 0, message: 'Giới hạn phải >= 0' } })}
                 className="w-full px-4 py-2 bg-secondary-50 dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-700 rounded-lg focus:ring-2 focus:ring-primary-500 dark:text-white"
               />
             </div>
@@ -215,7 +235,7 @@ export default function CouponDetailPage() {
 
         <div className="flex justify-end gap-3">
           <Link
-            to="/admin/coupons"
+            to={backToList}
             className="px-6 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg text-secondary-600 dark:text-secondary-400 font-medium hover:bg-secondary-50 dark:hover:bg-secondary-800 transition-colors"
           >
             Hủy

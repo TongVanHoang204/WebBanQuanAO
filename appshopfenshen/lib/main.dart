@@ -32,6 +32,10 @@ import 'screens/info/policy_screen.dart';
 import 'screens/notification/notification_screen.dart';
 import 'screens/chat/ai_chat_screen.dart';
 import 'screens/chat/support_chat_screen.dart';
+import 'screens/wishlist/wishlist_screen.dart';
+import 'screens/auth/reset_password_screen.dart';
+import 'screens/shop/vouchers_screen.dart';
+import 'screens/profile/settings_screen.dart';
 import 'widgets/main_navigation.dart';
 
 void main() async {
@@ -40,13 +44,13 @@ void main() async {
   // Lock to portrait
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-  // Dark status bar
+  // Light status bar
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFF0A0A0A),
-      systemNavigationBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: Colors.white,
+      systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
 
@@ -99,52 +103,76 @@ class ShopFeshenApp extends StatelessWidget {
           '/notifications': (_) => const NotificationScreen(),
           '/ai-chat': (_) => const AIChatScreen(),
           '/support-chat': (_) => const SupportChatScreen(),
+          '/wishlist-screen': (_) => const WishlistScreen(),
+          '/reset-password': (_) => const ResetPasswordScreen(),
+          '/vouchers': (_) => const VouchersScreen(),
+          '/settings': (_) => const SettingsScreen(),
         },
       ),
     );
   }
 
   ThemeData _buildTheme() {
+    const primary = Color(0xFF7F19E6);
+    const bgLight = Color(0xFFF7F6F8);
+    const surfaceLight = Color(0xFFFFFFFF);
+    const textDark = Color(0xFF140E1B);
+
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: Colors.black,
-      primaryColor: const Color(0xFFD4AF37),
-      colorScheme: const ColorScheme.dark(
-        primary: Color(0xFFD4AF37),
-        secondary: Color(0xFFF5E6A8),
-        surface: Color(0xFF141414),
-        onPrimary: Colors.black,
-        onSecondary: Colors.black,
-        onSurface: Colors.white,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: bgLight,
+      primaryColor: primary,
+      fontFamily: 'Manrope',
+      colorScheme: const ColorScheme.light(
+        primary: primary,
+        secondary: Color(0xFFE8D5FF),
+        surface: surfaceLight,
+        onPrimary: Colors.white,
+        onSecondary: textDark,
+        onSurface: textDark,
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.black,
+        backgroundColor: bgLight,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.white),
+        scrolledUnderElevation: 0,
+        iconTheme: IconThemeData(color: textDark),
         titleTextStyle: TextStyle(
-          color: Colors.white,
+          color: textDark,
           fontSize: 18,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
+          fontFamily: 'Manrope',
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFD4AF37),
-          foregroundColor: Colors.black,
+          backgroundColor: primary,
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
           ),
           elevation: 0,
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            fontFamily: 'Manrope',
+          ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.06),
+        fillColor: surfaceLight,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: primary, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -152,13 +180,13 @@ class ShopFeshenApp extends StatelessWidget {
         ),
       ),
       cardTheme: CardThemeData(
-        color: const Color(0xFF141414),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        color: surfaceLight,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 0,
       ),
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: Color(0xFF1A1A1A),
+        backgroundColor: textDark,
         contentTextStyle: TextStyle(color: Colors.white),
       ),
     );

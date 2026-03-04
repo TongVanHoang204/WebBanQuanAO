@@ -1,5 +1,39 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import crypto from 'crypto';
+import { prisma } from '../lib/prisma.js';
+/**
+ * Middleware: Verify HMAC-SHA256 signature from webhook provider (Casso/Sepay).
+ * Expects header: x-webhook-signature = HMAC-SHA256(rawBody, secret)
+ * Set PAYMENT_WEBHOOK_SECRET env var to enable verification.
+ */
+export const verifyWebhookSignature = (req, res, next) => {
+    const secret = process.env.PAYMENT_WEBHOOK_SECRET;
+    if (!secret) {
+        // No secret configured — skip verification (dev/test mode)
+        return next();
+    }
+    const signature = req.headers['x-webhook-signature']
+        || req.headers['x-casso-signature']
+        || req.headers['x-sepay-signature'];
+    if (!signature) {
+        console.warn('Webhook rejected: missing signature header');
+        return res.status(401).json({ success: false, message: 'Missing webhook signature' });
+    }
+    const rawBody = JSON.stringify(req.body);
+    const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+    try {
+        const sigBuf = Buffer.from(signature, 'hex');
+        const expectedBuf = Buffer.from(expected, 'hex');
+        if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) {
+            console.warn('Webhook rejected: invalid signature');
+            return res.status(401).json({ success: false, message: 'Invalid webhook signature' });
+        }
+    }
+    catch {
+        console.warn('Webhook rejected: signature comparison failed');
+        return res.status(401).json({ success: false, message: 'Invalid webhook signature' });
+    }
+    next();
+};
 // Supports Casso / Sepay / Generic Webhook format
 // Expected body: { data: [ { description: "...", amount: 10000, ... } ] } or simple object
 export const handleBankWebhook = async (req, res) => {

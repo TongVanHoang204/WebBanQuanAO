@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { 
   Search, 
   Filter, 
@@ -21,6 +21,10 @@ import Pagination from '../../../components/common/Pagination';
 import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 export default function OrderListPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialSearch = searchParams.get('search') || '';
+  const initialStatus = searchParams.get('status') || 'all';
+  const initialPage = Math.max(1, Number(searchParams.get('page') || 1) || 1);
   const [orders, setOrders] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({
     totalOrders: 0,
@@ -31,10 +35,10 @@ export default function OrderListPage() {
   const [isLoading, setIsLoading] = useState(true);
   
   // Filters
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('all'); // all, new (pending), processing, delivering (shipped), completed
+  const [search, setSearch] = useState(initialSearch);
+  const [status, setStatus] = useState(initialStatus); // all, new (pending), processing, delivering (shipped), completed
   const [pagination, setPagination] = useState({
-    page: 1,
+    page: initialPage,
     limit: 10,
     total: 0,
     totalPages: 0
@@ -75,6 +79,28 @@ export default function OrderListPage() {
     }, 300);
     return () => clearTimeout(timer);
   }, [search, status, pagination.page]);
+
+  useEffect(() => {
+    const searchFromUrl = searchParams.get('search') || '';
+    const statusFromUrl = searchParams.get('status') || 'all';
+    const pageFromUrl = Math.max(1, Number(searchParams.get('page') || 1) || 1);
+
+    setSearch(prev => (prev === searchFromUrl ? prev : searchFromUrl));
+    setStatus(prev => (prev === statusFromUrl ? prev : statusFromUrl));
+    setPagination(prev => (prev.page === pageFromUrl ? prev : { ...prev, page: pageFromUrl }));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (search) next.set('search', search);
+    if (status && status !== 'all') next.set('status', status);
+    if (pagination.page > 1) next.set('page', String(pagination.page));
+
+    if (next.toString() === searchParams.toString()) return;
+    setSearchParams(next, { replace: true });
+  }, [search, status, pagination.page, searchParams, setSearchParams]);
+
+  const listQuery = searchParams.toString() ? `?${searchParams.toString()}` : '';
 
   const tabs = [
     { id: 'all', label: 'Tất cả' },
@@ -246,7 +272,10 @@ export default function OrderListPage() {
                type="text"
                placeholder="Tìm kiếm mã đơn, khách hàng..."
                value={search}
-               onChange={(e) => setSearch(e.target.value)}
+               onChange={(e) => {
+                 setSearch(e.target.value);
+                 setPagination(prev => ({ ...prev, page: 1 }));
+               }}
                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-700 rounded-lg text-sm text-secondary-900 dark:text-white placeholder-secondary-400 focus:ring-primary-500 focus:border-primary-500 transition-colors"
              />
            </div>
@@ -330,7 +359,7 @@ export default function OrderListPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                        <div className="flex justify-end gap-2">
                          <Link 
-                           to={`/admin/orders/${order.id}`}
+                           to={`/admin/orders/${order.id}${listQuery}`}
                            className="flex items-center gap-1 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
                          >
                            <Eye className="w-4 h-4" />

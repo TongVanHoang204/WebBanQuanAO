@@ -148,6 +148,7 @@ export default function DashboardPage() {
       <AIInsightPanel
         title="AI Phân tích tổng quan"
         prompt="Phân tích tổng quan kinh doanh hôm nay cho cửa hàng thời trang. Đánh giá tình trạng đơn hàng, doanh thu, và đề xuất hành động cụ thể để tăng hiệu quả kinh doanh."
+        style="overview"
         dataContext={stats ? [
           `Tổng đơn hàng: ${stats.totalOrders ?? 0}`,
           `Đơn chờ xử lý: ${stats.pendingOrders ?? 0}`,
@@ -194,9 +195,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-w-0">
         {/* Revenue Chart */}
-        <div className="lg:col-span-2 bg-white dark:bg-secondary-800 p-6 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm transition-colors">
+        <div className="lg:col-span-2 bg-white dark:bg-secondary-800 p-6 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm transition-colors min-w-0">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-bold text-secondary-900 dark:text-white">Doanh thu theo thời gian</h2>
             <select className="text-sm border-secondary-200 dark:border-secondary-600 bg-white dark:bg-secondary-700 rounded-lg text-secondary-600 dark:text-secondary-200 focus:ring-primary-500 focus:border-primary-500">
@@ -204,7 +205,7 @@ export default function DashboardPage() {
               <option>7 ngày qua</option>
             </select>
           </div>
-          <div className="h-80 w-full">
+          <div className="h-80 min-h-[320px] w-full min-w-0">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
@@ -233,7 +234,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Orders This Week (Empty/Placeholder) */}
-        <div className="bg-white dark:bg-secondary-800 p-6 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm transition-colors">
+        <div className="bg-white dark:bg-secondary-800 p-6 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm transition-colors min-w-0">
           <h2 className="text-lg font-bold text-secondary-900 dark:text-white mb-6">Đơn hàng tuần này</h2>
           <div className="h-80 flex items-end justify-between px-2 gap-2">
              {/* Real Bar Chart */}

@@ -1,0 +1,60 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "logs\\.ca6dad43b7d35307d69543a741eb24d3ce997028-audit.json",
+    "files": [
+        {
+            "date": 1771562678388,
+            "name": "logs\\combined-2026-02-20.log",
+            "hash": "af6339df1035daca3f786c1ffd31c4f6471c8dc27e84201924fc8a8d75453152"
+        },
+        {
+            "date": 1771628116578,
+            "name": "logs\\combined-2026-02-21.log",
+            "hash": "169f1beb0fd303ccbafaa0aa9cb25eb25fc5d0b8eb7836825db17689944d6cd0"
+        },
+        {
+            "date": 1771753253279,
+            "name": "logs\\combined-2026-02-22.log",
+            "hash": "b9471a2807cc407570c43e82bd30ca0d4e6304a4ae91cd30dce691c7d461e2d3"
+        },
+        {
+            "date": 1772012960802,
+            "name": "logs\\combined-2026-02-25.log",
+            "hash": "47d820524b3d8b3034a5aed89a5f5529433c8596c8e7818937801a2a852200f9"
+        },
+        {
+            "date": 1772118963906,
+            "name": "logs\\combined-2026-02-26.log",
+            "hash": "81162517df9f3b57048e38bbb395fe2625773d28af6bbbcebe2f148cfe663ae7"
+        },
+        {
+            "date": 1772125212280,
+            "name": "logs\\combined-2026-02-27.log",
+            "hash": "3639eda315bdc0b91c0efac6d314df87aebd594d5d104f5fa74cd50b63e57bbb"
+        },
+        {
+            "date": 1772259752872,
+            "name": "logs\\combined-2026-02-28.log",
+            "hash": "fce953a2411ae8e7b17a3a1bd886828a7923183356c82e498b64a755f2e7eec2"
+        },
+        {
+            "date": 1772418394491,
+            "name": "logs\\combined-2026-03-02.log",
+            "hash": "6b721723d747e5322b4c238a78e55ccf1d9718b1b8ceffd650020ef432b6f928"
+        },
+        {
+            "date": 1772508296410,
+            "name": "logs\\combined-2026-03-03.log",
+            "hash": "c9771c7d23bbeab13effe5a3c124df6fcb1097a4aac4d9e1dc2a6440b562435c"
+        },
+        {
+            "date": 1772604547987,
+            "name": "logs\\combined-2026-03-04.log",
+            "hash": "3d1ed1d773bf738b5d368b0f6cad0b4ac8ade54f1d546e7ba603a6ad13e1c8e4"
+        }
+    ],
+    "hashType": "sha256"
+}

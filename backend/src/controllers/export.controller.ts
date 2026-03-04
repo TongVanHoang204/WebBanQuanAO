@@ -1,10 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
 import ExcelJS from 'exceljs';
 import { logActivity } from '../services/logger.service.js';
-
-const prisma = new PrismaClient();
 
 /**
  * Export orders to Excel

@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma.js';
 import bcrypt from 'bcryptjs';
 import { logActivity } from '../services/logger.service.js';
 import { getIO } from '../socket.js';
-const prisma = new PrismaClient();
 // Helper to serialize BigInt
 const serialize = (data) => {
     return JSON.parse(JSON.stringify(data, (key, value) => typeof value === 'bigint' ? value.toString() : value));

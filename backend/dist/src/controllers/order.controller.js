@@ -76,8 +76,11 @@ export const checkout = async (req, res, next) => {
                 const isValid = (!coupon.start_at || coupon.start_at <= now) &&
                     (!coupon.end_at || coupon.end_at >= now) &&
                     subtotal >= Number(coupon.min_subtotal);
+                if (!isValid) {
+                    throw new ApiError(400, 'Mã giảm giá không hợp lệ hoặc chưa đạt điều kiện áp dụng');
+                }
                 // Check usage limit
-                if (isValid && coupon.usage_limit) {
+                if (coupon.usage_limit) {
                     const usageCount = await prisma.coupon_redemptions.count({
                         where: { coupon_id: coupon.id }
                     });
@@ -85,18 +88,25 @@ export const checkout = async (req, res, next) => {
                         throw new ApiError(400, 'Mã giảm giá đã hết lượt sử dụng');
                     }
                 }
-                if (isValid) {
-                    if (coupon.type === 'percent') {
-                        discountTotal = subtotal * (Number(coupon.value) / 100);
-                        if (coupon.max_discount) {
-                            discountTotal = Math.min(discountTotal, Number(coupon.max_discount));
-                        }
+                if (coupon.type === 'percent') {
+                    discountTotal = subtotal * (Number(coupon.value) / 100);
+                    if (coupon.max_discount) {
+                        discountTotal = Math.min(discountTotal, Number(coupon.max_discount));
                     }
-                    else {
-                        discountTotal = Number(coupon.value);
-                    }
-                    couponId = coupon.id;
                 }
+                else {
+                    discountTotal = Number(coupon.value);
+                    // Cap fixed discount at max_discount if set
+                    if (coupon.max_discount) {
+                        discountTotal = Math.min(discountTotal, Number(coupon.max_discount));
+                    }
+                }
+                // Ensure discount doesn't exceed subtotal
+                discountTotal = Math.min(discountTotal, subtotal);
+                couponId = coupon.id;
+            }
+            else if (validatedData.coupon_code) {
+                throw new ApiError(400, 'Mã giảm giá không tồn tại hoặc đã bị vô hiệu hóa');
             }
         }
         // Calculate shipping (simplified - based on city)
@@ -328,8 +338,11 @@ export const getOrderById = async (req, res, next) => {
         if (!order) {
             throw new ApiError(404, 'Order not found');
         }
-        // Check ownership (unless admin)
-        if (req.user && req.user.role !== 'admin') {
+        // Check ownership (unless admin) - unauthenticated users cannot view orders by ID
+        if (!req.user) {
+            throw new ApiError(401, 'Authentication required');
+        }
+        if (req.user.role !== 'admin' && req.user.role !== 'manager' && req.user.role !== 'staff') {
             if (order.user_id?.toString() !== req.user.id.toString()) {
                 throw new ApiError(403, 'Unauthorized');
             }
@@ -346,6 +359,13 @@ export const getOrderById = async (req, res, next) => {
 export const getOrderByCode = async (req, res, next) => {
     try {
         const { code } = req.params;
+        const { phone } = req.query;
+        // Authenticated users can access their own orders freely.
+        // Guest tracking requires phone for two-factor verification.
+        const isAuthenticated = !!req.user?.id;
+        if (!isAuthenticated && !phone) {
+            throw new ApiError(400, 'Vui lòng cung cấp số điện thoại để tra cứu đơn hàng');
+        }
         const order = await prisma.orders.findUnique({
             where: { order_code: code },
             include: {
@@ -368,6 +388,20 @@ export const getOrderByCode = async (req, res, next) => {
         if (!order) {
             throw new ApiError(404, 'Order not found');
         }
+        // For authenticated users, ensure they own the order (unless admin).
+        if (isAuthenticated && req.user?.role !== 'admin' && req.user?.role !== 'manager' && req.user?.role !== 'staff') {
+            if (order.user_id && order.user_id !== req.user.id) {
+                throw new ApiError(403, 'Bạn không có quyền xem đơn hàng này');
+            }
+        }
+        // For guest tracking, verify phone matches the order's customer phone.
+        if (!isAuthenticated) {
+            const orderPhone = (order.customer_phone || '').trim().toLowerCase();
+            const queryPhone = (phone || '').trim().toLowerCase();
+            if (!queryPhone || !orderPhone || queryPhone !== orderPhone) {
+                throw new ApiError(403, 'Thông tin xác minh không khớp với đơn hàng');
+            }
+        }
         res.json({
             success: true,
             data: serializeOrder(order)
@@ -381,10 +415,66 @@ export const updateOrderStatus = async (req, res, next) => {
     try {
         const { id } = req.params;
         const validatedData = updateOrderStatusSchema.parse(req.body);
-        const order = await prisma.orders.update({
+        // Valid status transitions
+        const validTransitions = {
+            pending: ['confirmed', 'processing', 'cancelled'],
+            confirmed: ['processing', 'cancelled'],
+            paid: ['processing', 'shipped', 'cancelled', 'refunded'],
+            processing: ['shipped', 'cancelled'],
+            shipped: ['completed', 'cancelled'],
+            completed: ['refunded'],
+            cancelled: [],
+            refunded: []
+        };
+        // Fetch current order to check transition
+        const currentOrder = await prisma.orders.findUnique({
             where: { id: BigInt(id) },
-            data: { status: validatedData.status }
+            include: { order_items: true }
         });
+        if (!currentOrder) {
+            throw new ApiError(404, 'Order not found');
+        }
+        const allowed = validTransitions[currentOrder.status] || [];
+        if (!allowed.includes(validatedData.status)) {
+            throw new ApiError(400, `Không thể chuyển trạng thái từ "${currentOrder.status}" sang "${validatedData.status}"`);
+        }
+        // If cancelling from admin, restore stock
+        if (validatedData.status === 'cancelled' && ['pending', 'confirmed', 'paid', 'processing'].includes(currentOrder.status)) {
+            await prisma.$transaction(async (tx) => {
+                for (const item of currentOrder.order_items) {
+                    if (item.variant_id) {
+                        await tx.product_variants.update({
+                            where: { id: item.variant_id },
+                            data: { stock_qty: { increment: item.qty } }
+                        });
+                        await tx.inventory_movements.create({
+                            data: {
+                                variant_id: item.variant_id,
+                                type: 'in',
+                                qty: item.qty,
+                                note: `Admin cancelled order ${currentOrder.order_code}`
+                            }
+                        });
+                    }
+                }
+                await tx.orders.update({
+                    where: { id: BigInt(id) },
+                    data: { status: validatedData.status }
+                });
+            });
+        }
+        else {
+            await prisma.orders.update({
+                where: { id: BigInt(id) },
+                data: { status: validatedData.status }
+            });
+        }
+        const order = await prisma.orders.findUnique({
+            where: { id: BigInt(id) }
+        });
+        if (!order) {
+            throw new ApiError(404, 'Order not found after update');
+        }
         // Update related records based on status
         if (validatedData.status === 'paid') {
             await prisma.payments.updateMany({
@@ -506,8 +596,15 @@ export const cancelOrder = async (req, res, next) => {
             throw new ApiError(404, 'Order not found');
         }
         // Check ownership
-        if (order.user_id?.toString() !== req.user?.id.toString()) {
-            throw new ApiError(403, 'Unauthorized');
+        if (!req.user) {
+            throw new ApiError(401, 'Authentication required');
+        }
+        // Admin/manager/staff can cancel any order; customers can only cancel their own
+        const isStaff = ['admin', 'manager', 'staff'].includes(req.user.role);
+        if (!isStaff) {
+            if (!order.user_id || order.user_id.toString() !== req.user.id.toString()) {
+                throw new ApiError(403, 'Unauthorized');
+            }
         }
         // Only allow cancellation if pending or confirmed
         if (!['pending', 'confirmed'].includes(order.status)) {

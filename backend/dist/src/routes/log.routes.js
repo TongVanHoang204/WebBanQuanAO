@@ -1,8 +1,9 @@
 import express from 'express';
 import { getLogs } from '../controllers/log.controller.js';
-import { verifyToken } from '../middlewares/auth.middleware.js';
+import { verifyToken, authorize } from '../middlewares/auth.middleware.js';
 const router = express.Router();
 router.use(verifyToken);
+router.use(authorize(['admin', 'manager']));
 /**
  * @swagger
  * tags:

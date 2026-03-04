@@ -37,9 +37,9 @@ CREATE TABLE IF NOT EXISTS `activity_logs` (
   KEY `idx_logs_action` (`action`),
   KEY `idx_logs_date` (`created_at`),
   CONSTRAINT `activity_logs_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=155 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=156 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.activity_logs: ~154 rows (approximately)
+-- Dumping data for table fashion_store.activity_logs: ~153 rows (approximately)
 INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `entity_type`, `entity_id`, `details`, `ip_address`, `user_agent`, `created_at`) VALUES
 	(1, 6, 'update_order_status', 'order', '19', '"Updated order status to processing"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-24 03:54:30.198'),
 	(2, 6, 'Cập nhật sản phẩm', 'product', '1', '{"diff":{"brand_id":{"from":null,"to":"1"},"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":1,"brand_id":"1","sku":"89","name":"Set Bộ Áo Thun Nữ Form Rộng Tay Lỡ + Quần Short","slug":"set-bo-ao-thun-nu-form-rong-tay-lo","description":"<p>Chất liệu cotton su. and</p>","compare_at_price":65000,"is_active":true,"variants":[{"variant_sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang","sku":"set-bo-ao-thun-nu-form-rong-tay-lo-quan-short-ong-rong-89-trang","price":75000,"stock_qty":0,"is_active":true,"options":{},"id":13}],"attributes":[],"images":[{"url":"http://localhost:4000/uploads/1769094301311-794242468.png","is_primary":true,"sort_order":0},{"url":"http://localhost:4000/uploads/1769094312782-549414451.webp","is_primary":false,"sort_order":1}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-01-26 03:21:21.297'),
@@ -194,7 +194,8 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `entity_type`, `entity_i
 	(151, 6, 'Cập nhật sản phẩm', 'product', '14', '{"diff":{"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":11,"brand_id":3,"sku":"SKU-1769144617106-1","name":"Áo polo premium","slug":"ao-polo-premium-9651","description":"<p>Sản phẩm Áo polo premium chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":440400,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617106-1-S","sku":"SKU-1769144617106-1-S","price":367000,"stock_qty":47,"is_active":true,"options":{},"id":25},{"variant_sku":"SKU-1769144617106-1-M","sku":"SKU-1769144617106-1-M","price":367000,"stock_qty":30,"is_active":true,"options":{},"id":26},{"variant_sku":"SKU-1769144617106-1-L","sku":"SKU-1769144617106-1-L","price":367000,"stock_qty":59,"is_active":true,"options":{},"id":27},{"variant_sku":"SKU-1769144617106-1-XL","sku":"SKU-1769144617106-1-XL","price":367000,"stock_qty":60,"is_active":true,"options":{},"id":28}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 15:01:57.792'),
 	(152, 6, 'Cập nhật sản phẩm', 'product', '43', '{"diff":{"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":7,"brand_id":3,"sku":"SKU-1769144617325-30","name":"Vest nam công sở","slug":"vest-nam-cong-so-6976","description":"<p>Sản phẩm Vest nam công sở chất lượng cao, thiết kế thời trang, phù hợp mọi dịp.</p>","compare_at_price":394800,"is_active":true,"variants":[{"variant_sku":"SKU-1769144617325-30-S","sku":"SKU-1769144617325-30-S","price":329000,"stock_qty":69,"is_active":true,"options":{},"id":141},{"variant_sku":"SKU-1769144617325-30-M","sku":"SKU-1769144617325-30-M","price":329000,"stock_qty":63,"is_active":true,"options":{},"id":142},{"variant_sku":"SKU-1769144617325-30-L","sku":"SKU-1769144617325-30-L","price":329000,"stock_qty":75,"is_active":true,"options":{},"id":143},{"variant_sku":"SKU-1769144617325-30-XL","sku":"SKU-1769144617325-30-XL","price":329000,"stock_qty":21,"is_active":true,"options":{},"id":144}],"attributes":[],"images":[],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', '2026-02-15 15:02:08.981'),
 	(153, 6, 'Cập nhật sản phẩm', 'product', '10', '{"diff":{"is_active":{"from":true,"to":false},"meta_title":{"from":null,"to":""},"meta_description":{"from":null,"to":""},"meta_keywords":{"from":null,"to":""},"tags":{"from":null,"to":""}},"updates":{"category_id":11,"brand_id":4,"sku":"BELT-001","name":"Thắt lưng da nam cao cấp","slug":"that-lung-da-nam","description":"Da bò thật 100%.","compare_at_price":200000,"is_active":false,"variants":[{"variant_sku":"BELT-001-BROWN-FREE","sku":"BELT-001-BROWN-FREE","price":150000,"stock_qty":50,"is_active":true,"options":{},"id":18}],"attributes":[],"images":[{"url":"https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mdmkyqmn0g1bc6.webp","is_primary":true,"sort_order":0}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', '2026-02-16 06:29:49.943'),
-	(154, 6, 'Cập nhật sản phẩm', 'product', '10', '{"diff":{"is_active":{"from":false,"to":true}},"updates":{"category_id":11,"brand_id":4,"sku":"BELT-001","name":"Thắt lưng da nam cao cấp","slug":"that-lung-da-nam","description":"Da bò thật 100%.","compare_at_price":200000,"is_active":true,"variants":[{"variant_sku":"BELT-001-BROWN-FREE","sku":"BELT-001-BROWN-FREE","price":150000,"stock_qty":50,"is_active":true,"options":{},"id":18}],"attributes":[],"images":[{"url":"https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mdmkyqmn0g1bc6.webp","is_primary":true,"sort_order":0}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', '2026-02-16 06:29:57.731');
+	(154, 6, 'Cập nhật sản phẩm', 'product', '10', '{"diff":{"is_active":{"from":false,"to":true}},"updates":{"category_id":11,"brand_id":4,"sku":"BELT-001","name":"Thắt lưng da nam cao cấp","slug":"that-lung-da-nam","description":"Da bò thật 100%.","compare_at_price":200000,"is_active":true,"variants":[{"variant_sku":"BELT-001-BROWN-FREE","sku":"BELT-001-BROWN-FREE","price":150000,"stock_qty":50,"is_active":true,"options":{},"id":18}],"attributes":[],"images":[{"url":"https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mdmkyqmn0g1bc6.webp","is_primary":true,"sort_order":0}],"meta_title":"","meta_description":"","meta_keywords":"","tags":"","weight":0,"length":0,"width":0,"height":0}}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', '2026-02-16 06:29:57.731'),
+	(155, 6, 'export_products', 'report', NULL, '"Exported products. Filters: {\\"token\\":\\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2IiwiZW1haWwiOiJob2FuZ0BnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzI0MzEwNjYsImV4cCI6MTc3MzAzNTg2Nn0.-gr3NVtckVdroGtD79k8aLfOvW_UPAz6ud17Unr0Bu4\\"}"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', '2026-03-02 08:37:09.509');
 
 -- Dumping structure for table fashion_store.banners
 DROP TABLE IF EXISTS `banners`;
@@ -218,7 +219,7 @@ CREATE TABLE IF NOT EXISTS `banners` (
 
 -- Dumping data for table fashion_store.banners: ~3 rows (approximately)
 INSERT INTO `banners` (`id`, `title`, `subtitle`, `image_url`, `link_url`, `button_text`, `position`, `sort_order`, `is_active`, `start_date`, `end_date`, `created_at`, `updated_at`) VALUES
-	(1, 'Mảnh ký ức', '', 'http://localhost:4000/uploads/1769502904792-391252114.jpg', '', '', 'home_hero', 0, 1, '2026-01-26 00:00:00.000', '2026-03-27 00:00:00.000', '2026-01-27 08:35:53.394', '2026-01-27 08:56:25.066'),
+	(1, 'Mảnh ký ức', '', 'http://localhost:4000/uploads/1769502904792-391252114.jpg', '', '', 'home_hero', 0, 1, '2026-01-26 00:00:00.000', '2026-03-27 00:00:00.000', '2026-01-27 08:35:53.394', '2026-02-25 10:37:34.466'),
 	(2, 'Paris', '', 'http://localhost:4000/uploads/1769502966434-606714611.jpg', '', '', 'sale_hero', 0, 1, NULL, NULL, '2026-01-27 08:36:19.132', '2026-02-05 10:08:12.392'),
 	(3, 'Chạm đông', NULL, 'http://localhost:4000/uploads/1769502993564-497163475.jpg', NULL, NULL, 'category_top', 0, 1, NULL, NULL, '2026-01-27 08:36:45.583', '2026-01-27 08:36:51.430');
 
@@ -235,7 +236,7 @@ CREATE TABLE IF NOT EXISTS `banner_images` (
   CONSTRAINT `banner_images_banner_id_fkey` FOREIGN KEY (`banner_id`) REFERENCES `banners` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.banner_images: ~3 rows (approximately)
+-- Dumping data for table fashion_store.banner_images: ~4 rows (approximately)
 INSERT INTO `banner_images` (`id`, `banner_id`, `image_url`, `sort_order`, `created_at`) VALUES
 	(1, 1, 'http://localhost:4000/uploads/1769502904792-391252114.jpg', 0, '2026-01-27 08:56:25.066'),
 	(2, 1, 'http://localhost:4000/uploads/1769504180335-464240027.jpg', 1, '2026-01-27 08:56:25.066'),
@@ -259,7 +260,7 @@ CREATE TABLE IF NOT EXISTS `brands` (
 
 -- Dumping data for table fashion_store.brands: ~4 rows (approximately)
 INSERT INTO `brands` (`id`, `name`, `slug`, `logo`, `description`, `is_active`, `created_at`, `updated_at`) VALUES
-	(1, 'Hades Studio', 'hades-studio', NULL, NULL, 1, '2026-01-22 21:09:18.533', NULL),
+	(1, 'Hades Studio', 'hades-studio', 'http://localhost:4000/uploads/1772509529216-933753912.png', '', 1, '2026-01-22 21:09:18.533', '2026-03-03 03:45:30.578'),
 	(2, 'Coolmate', 'coolmate', NULL, NULL, 1, '2026-01-22 21:09:18.533', NULL),
 	(3, 'Levents', 'levents', NULL, NULL, 1, '2026-01-22 21:09:18.533', NULL),
 	(4, 'Uniqlo', 'uniqlo', NULL, NULL, 1, '2026-01-22 21:09:18.533', NULL);
@@ -313,9 +314,9 @@ CREATE TABLE IF NOT EXISTS `cart_items` (
   KEY `idx_ci_variant` (`variant_id`),
   CONSTRAINT `cart_items_cart_id_fkey` FOREIGN KEY (`cart_id`) REFERENCES `carts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `cart_items_variant_id_fkey` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=58 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=60 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.cart_items: ~6 rows (approximately)
+-- Dumping data for table fashion_store.cart_items: ~8 rows (approximately)
 INSERT INTO `cart_items` (`id`, `cart_id`, `variant_id`, `qty`, `price_at_add`, `created_at`) VALUES
 	(1, 1, 1, 2, 99000.00, '2026-01-22 21:09:18.722'),
 	(2, 1, 10, 1, 79000.00, '2026-01-22 21:09:18.722'),
@@ -323,7 +324,8 @@ INSERT INTO `cart_items` (`id`, `cart_id`, `variant_id`, `qty`, `price_at_add`, 
 	(4, 3, 12, 1, 59000.00, '2026-01-22 21:09:18.722'),
 	(38, 5, 1, 1, 99000.00, '2026-02-05 18:33:17.293'),
 	(41, 9, 1, 1, 99000.00, '2026-02-11 03:43:02.723'),
-	(57, 7, 1, 1, 99000.00, '2026-02-11 06:30:25.361');
+	(57, 7, 1, 1, 99000.00, '2026-02-11 06:30:25.361'),
+	(58, 5, 11, 1, 59000.00, '2026-02-26 17:09:35.431');
 
 -- Dumping structure for table fashion_store.categories
 DROP TABLE IF EXISTS `categories`;
@@ -384,9 +386,9 @@ CREATE TABLE IF NOT EXISTS `chat_messages` (
   KEY `idx_msg_conv` (`conversation_id`),
   KEY `idx_msg_sender` (`sender_id`),
   CONSTRAINT `chat_messages_conversation_id_fkey` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.chat_messages: ~45 rows (approximately)
+-- Dumping data for table fashion_store.chat_messages: ~61 rows (approximately)
 INSERT INTO `chat_messages` (`id`, `conversation_id`, `sender_type`, `sender_id`, `content`, `is_read`, `created_at`) VALUES
 	(1, 1, 'user', NULL, 'xin chào ạ', 0, '2026-01-29 04:05:08.197'),
 	(2, 1, 'user', NULL, 'chào shop', 0, '2026-01-29 04:17:41.988'),
@@ -441,7 +443,21 @@ INSERT INTO `chat_messages` (`id`, `conversation_id`, `sender_type`, `sender_id`
 	(51, 4, 'admin', 59, 'yes', 0, '2026-02-01 09:54:38.912'),
 	(52, 8, 'admin', 6, 'lo', 0, '2026-02-02 05:42:08.787'),
 	(53, 8, 'admin', 6, 'loo', 0, '2026-02-02 05:42:18.159'),
-	(54, 8, 'admin', 6, 'cu em tenzz', 0, '2026-02-02 05:42:36.937');
+	(54, 8, 'admin', 6, 'cu em tenzz', 0, '2026-02-02 05:42:36.937'),
+	(55, 4, 'user', NULL, 'lo', 0, '2026-02-26 15:54:26.570'),
+	(56, 4, 'user', NULL, 'helo', 0, '2026-02-27 14:42:13.623'),
+	(57, 9, 'user', 60, 'shop', 0, '2026-02-27 14:49:54.347'),
+	(58, 9, 'user', 60, 'shop', 0, '2026-02-27 14:53:52.047'),
+	(59, 9, 'user', 60, 'alo', 0, '2026-02-27 14:57:32.177'),
+	(60, 9, 'user', 60, 'oi', 0, '2026-02-27 14:57:56.451'),
+	(61, 9, 'user', 60, 'shop oi', 0, '2026-02-27 15:03:22.088'),
+	(62, 9, 'admin', 6, 'oi', 0, '2026-02-27 15:16:07.281'),
+	(63, 9, 'user', 60, 'shop', 0, '2026-02-27 15:16:43.940'),
+	(64, 9, 'admin', 6, 'oi', 0, '2026-02-27 15:16:47.853'),
+	(65, 10, 'user', 60, 'lo', 0, '2026-02-27 15:32:39.345'),
+	(66, 10, 'admin', 6, 'lo', 0, '2026-02-27 15:32:44.175'),
+	(67, 10, 'admin', 6, 'hử', 0, '2026-02-27 15:32:51.348'),
+	(68, 10, 'admin', 6, 'oi', 0, '2026-02-27 15:39:16.273');
 
 -- Dumping structure for table fashion_store.collections
 DROP TABLE IF EXISTS `collections`;
@@ -477,19 +493,21 @@ CREATE TABLE IF NOT EXISTS `conversations` (
   KEY `idx_conv_status` (`status`),
   KEY `idx_conv_assigned` (`assigned_to`),
   CONSTRAINT `conversations_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.conversations: ~9 rows (approximately)
+-- Dumping data for table fashion_store.conversations: ~11 rows (approximately)
 INSERT INTO `conversations` (`id`, `user_id`, `guest_name`, `guest_email`, `status`, `assigned_to`, `created_at`, `updated_at`, `closed_at`) VALUES
 	(1, NULL, NULL, NULL, 'closed', 6, '2026-01-29 04:04:59.253', '2026-01-29 04:22:54.740', '2026-01-29 04:22:54.738'),
 	(2, 6, NULL, NULL, 'closed', 6, '2026-01-29 04:20:55.140', '2026-01-29 04:37:43.076', '2026-01-29 04:37:43.074'),
 	(3, 6, NULL, NULL, 'closed', 6, '2026-01-29 04:37:59.641', '2026-01-29 04:41:18.362', '2026-01-29 04:41:18.361'),
-	(4, NULL, 'Hoang customer', NULL, 'active', 6, '2026-01-29 04:53:05.019', '2026-02-15 13:25:06.571', NULL),
+	(4, NULL, 'Hoang customer', NULL, 'active', 6, '2026-01-29 04:53:05.019', '2026-02-27 15:22:44.008', NULL),
 	(5, 60, 'Tống Văn Hoàng', NULL, 'closed', 59, '2026-01-29 11:31:33.396', '2026-02-01 03:57:32.248', '2026-02-01 03:57:32.247'),
 	(6, 60, 'Tống Văn Hoàng', NULL, 'closed', 6, '2026-02-01 04:43:18.355', '2026-02-01 04:55:20.422', '2026-02-01 04:55:20.420'),
 	(7, 60, 'Tống Văn Hoàng', NULL, 'closed', 6, '2026-02-01 04:55:23.634', '2026-02-01 04:55:48.223', '2026-02-01 04:55:48.221'),
 	(8, 60, 'Tống Văn Hoàng', NULL, 'closed', 6, '2026-02-01 04:56:01.557', '2026-02-15 13:24:35.358', '2026-02-15 13:24:35.357'),
-	(9, 60, 'Tống Văn Hoàng', NULL, 'active', 6, '2026-02-15 14:52:25.682', '2026-02-15 15:06:59.709', NULL);
+	(9, 60, 'Tống Văn Hoàng', NULL, 'closed', 6, '2026-02-15 14:52:25.682', '2026-02-27 15:29:40.081', '2026-02-27 15:29:40.080'),
+	(10, 60, 'Tống Văn Hoàng', NULL, 'active', 6, '2026-02-27 15:32:31.665', '2026-03-03 08:49:32.301', NULL),
+	(11, 6, 'Hoang ADMIN', NULL, 'closed', 6, '2026-03-03 11:03:12.588', '2026-03-04 06:11:55.181', '2026-03-04 06:11:55.176');
 
 -- Dumping structure for table fashion_store.coupons
 DROP TABLE IF EXISTS `coupons`;
@@ -508,11 +526,16 @@ CREATE TABLE IF NOT EXISTS `coupons` (
   `created_at` datetime(3) NOT NULL DEFAULT current_timestamp(3),
   PRIMARY KEY (`id`),
   UNIQUE KEY `coupons_code_key` (`code`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.coupons: ~1 rows (approximately)
+-- Dumping data for table fashion_store.coupons: ~6 rows (approximately)
 INSERT INTO `coupons` (`id`, `code`, `type`, `value`, `min_subtotal`, `max_discount`, `start_at`, `end_at`, `usage_limit`, `usage_per_user`, `is_active`, `created_at`) VALUES
-	(5, 'SALE21', 'percent', 20.00, 50000.00, NULL, '2026-02-05 00:00:00.000', '2026-02-07 00:00:00.000', 1, NULL, 1, '2026-02-05 18:23:13.662');
+	(5, 'SALE21', 'percent', 20.00, 50000.00, NULL, '2026-02-05 00:00:00.000', '2026-02-07 00:00:00.000', 1, NULL, 1, '2026-02-05 18:23:13.662'),
+	(8, 'WOMEN83', 'percent', 20.00, 200000.00, NULL, '2026-03-03 00:00:00.000', '2026-03-09 00:00:00.000', 100, NULL, 1, '2026-03-03 04:18:23.928'),
+	(9, 'PHUNUVN', 'fixed', 50000.00, 500000.00, NULL, '2026-03-03 00:00:00.000', '2026-03-08 00:00:00.000', 83, NULL, 1, '2026-03-03 04:18:23.937'),
+	(10, 'MARCH8', 'percent', 30.00, 300000.00, NULL, '2026-03-03 00:00:00.000', '2026-03-08 00:00:00.000', 50, NULL, 1, '2026-03-03 04:18:23.946'),
+	(11, 'GIAM100K', 'fixed', 100000.00, 500000.00, NULL, '2026-03-03 00:00:00.000', '2026-03-10 00:00:00.000', 50, NULL, 1, '2026-03-03 04:23:44.440'),
+	(12, 'MARSHIP15', 'fixed', 15000.00, 99000.00, NULL, '2026-03-04 00:00:00.000', '2026-03-10 00:00:00.000', 200, NULL, 1, '2026-03-04 06:12:57.348');
 
 -- Dumping structure for table fashion_store.coupon_redemptions
 DROP TABLE IF EXISTS `coupon_redemptions`;
@@ -625,7 +648,7 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   CONSTRAINT `notifications_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.notifications: ~51 rows (approximately)
+-- Dumping data for table fashion_store.notifications: ~52 rows (approximately)
 INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `link`, `is_read`, `created_at`) VALUES
 	(2, 6, 'order_new', 'Đơn hàng mới #ORD-123', 'Khách hàng Nguyễn Văn A vừa đặt đơn hàng trị giá 500.000đ', '/admin/orders/1', 1, '2026-01-26 03:37:09.484'),
 	(3, 6, 'product_low_stock', 'Sản phẩm sắp hết hàng', 'Áo thun Basic (Size M) chỉ còn 2 sản phẩm trong kho.', '/admin/products/5', 1, '2026-01-26 03:37:09.487'),
@@ -723,7 +746,7 @@ CREATE TABLE IF NOT EXISTS `option_values` (
   CONSTRAINT `option_values_option_id_fkey` FOREIGN KEY (`option_id`) REFERENCES `options` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=70 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.option_values: ~15 rows (approximately)
+-- Dumping data for table fashion_store.option_values: ~17 rows (approximately)
 INSERT INTO `option_values` (`id`, `option_id`, `value`, `sort_order`) VALUES
 	(1, 1, 'Đen', 0),
 	(2, 1, 'Trắng', 0),
@@ -773,7 +796,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
   CONSTRAINT `orders_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=164 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.orders: ~140 rows (approximately)
+-- Dumping data for table fashion_store.orders: ~142 rows (approximately)
 INSERT INTO `orders` (`id`, `order_code`, `user_id`, `status`, `subtotal`, `discount_total`, `shipping_fee`, `grand_total`, `customer_name`, `customer_phone`, `ship_address_line1`, `ship_address_line2`, `ship_city`, `ship_province`, `ship_postal_code`, `ship_country`, `note`, `created_at`, `updated_at`, `admin_note`) VALUES
 	(1, 'FS20251213-0001', 2, 'paid', 277000.00, 0.00, 0.00, 282000.00, 'Khánh', '0900000002', '12 Nguyễn Trãi', NULL, 'Quận 1', 'TP.HCM', NULL, 'VN', NULL, '2026-01-22 21:09:18.630', NULL, NULL),
 	(2, 'FS20251213-0002', 3, 'processing', 109000.00, 0.00, 0.00, 134000.00, 'Minh', '0900000003', '45 Lê Lợi', NULL, 'Quận 1', 'TP.HCM', NULL, 'VN', NULL, '2026-01-22 21:09:18.630', NULL, NULL),
@@ -940,7 +963,7 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   CONSTRAINT `order_items_variant_id_fkey` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=307 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.order_items: ~260 rows (approximately)
+-- Dumping data for table fashion_store.order_items: ~298 rows (approximately)
 INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `variant_id`, `sku`, `name`, `options_text`, `unit_price`, `qty`, `line_total`) VALUES
 	(1, 1, 2, 1, 'TSHIRT-NU-001', 'Áo thun nữ oversize Basic', NULL, 99000.00, 2, 198000.00),
 	(2, 1, 6, 10, 'BAG-001', 'Túi tote canvas', NULL, 79000.00, 1, 79000.00),
@@ -1257,7 +1280,7 @@ CREATE TABLE IF NOT EXISTS `payments` (
   CONSTRAINT `payments_order_id_fkey` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.payments: ~34 rows (approximately)
+-- Dumping data for table fashion_store.payments: ~35 rows (approximately)
 INSERT INTO `payments` (`id`, `order_id`, `method`, `status`, `amount`, `transaction_ref`, `paid_at`, `created_at`) VALUES
 	(4, 122, 'cod', 'pending', 134000.00, NULL, NULL, '2026-01-23 16:55:08.734'),
 	(5, 123, 'momo', 'pending', 274000.00, NULL, NULL, '2026-01-26 03:54:22.043'),
@@ -1468,7 +1491,7 @@ CREATE TABLE IF NOT EXISTS `product_images` (
   CONSTRAINT `product_images_variant_id_fkey` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=285 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.product_images: ~57 rows (approximately)
+-- Dumping data for table fashion_store.product_images: ~55 rows (approximately)
 INSERT INTO `product_images` (`id`, `product_id`, `url`, `alt_text`, `is_primary`, `sort_order`, `created_at`, `variant_id`) VALUES
 	(212, 1, '/uploads/1769094301311-794242468.png', NULL, 1, 0, '2026-02-15 14:18:23.893', NULL),
 	(213, 1, '/uploads/1769094312782-549414451.webp', NULL, 0, 1, '2026-02-15 14:18:23.893', NULL),
@@ -1545,9 +1568,9 @@ CREATE TABLE IF NOT EXISTS `product_reviews` (
   KEY `idx_reviews_product` (`product_id`),
   KEY `idx_reviews_status` (`status`),
   CONSTRAINT `product_reviews_product_id_fkey` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.product_reviews: ~52 rows (approximately)
+-- Dumping data for table fashion_store.product_reviews: ~53 rows (approximately)
 INSERT INTO `product_reviews` (`id`, `product_id`, `user_id`, `rating`, `title`, `content`, `author_name`, `status`, `is_verified`, `helpful_count`, `created_at`, `updated_at`) VALUES
 	(1, 5, 6, 5, 'ssv', 'ssv', 'Hoang ADMIN', 'approved', 0, 0, '2026-01-24 09:45:20.709', '2026-01-26 04:18:56.009'),
 	(2, 2, 2, 5, 'Áo thun đẹp', 'Vải cotton dày dặn, form rộng đúng ý mình. Mặc rất mát.', 'Khánh', 'approved', 1, 6, '2026-01-30 15:15:19.000', '2026-02-14 04:00:53.088'),
@@ -1600,7 +1623,8 @@ INSERT INTO `product_reviews` (`id`, `product_id`, `user_id`, `rating`, `title`,
 	(49, 52, 44, 5, 'Quần short bơi', 'Chất lượng tốt so với tầm giá. Sẽ ủng hộ shop thêm.', 'Hồ Tuấn', 'approved', 1, 3, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
 	(50, 62, 50, 5, 'Váy công chúa', 'Váy bồng bềnh như hình. Mặc đi tiệc ai cũng khen.', 'Hồ Tuấn', 'approved', 1, 25, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
 	(51, 28, 59, 4, 'Cardigan mỏng nhẹ', 'Áo mỏng nhẹ, mặc mùa thu ok. Màu be dễ phối đồ.', 'Hoang customer', 'approved', 1, 2, '2026-01-30 15:15:19.000', '2026-01-30 15:15:19.000'),
-	(52, 2, 59, 5, 'Áo thun basic', 'Chất vải cotton 100% thấm hút mồ hôi. Form rộng thoải mái.', 'Hoang customer', 'approved', 1, 6, '2026-01-30 15:15:19.000', '2026-02-14 04:00:45.815');
+	(52, 2, 59, 5, 'Áo thun basic', 'Chất vải cotton 100% thấm hút mồ hôi. Form rộng thoải mái.', 'Hoang customer', 'approved', 1, 6, '2026-01-30 15:15:19.000', '2026-02-14 04:00:45.815'),
+	(53, 3, 60, 3, 'a', 'a', NULL, 'approved', 1, 0, '2026-02-27 16:11:28.782', '2026-03-03 03:44:22.691');
 
 -- Dumping structure for table fashion_store.product_variants
 DROP TABLE IF EXISTS `product_variants`;
@@ -1857,6 +1881,20 @@ INSERT INTO `product_variants` (`id`, `product_id`, `variant_sku`, `price`, `com
 	(237, 1, 'SKU-60BU0M', 75000.00, NULL, NULL, 19, 1, '2026-02-11 09:01:47.756', '2026-02-15 14:18:23.880', NULL, NULL, NULL, NULL, NULL),
 	(238, 1, 'SKU-TDNZL3', 75000.00, NULL, NULL, 18, 1, '2026-02-11 09:01:47.759', '2026-02-15 14:18:23.886', NULL, NULL, NULL, NULL, NULL);
 
+-- Dumping structure for table fashion_store.review_images
+DROP TABLE IF EXISTS `review_images`;
+CREATE TABLE IF NOT EXISTS `review_images` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `review_id` bigint(20) unsigned NOT NULL,
+  `image_url` varchar(1000) NOT NULL,
+  `created_at` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  PRIMARY KEY (`id`),
+  KEY `idx_ri_review` (`review_id`),
+  CONSTRAINT `review_images_review_id_fkey` FOREIGN KEY (`review_id`) REFERENCES `product_reviews` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table fashion_store.review_images: ~0 rows (approximately)
+
 -- Dumping structure for table fashion_store.settings
 DROP TABLE IF EXISTS `settings`;
 CREATE TABLE IF NOT EXISTS `settings` (
@@ -1868,31 +1906,31 @@ CREATE TABLE IF NOT EXISTS `settings` (
 
 -- Dumping data for table fashion_store.settings: ~25 rows (approximately)
 INSERT INTO `settings` (`key`, `value`, `updated_at`) VALUES
-	('google_client_id', '', '2026-02-11 13:53:35.000'),
-	('legal_entity_name', '', '2026-02-11 13:53:35.000'),
-	('maintenance_mode', 'false', '2026-02-11 13:53:35.000'),
-	('payment_bank_account', '0935818922', '2026-02-11 13:53:35.000'),
-	('payment_bank_account_name', 'TONG VAN HOANG', '2026-02-11 13:53:35.000'),
-	('payment_bank_enabled', 'true', '2026-02-11 13:53:35.000'),
-	('payment_bank_id', 'MBank', '2026-02-11 13:53:35.000'),
-	('payment_bank_info', 'Ngân hàng: MB Bank\nSTK: 0935818922\nChủ TK: TONG VAN HOANG\nNội dung: [Mã đơn hàng]', '2026-02-11 13:53:35.000'),
-	('payment_cod_enabled', 'true', '2026-02-11 13:53:35.000'),
-	('payment_momo_enabled', 'true', '2026-02-11 13:53:35.000'),
-	('payment_momo_qrcode', '', '2026-02-11 13:53:35.000'),
-	('payment_vnpay_enabled', 'false', '2026-02-11 13:53:35.000'),
-	('payment_vnpay_hash_secret', '123', '2026-02-11 13:53:35.000'),
-	('payment_vnpay_tmn_code', 'hoang', '2026-02-11 13:53:35.000'),
-	('payment_vnpay_url', '', '2026-02-11 13:53:35.000'),
-	('physical_address', '', '2026-02-11 13:53:35.000'),
-	('seo_indexing', 'false', '2026-02-11 13:53:35.000'),
-	('shipping_free_threshold', '500000', '2026-02-11 13:53:35.000'),
-	('shipping_max_days', '5', '2026-02-11 13:53:35.000'),
-	('shipping_min_days', '3', '2026-02-11 13:53:35.000'),
-	('shipping_standard_fee', '30000', '2026-02-11 13:53:35.000'),
-	('store_logo', '/uploads/logo-1770285092759-877006750.png', '2026-02-11 13:53:35.000'),
-	('store_name', 'Fashion Store', '2026-02-11 13:53:35.000'),
-	('support_email', 'FashionStore@gmail.com', '2026-02-11 13:53:35.000'),
-	('support_phone', '0935818000', '2026-02-11 13:53:35.000');
+	('google_client_id', '', '2026-03-03 17:59:22.000'),
+	('legal_entity_name', '', '2026-03-03 17:59:22.000'),
+	('maintenance_mode', 'false', '2026-03-03 17:59:22.000'),
+	('payment_bank_account', '0935818922', '2026-03-03 17:59:22.000'),
+	('payment_bank_account_name', 'TONG VAN HOANG', '2026-03-03 17:59:22.000'),
+	('payment_bank_enabled', 'true', '2026-03-03 17:59:22.000'),
+	('payment_bank_id', 'MBank', '2026-03-03 17:59:22.000'),
+	('payment_bank_info', 'Ngân hàng: MB Bank\nSTK: 0935818922\nChủ TK: TONG VAN HOANG\nNội dung: [Mã đơn hàng]', '2026-03-03 17:59:22.000'),
+	('payment_cod_enabled', 'true', '2026-03-03 17:59:22.000'),
+	('payment_momo_enabled', 'true', '2026-03-03 17:59:23.000'),
+	('payment_momo_qrcode', '', '2026-03-03 17:59:23.000'),
+	('payment_vnpay_enabled', 'false', '2026-03-03 17:59:22.000'),
+	('payment_vnpay_hash_secret', '123', '2026-03-03 17:59:22.000'),
+	('payment_vnpay_tmn_code', 'hoang', '2026-03-03 17:59:22.000'),
+	('payment_vnpay_url', '', '2026-03-03 17:59:22.000'),
+	('physical_address', '', '2026-03-03 17:59:22.000'),
+	('seo_indexing', 'false', '2026-03-03 17:59:22.000'),
+	('shipping_free_threshold', '500000', '2026-03-03 17:59:22.000'),
+	('shipping_max_days', '5', '2026-03-03 17:59:22.000'),
+	('shipping_min_days', '3', '2026-03-03 17:59:22.000'),
+	('shipping_standard_fee', '30000', '2026-03-03 17:59:22.000'),
+	('store_logo', '/uploads/logo-1772532825100-331334915.png', '2026-03-03 17:59:22.000'),
+	('store_name', 'Fashion Store', '2026-03-03 17:59:22.000'),
+	('support_email', 'FashionStore@gmail.com', '2026-03-03 17:59:22.000'),
+	('support_phone', '0935818000', '2026-03-03 17:59:22.000');
 
 -- Dumping structure for table fashion_store.shipments
 DROP TABLE IF EXISTS `shipments`;
@@ -1910,7 +1948,7 @@ CREATE TABLE IF NOT EXISTS `shipments` (
   CONSTRAINT `shipments_order_id_fkey` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.shipments: ~33 rows (approximately)
+-- Dumping data for table fashion_store.shipments: ~35 rows (approximately)
 INSERT INTO `shipments` (`id`, `order_id`, `carrier`, `tracking_code`, `status`, `shipped_at`, `delivered_at`, `created_at`) VALUES
 	(4, 122, NULL, NULL, 'pending', NULL, NULL, '2026-01-23 16:55:08.737'),
 	(5, 123, NULL, NULL, 'pending', NULL, NULL, '2026-01-26 03:54:22.044'),
@@ -1970,7 +2008,7 @@ CREATE TABLE IF NOT EXISTS `shipping_addresses` (
   CONSTRAINT `shipping_addresses_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table fashion_store.shipping_addresses: ~1 rows (approximately)
+-- Dumping data for table fashion_store.shipping_addresses: ~0 rows (approximately)
 
 -- Dumping structure for table fashion_store.shipping_methods
 DROP TABLE IF EXISTS `shipping_methods`;
@@ -2018,6 +2056,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `two_factor_enabled` tinyint(1) NOT NULL DEFAULT 0,
   `two_factor_expires` datetime(3) DEFAULT NULL,
   `two_factor_otp` varchar(10) DEFAULT NULL,
+  `reward_points` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_email_key` (`email`),
   UNIQUE KEY `users_username_key` (`username`),
@@ -2027,84 +2066,84 @@ CREATE TABLE IF NOT EXISTS `users` (
 ) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table fashion_store.users: ~77 rows (approximately)
-INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `full_name`, `phone`, `role`, `status`, `created_at`, `updated_at`, `address_line1`, `address_line2`, `city`, `country`, `province`, `avatar_url`, `google_id`, `two_factor_enabled`, `two_factor_expires`, `two_factor_otp`) VALUES
-	(2, 'khanh', 'khanh@example.com', '$2a$10$samplehashsamplehashsamplehashsamplehashsamplehashsampl', 'Khánh', '0900000002', 'customer', 'active', '2025-12-13 21:29:23.000', '2026-02-01 06:38:37.959', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 1, NULL, NULL),
-	(3, 'minh', 'minh@example.com', '$2a$10$samplehashsamplehashsamplehashsamplehashsamplehashsampl', 'Minh', '0900000003', 'customer', 'active', '2025-12-13 21:29:23.000', NULL, NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(4, 'linh', 'linh@example.com', '$2a$10$samplehashsamplehashsamplehashsamplehashsamplehashsampl', 'Linh', '0900000004', 'customer', 'active', '2025-12-13 21:29:23.000', NULL, NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(5, 'tuan_dev', 'tuan@example.com', '$2a$10$samplehashsamplehashsamplehashsamplehashsamplehashsampl', 'Tuấn Dev', '0900000005', 'customer', 'active', '2025-12-23 10:00:00.000', NULL, NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(6, 'hoang', 'hoang@gmail.com', '$2a$10$d6JltjvGJURdNiC0A/GB2.V63XGQAJJbHzJizNkgEdm4UHaTWU3OC', 'Hoang ADMIN', '', 'admin', 'active', '2026-01-22 13:54:42.000', '2026-02-11 05:54:06.583', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(7, 'user_1_7041', 'long1@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Nguyễn Long', '0934656327', 'customer', 'active', '2025-06-20 23:51:22.981', '2026-01-23 07:56:07.444', '12 Võ Văn Tần', 'Thủ Đức', 'Quận 1', 'VN', 'Đà Nẵng', NULL, NULL, 0, NULL, NULL),
-	(8, 'user_2_7041', 'mai2@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hồ Mai', '0819860543', 'customer', 'blocked', '2025-09-15 23:53:23.507', '2026-01-23 07:56:01.720', '398 Võ Văn Tần', 'Phú Nhuận', 'Đống Đa', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL),
-	(9, 'user_3_7041', 'lan3@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Lê Lan', '0984518917', 'customer', 'active', '2025-09-25 03:03:45.630', '2026-01-23 05:03:37.052', '489 Điện Biên Phủ', 'Tân Bình', 'Đống Đa', 'VN', 'TP.HCM', NULL, NULL, 0, NULL, NULL),
-	(10, 'user_4_7041', 'thao4@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Phạm Thảo', '0856789930', 'customer', 'active', '2025-08-17 03:16:52.577', '2026-01-23 05:03:37.052', '138 Nguyễn Huệ', 'Tân Bình', 'Phú Nhuận', 'VN', 'Đà Nẵng', NULL, NULL, 0, NULL, NULL),
-	(11, 'user_5_7041', 'minh5@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Dương Minh', '0903892767', 'customer', 'active', '2025-02-03 17:52:39.289', '2026-01-23 05:03:37.052', '315 Nam Kỳ Khởi Nghĩa', 'Đống Đa', 'Quận 1', 'VN', 'Buôn Ma Thuột', NULL, NULL, 0, NULL, NULL),
-	(12, 'user_6_7042', 'hai6@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Bùi Hải', '0792194879', 'customer', 'active', '2025-01-01 14:19:03.971', '2026-01-23 05:03:37.052', '243 Nguyễn Huệ', 'Quận 7', 'Tân Bình', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL),
-	(13, 'user_7_7042', 'duc7@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hồ Đức', '0846547618', 'customer', 'active', '2025-12-14 01:12:09.857', '2026-01-23 05:03:37.052', '433 Pasteur', 'Đống Đa', 'Bình Thạnh', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL),
-	(14, 'user_8_7042', 'phuong8@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Lê Phương', '0963648417', 'customer', 'active', '2025-11-26 17:58:10.237', '2026-01-23 05:03:37.052', '286 Lê Lợi', 'Đống Đa', 'Quận 3', 'VN', 'Huế', NULL, NULL, 0, NULL, NULL),
-	(15, 'user_9_7042', 'nam9@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Ngô Nam', '0775220673', 'customer', 'active', '2025-04-24 20:56:41.955', '2026-01-23 05:03:37.052', '133 Cách Mạng Tháng 8', 'Tân Bình', 'Cầu Giấy', 'VN', 'Hà Nội', NULL, NULL, 0, NULL, NULL),
-	(16, 'user_10_7042', 'huong10@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Đặng Hương', '0966811179', 'customer', 'active', '2025-01-28 08:10:09.758', '2026-01-23 05:03:37.052', '49 Pasteur', 'Thủ Đức', 'Gò Vấp', 'VN', 'Đà Nẵng', NULL, NULL, 0, NULL, NULL),
-	(17, 'user_11_7042', 'hoang11@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Huỳnh Hoàng', '0833244147', 'customer', 'active', '2025-05-14 09:33:22.521', '2026-01-23 05:03:37.052', '313 Nam Kỳ Khởi Nghĩa', 'Quận 1', 'Thủ Đức', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL),
-	(18, 'user_12_7042', 'mai12@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Dương Mai', '0837116607', 'customer', 'blocked', '2025-12-09 00:17:40.195', '2026-01-23 05:03:37.052', '356 Hai Bà Trưng', 'Quận 1', 'Quận 7', 'VN', 'Cần Thơ', NULL, NULL, 0, NULL, NULL),
-	(19, 'user_13_7042', 'dung13@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Bùi Dũng', '0949822507', 'customer', 'active', '2025-07-23 09:34:50.238', '2026-01-23 05:03:37.052', '302 Pasteur', 'Quận 3', 'Phú Nhuận', 'VN', 'TP.HCM', NULL, NULL, 0, NULL, NULL),
-	(20, 'user_14_7042', 'minh14@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Dương Minh', '0841585117', 'customer', 'active', '2025-10-13 02:42:40.131', '2026-01-23 05:03:37.052', '146 Lý Tự Trọng', 'Quận 1', 'Cầu Giấy', 'VN', 'TP.HCM', NULL, NULL, 0, NULL, NULL),
-	(21, 'user_15_7042', 'ha15@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Bùi Hà', '0986827054', 'customer', 'active', '2025-07-03 09:51:08.688', '2026-01-23 05:03:37.052', '242 Võ Văn Tần', 'Cầu Giấy', 'Phú Nhuận', 'VN', 'Cần Thơ', NULL, NULL, 0, NULL, NULL),
-	(22, 'user_16_7042', 'hai16@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Ngô Hải', '0939580779', 'customer', 'active', '2025-08-01 01:40:23.246', '2026-01-23 05:03:37.052', '309 Điện Biên Phủ', 'Thủ Đức', 'Thủ Đức', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL),
-	(23, 'user_17_7042', 'long17@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Phan Long', '0963478517', 'customer', 'active', '2025-01-01 09:24:56.833', '2026-01-23 05:03:37.052', '155 Lê Lợi', 'Quận 7', 'Quận 7', 'VN', 'TP.HCM', NULL, NULL, 0, NULL, NULL),
-	(24, 'user_18_7042', 'tu18@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Trần Tú', '0847345923', 'customer', 'active', '2025-06-22 16:56:28.944', '2026-01-23 05:03:37.052', '275 Nguyễn Huệ', 'Bình Thạnh', 'Phú Nhuận', 'VN', 'Cần Thơ', NULL, NULL, 0, NULL, NULL),
-	(25, 'user_19_7042', 'hoang19@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hồ Hoàng', '0967725098', 'customer', 'active', '2025-04-22 22:14:54.638', '2026-01-23 05:03:37.052', '342 Nam Kỳ Khởi Nghĩa', 'Cầu Giấy', 'Bình Thạnh', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL),
-	(26, 'user_20_7042', 'ha20@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hoàng Hà', '0797051966', 'customer', 'active', '2025-03-23 01:37:46.842', '2026-01-23 05:03:37.052', '134 Pasteur', 'Quận 7', 'Gò Vấp', 'VN', 'Cần Thơ', NULL, NULL, 0, NULL, NULL),
-	(27, 'user_21_7042', 'lan21@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Võ Lan', '0848952278', 'customer', 'active', '2025-05-07 10:14:08.481', '2026-01-23 05:03:37.052', '272 Võ Văn Tần', 'Quận 7', 'Thủ Đức', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL),
-	(28, 'user_22_7042', 'nam22@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Võ Nam', '0976802340', 'customer', 'active', '2025-02-03 02:28:44.677', '2026-01-23 05:03:37.052', '246 Điện Biên Phủ', 'Quận 1', 'Phú Nhuận', 'VN', 'Hải Phòng', NULL, NULL, 0, NULL, NULL),
-	(29, 'user_23_7042', 'dung23@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Phạm Dũng', '0836881070', 'customer', 'active', '2025-12-08 12:49:30.369', '2026-01-23 05:03:37.052', '326 Cách Mạng Tháng 8', 'Cầu Giấy', 'Bình Thạnh', 'VN', 'Đà Nẵng', NULL, NULL, 0, NULL, NULL),
-	(30, 'user_24_7042', 'mai24@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Phạm Mai', '0948089368', 'customer', 'blocked', '2025-05-17 05:29:19.663', '2026-01-23 05:03:37.052', '424 Cách Mạng Tháng 8', 'Cầu Giấy', 'Đống Đa', 'VN', 'Hải Phòng', NULL, NULL, 0, NULL, NULL),
-	(31, 'user_25_7042', 'hung25@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Phan Hùng', '0818206559', 'customer', 'active', '2025-05-11 07:28:10.396', '2026-01-23 05:03:37.052', '24 Điện Biên Phủ', 'Quận 3', 'Quận 3', 'VN', 'Nha Trang', NULL, NULL, 0, NULL, NULL),
-	(32, 'user_26_7042', 'minh26@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Lê Minh', '0775762675', 'customer', 'active', '2025-02-22 21:44:37.700', '2026-01-23 05:03:37.052', '209 Cách Mạng Tháng 8', 'Thủ Đức', 'Phú Nhuận', 'VN', 'Huế', NULL, NULL, 0, NULL, NULL),
-	(33, 'user_27_7042', 'tu27@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Huỳnh Tú', '0974138040', 'customer', 'blocked', '2025-12-19 21:30:02.150', '2026-01-23 05:03:37.052', '342 Lý Tự Trọng', 'Tân Bình', 'Phú Nhuận', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL),
-	(34, 'user_28_7042', 'hai28@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hoàng Hải', '0945760009', 'customer', 'active', '2025-09-09 11:59:52.086', '2026-01-23 05:03:37.052', '344 Hai Bà Trưng', 'Quận 7', 'Quận 1', 'VN', 'Hải Phòng', NULL, NULL, 0, NULL, NULL),
-	(35, 'user_29_7042', 'quang29@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Huỳnh Quang', '0968033057', 'customer', 'active', '2025-01-11 10:20:40.378', '2026-01-23 05:03:37.052', '346 Trần Hưng Đạo', 'Bình Thạnh', 'Bình Thạnh', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL),
-	(36, 'user_30_7042', 'long30@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Phạm Long', '0763892863', 'customer', 'active', '2025-04-24 16:35:49.212', '2026-01-23 05:03:37.052', '182 Nguyễn Huệ', 'Bình Thạnh', 'Quận 1', 'VN', 'Nha Trang', NULL, NULL, 0, NULL, NULL),
-	(37, 'user_31_7042', 'dung31@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Đặng Dũng', '0975199467', 'customer', 'active', '2025-09-20 17:59:34.773', '2026-01-23 05:03:37.052', '13 Pasteur', 'Phú Nhuận', 'Quận 3', 'VN', 'Hà Nội', NULL, NULL, 0, NULL, NULL),
-	(38, 'user_32_7042', 'hoang32@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Trần Hoàng', '0944796027', 'customer', 'active', '2025-03-28 05:11:28.540', '2026-01-23 05:03:37.052', '9 Điện Biên Phủ', 'Đống Đa', 'Phú Nhuận', 'VN', 'Huế', NULL, NULL, 0, NULL, NULL),
-	(39, 'user_33_7042', 'anh33@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Bùi Anh', '0836818399', 'customer', 'active', '2025-02-26 05:50:39.285', '2026-01-23 05:03:37.052', '451 Lý Tự Trọng', 'Cầu Giấy', 'Thủ Đức', 'VN', 'Hà Nội', NULL, NULL, 0, NULL, NULL),
-	(40, 'user_34_7042', 'hai34@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hoàng Hải', '0995071772', 'customer', 'blocked', '2025-06-20 23:50:46.254', '2026-01-23 05:03:37.052', '256 Trần Hưng Đạo', 'Cầu Giấy', 'Cầu Giấy', 'VN', 'Nha Trang', NULL, NULL, 0, NULL, NULL),
-	(41, 'user_35_7042', 'tuan35@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Đặng Tuấn', '0987425930', 'customer', 'blocked', '2025-07-24 20:41:50.936', '2026-01-23 05:03:37.052', '422 Nam Kỳ Khởi Nghĩa', 'Bình Thạnh', 'Thủ Đức', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL),
-	(42, 'user_36_7042', 'minh36@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Võ Minh', '0769918268', 'customer', 'active', '2025-05-24 13:56:59.567', '2026-01-23 05:03:37.052', '299 Nguyễn Huệ', 'Quận 7', 'Thủ Đức', 'VN', 'Cần Thơ', NULL, NULL, 0, NULL, NULL),
-	(43, 'user_37_7042', 'hai37@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Huỳnh Hải', '0944968231', 'customer', 'blocked', '2025-08-06 04:41:18.114', '2026-01-23 05:03:37.052', '280 Lê Lợi', 'Gò Vấp', 'Đống Đa', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL),
-	(44, 'user_38_7042', 'thu38@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Trần Thu', '0783304050', 'customer', 'active', '2025-04-29 09:34:19.685', '2026-01-23 05:03:37.052', '229 Võ Văn Tần', 'Thủ Đức', 'Gò Vấp', 'VN', 'Huế', NULL, NULL, 0, NULL, NULL),
-	(45, 'user_39_7042', 'linh39@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Huỳnh Linh', '0854910210', 'customer', 'active', '2025-03-02 16:03:01.638', '2026-01-23 05:03:37.052', '128 Võ Văn Tần', 'Quận 1', 'Bình Thạnh', 'VN', 'Buôn Ma Thuột', NULL, NULL, 0, NULL, NULL),
-	(46, 'user_40_7042', 'huong40@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Vũ Hương', '0988275776', 'customer', 'active', '2025-07-15 17:46:57.407', '2026-01-23 05:03:37.052', '135 Trần Hưng Đạo', 'Đống Đa', 'Bình Thạnh', 'VN', 'Biên Hòa', NULL, NULL, 0, NULL, NULL),
-	(47, 'user_41_7042', 'hai41@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Lê Hải', '0987115461', 'customer', 'active', '2025-04-02 18:54:17.294', '2026-01-23 05:03:37.052', '311 Nam Kỳ Khởi Nghĩa', 'Bình Thạnh', 'Phú Nhuận', 'VN', 'Hải Phòng', NULL, NULL, 0, NULL, NULL),
-	(48, 'user_42_7042', 'tu42@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Ngô Tú', '0815280548', 'customer', 'active', '2025-10-07 12:48:01.448', '2026-01-23 05:03:37.052', '495 Võ Văn Tần', 'Gò Vấp', 'Quận 3', 'VN', 'TP.HCM', NULL, NULL, 0, NULL, NULL),
-	(49, 'user_43_7042', 'long43@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Trần Long', '0838495721', 'customer', 'active', '2025-03-14 04:41:17.924', '2026-01-23 05:03:37.052', '368 Cách Mạng Tháng 8', 'Phú Nhuận', 'Quận 1', 'VN', 'Đà Nẵng', NULL, NULL, 0, NULL, NULL),
-	(50, 'user_44_7042', 'tuan44@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hồ Tuấn', '0963335814', 'customer', 'active', '2025-03-29 04:07:00.515', '2026-01-23 05:03:37.052', '280 Lý Tự Trọng', 'Phú Nhuận', 'Thủ Đức', 'VN', 'Buôn Ma Thuột', NULL, NULL, 0, NULL, NULL),
-	(51, 'user_45_7042', 'lan45@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Đỗ Lan', '0843386466', 'customer', 'active', '2025-01-15 02:54:13.190', '2026-01-23 05:03:37.052', '64 Trần Hưng Đạo', 'Thủ Đức', 'Phú Nhuận', 'VN', 'Đà Nẵng', NULL, NULL, 0, NULL, NULL),
-	(52, 'user_46_7042', 'quang46@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Dương Quang', '0847441303', 'customer', 'active', '2025-07-18 23:16:42.852', '2026-01-23 05:03:37.052', '447 Cách Mạng Tháng 8', 'Quận 3', 'Thủ Đức', 'VN', 'Nha Trang', NULL, NULL, 0, NULL, NULL),
-	(53, 'user_47_7042', 'nam47@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Phạm Nam', '0816458478', 'customer', 'blocked', '2025-11-10 22:56:33.793', '2026-01-23 05:03:37.052', '340 Cách Mạng Tháng 8', 'Quận 1', 'Quận 7', 'VN', 'Huế', NULL, NULL, 0, NULL, NULL),
-	(54, 'user_48_7042', 'duc48@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Bùi Đức', '0987366364', 'customer', 'active', '2025-10-12 17:29:34.208', '2026-01-23 05:03:37.052', '460 Pasteur', 'Phú Nhuận', 'Cầu Giấy', 'VN', 'TP.HCM', NULL, NULL, 0, NULL, NULL),
-	(55, 'user_49_7042', 'hung49@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Ngô Hùng', '0819943586', 'customer', 'active', '2025-04-28 14:14:05.631', '2026-01-23 05:03:37.052', '438 Nam Kỳ Khởi Nghĩa', 'Đống Đa', 'Bình Thạnh', 'VN', 'Hải Phòng', NULL, NULL, 0, NULL, NULL),
-	(56, 'user_50_7042', 'ha50@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Võ Hà', '0852308122', 'customer', 'active', '2025-04-20 18:03:45.701', '2026-01-23 05:03:37.052', '299 Pasteur', 'Tân Bình', 'Phú Nhuận', 'VN', 'Huế', NULL, NULL, 0, NULL, NULL),
-	(60, 'tongvanhoang782004', 'tongvanhoang782004@gmail.com', NULL, 'Tống Văn Hoàng', '', 'customer', 'active', '2026-01-29 10:03:09.596', '2026-02-06 04:01:26.967', '', NULL, '', 'VN', '', 'http://localhost:4000/uploads/1769687593335-248426637.jpg', '113035088560920067892', 0, NULL, NULL),
-	(66, 'qa_admin_1770784498046', 'qa_admin_1770784498046@example.com', '$2a$10$8kj61XTltIipIldAmsIPl.63thrhSRQj3WH1KBnXIJREC4mmuwLi.', 'QA Admin User', '', 'admin', 'active', '2026-02-11 04:34:58.176', '2026-02-15 13:25:36.811', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(69, 'debug_admin_1770784558699', 'debug_admin_1770784558699@example.com', '$2a$10$iOM6xRCFnjW/5FxN.uoVQe.kP948QYJ/lZssXUqjxSlOpEkViPsHa', 'Debug Admin', '', 'admin', 'active', '2026-02-11 04:35:59.423', '2026-02-11 05:36:53.585', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(70, 'qa_admin_1770784609098', 'qa_admin_1770784609098@example.com', '$2a$10$5E9WsLfDZMKm0uXp7ikENOroCcXObdbIt/Fgxak0tmfhAGDRsTtPe', 'QA Admin User', '', 'admin', 'active', '2026-02-11 04:36:49.225', '2026-02-11 05:34:08.211', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(72, 'qa_admin_1770784637750', 'qa_admin_1770784637750@example.com', '$2a$10$mzHPa5VJUmU3oENPxPaMAeEkHWwPkkV3z/PNuQJ6cu1ZuXEoXf3/K', 'QA Admin User', NULL, 'admin', 'active', '2026-02-11 04:37:17.915', '2026-02-11 04:37:17.944', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(74, 'qa_admin_1770784702225', 'qa_admin_1770784702225@example.com', '$2a$10$paEy6Z1rynfWrPM.CE3IOejkb/75cQ2jFxH6t6qYai6DNvq9qMOc.', 'QA Admin User', NULL, 'admin', 'active', '2026-02-11 04:38:22.422', '2026-02-11 04:38:22.439', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(76, 'qa_admin_1770784726616', 'qa_admin_1770784726616@example.com', '$2a$10$pWPoaimgiRgwRtoB3W3gEe5hZGahWguf2g8TuuEcL36lFLmdx6Tny', 'QA Admin User', NULL, 'admin', 'active', '2026-02-11 04:38:46.811', '2026-02-11 04:38:46.839', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(78, 'phuc', '123@gmail.com', '$2a$10$v2xzLMiQVN20nCnwXe.FzuxXkAreIprDiPWQFubtzH/1doiPoIMNy', 'Phúc Staff', '', 'admin', 'active', '2026-02-11 04:47:57.735', '2026-02-11 04:53:05.365', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(79, 'admin_a_1770785413267', 'admin_a_1770785413267@ex.com', '$2a$10$tQzdPFuTceW7GiwLfg8s5uMOx1GxXxJVtnwqqXNFczpQ4axkq9.vm', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:50:13.397', '2026-02-11 04:50:13.414', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(80, 'admin_b_1770785413267', 'admin_b_1770785413267@ex.com', '$2a$10$jHAyrAv5VnD/0Kq4bGFKMO3WtGyjNw3O8dCftb4XlTtrl7CnoYtYW', 'Admin B', NULL, 'customer', 'active', '2026-02-11 04:50:13.497', '2026-02-11 04:50:13.511', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(81, 'admin_a_1770785444081', 'admin_a_1770785444081@ex.com', '$2a$10$cNjBwEoCk0cUOYcc.mg0huXXhFOXlMPBxAYJOmK9j9zIghB5fbS5.', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:50:44.264', '2026-02-11 04:50:44.284', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(82, 'admin_b_1770785444081', 'admin_b_1770785444081@ex.com', '$2a$10$kGkssThfFJAlRDVNOezj9u1F4YWiPOe2BkQf5x.smewbYqaebLC0e', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:50:44.372', '2026-02-11 04:50:44.378', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(83, 'admin_a_1770785461674', 'admin_a_1770785461674@ex.com', '$2a$10$YCwaPye1zbIYXfqkhnJzaes8BcYLbMD/L46vNsB2pgGHOfExmmtJy', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:51:01.804', '2026-02-11 04:51:01.817', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(84, 'admin_b_1770785461674', 'admin_b_1770785461674@ex.com', '$2a$10$d2FbRt6WHgu1zIFgkmhH8e8mxdRH6CaPEBTg6CRPEDHB2kqNrveqK', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:51:01.904', '2026-02-11 04:51:01.910', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(85, 'cust_c_1770785461919', 'cust_c_1770785461919@ex.com', '$2a$10$bE4gQn0ZrBNmrWRROnLjiecg81km/le5wiQU46EfWDahwdZXj4Rbe', 'Customer C UPDATED', NULL, 'customer', 'active', '2026-02-11 04:51:02.003', '2026-02-11 04:51:02.015', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(86, 'admin_a_1770785746664', 'admin_a_1770785746664@ex.com', '$2a$10$a57hNmw/tRb6W2untrCdb..sN01mPWt7QxdV3QX7lvKgUgqRVFLIK', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:55:46.796', '2026-02-11 04:55:46.810', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(87, 'admin_b_1770785746664', 'admin_b_1770785746664@ex.com', '$2a$10$oohWGTVnPCXtkJ.aJH3fTex8QWGsNlQtU4k1QrzNRkvNcG/RD5lCe', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:55:46.923', '2026-02-11 04:55:46.934', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(88, 'admin_a_1770785805640', 'admin_a_1770785805640@ex.com', '$2a$10$qDhFBgrol2QzUZQrjbEiie1Zvd9F5aFpNmyIuyvAm1pcK61mroZhC', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:56:45.777', '2026-02-11 04:56:45.805', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(89, 'admin_b_1770785805640', 'admin_b_1770785805640@ex.com', '$2a$10$CANn2t8BLadhaWAudA1GwufrXJ9Mb7/zBwiQACxg2seuASpTWDxXC', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:56:45.893', '2026-02-11 04:56:45.898', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(90, 'admin_a_1770785862197', 'admin_a_1770785862197@ex.com', '$2a$10$hIJZy.etCKDxHsk8HcxQ..2nYej4pIjnqjQI3UBlm3GXne.hc.4p2', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:57:42.387', '2026-02-11 04:57:42.407', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(91, 'admin_b_1770785862197', 'admin_b_1770785862197@ex.com', '$2a$10$anN4NFV/8BMfLbbM/dKsJOnB8pp6lJmZaGRvSKRPA18/TJBoOUDum', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:57:42.492', '2026-02-11 04:57:42.499', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL),
-	(92, 'manager_d_1770785862510', 'manager_d_1770785862510@ex.com', '$2a$10$oWJxYKKHwnqr5VuEbeTyr.0hVjn7iYMz.0B9r35fg13jn4gnGsy6e', 'Manager D', NULL, 'manager', 'active', '2026-02-11 04:57:42.586', '2026-02-11 04:57:42.592', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL);
+INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `full_name`, `phone`, `role`, `status`, `created_at`, `updated_at`, `address_line1`, `address_line2`, `city`, `country`, `province`, `avatar_url`, `google_id`, `two_factor_enabled`, `two_factor_expires`, `two_factor_otp`, `reward_points`) VALUES
+	(2, 'khanh', 'khanh@example.com', '$2a$10$samplehashsamplehashsamplehashsamplehashsamplehashsampl', 'Khánh', '0900000002', 'customer', 'active', '2025-12-13 21:29:23.000', '2026-02-01 06:38:37.959', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 1, NULL, NULL, 0),
+	(3, 'minh', 'minh@example.com', '$2a$10$samplehashsamplehashsamplehashsamplehashsamplehashsampl', 'Minh', '0900000003', 'customer', 'active', '2025-12-13 21:29:23.000', NULL, NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(4, 'linh', 'linh@example.com', '$2a$10$samplehashsamplehashsamplehashsamplehashsamplehashsampl', 'Linh', '0900000004', 'customer', 'active', '2025-12-13 21:29:23.000', NULL, NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(5, 'tuan_dev', 'tuan@example.com', '$2a$10$samplehashsamplehashsamplehashsamplehashsamplehashsampl', 'Tuấn Dev', '0900000005', 'customer', 'active', '2025-12-23 10:00:00.000', NULL, NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(6, 'hoang', 'hoang@gmail.com', '$2a$10$d6JltjvGJURdNiC0A/GB2.V63XGQAJJbHzJizNkgEdm4UHaTWU3OC', 'Hoang ADMIN', '', 'admin', 'active', '2026-01-22 13:54:42.000', '2026-02-11 05:54:06.583', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(7, 'user_1_7041', 'long1@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Nguyễn Long', '0934656327', 'customer', 'active', '2025-06-20 23:51:22.981', '2026-01-23 07:56:07.444', '12 Võ Văn Tần', 'Thủ Đức', 'Quận 1', 'VN', 'Đà Nẵng', NULL, NULL, 0, NULL, NULL, 0),
+	(8, 'user_2_7041', 'mai2@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hồ Mai', '0819860543', 'customer', 'blocked', '2025-09-15 23:53:23.507', '2026-01-23 07:56:01.720', '398 Võ Văn Tần', 'Phú Nhuận', 'Đống Đa', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL, 0),
+	(9, 'user_3_7041', 'lan3@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Lê Lan', '0984518917', 'customer', 'active', '2025-09-25 03:03:45.630', '2026-01-23 05:03:37.052', '489 Điện Biên Phủ', 'Tân Bình', 'Đống Đa', 'VN', 'TP.HCM', NULL, NULL, 0, NULL, NULL, 0),
+	(10, 'user_4_7041', 'thao4@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Phạm Thảo', '0856789930', 'customer', 'active', '2025-08-17 03:16:52.577', '2026-01-23 05:03:37.052', '138 Nguyễn Huệ', 'Tân Bình', 'Phú Nhuận', 'VN', 'Đà Nẵng', NULL, NULL, 0, NULL, NULL, 0),
+	(11, 'user_5_7041', 'minh5@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Dương Minh', '0903892767', 'customer', 'active', '2025-02-03 17:52:39.289', '2026-01-23 05:03:37.052', '315 Nam Kỳ Khởi Nghĩa', 'Đống Đa', 'Quận 1', 'VN', 'Buôn Ma Thuột', NULL, NULL, 0, NULL, NULL, 0),
+	(12, 'user_6_7042', 'hai6@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Bùi Hải', '0792194879', 'customer', 'active', '2025-01-01 14:19:03.971', '2026-01-23 05:03:37.052', '243 Nguyễn Huệ', 'Quận 7', 'Tân Bình', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL, 0),
+	(13, 'user_7_7042', 'duc7@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hồ Đức', '0846547618', 'customer', 'active', '2025-12-14 01:12:09.857', '2026-01-23 05:03:37.052', '433 Pasteur', 'Đống Đa', 'Bình Thạnh', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL, 0),
+	(14, 'user_8_7042', 'phuong8@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Lê Phương', '0963648417', 'customer', 'active', '2025-11-26 17:58:10.237', '2026-01-23 05:03:37.052', '286 Lê Lợi', 'Đống Đa', 'Quận 3', 'VN', 'Huế', NULL, NULL, 0, NULL, NULL, 0),
+	(15, 'user_9_7042', 'nam9@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Ngô Nam', '0775220673', 'customer', 'active', '2025-04-24 20:56:41.955', '2026-01-23 05:03:37.052', '133 Cách Mạng Tháng 8', 'Tân Bình', 'Cầu Giấy', 'VN', 'Hà Nội', NULL, NULL, 0, NULL, NULL, 0),
+	(16, 'user_10_7042', 'huong10@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Đặng Hương', '0966811179', 'customer', 'active', '2025-01-28 08:10:09.758', '2026-01-23 05:03:37.052', '49 Pasteur', 'Thủ Đức', 'Gò Vấp', 'VN', 'Đà Nẵng', NULL, NULL, 0, NULL, NULL, 0),
+	(17, 'user_11_7042', 'hoang11@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Huỳnh Hoàng', '0833244147', 'customer', 'active', '2025-05-14 09:33:22.521', '2026-01-23 05:03:37.052', '313 Nam Kỳ Khởi Nghĩa', 'Quận 1', 'Thủ Đức', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL, 0),
+	(18, 'user_12_7042', 'mai12@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Dương Mai', '0837116607', 'customer', 'blocked', '2025-12-09 00:17:40.195', '2026-01-23 05:03:37.052', '356 Hai Bà Trưng', 'Quận 1', 'Quận 7', 'VN', 'Cần Thơ', NULL, NULL, 0, NULL, NULL, 0),
+	(19, 'user_13_7042', 'dung13@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Bùi Dũng', '0949822507', 'customer', 'active', '2025-07-23 09:34:50.238', '2026-01-23 05:03:37.052', '302 Pasteur', 'Quận 3', 'Phú Nhuận', 'VN', 'TP.HCM', NULL, NULL, 0, NULL, NULL, 0),
+	(20, 'user_14_7042', 'minh14@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Dương Minh', '0841585117', 'customer', 'active', '2025-10-13 02:42:40.131', '2026-01-23 05:03:37.052', '146 Lý Tự Trọng', 'Quận 1', 'Cầu Giấy', 'VN', 'TP.HCM', NULL, NULL, 0, NULL, NULL, 0),
+	(21, 'user_15_7042', 'ha15@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Bùi Hà', '0986827054', 'customer', 'active', '2025-07-03 09:51:08.688', '2026-01-23 05:03:37.052', '242 Võ Văn Tần', 'Cầu Giấy', 'Phú Nhuận', 'VN', 'Cần Thơ', NULL, NULL, 0, NULL, NULL, 0),
+	(22, 'user_16_7042', 'hai16@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Ngô Hải', '0939580779', 'customer', 'active', '2025-08-01 01:40:23.246', '2026-01-23 05:03:37.052', '309 Điện Biên Phủ', 'Thủ Đức', 'Thủ Đức', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL, 0),
+	(23, 'user_17_7042', 'long17@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Phan Long', '0963478517', 'customer', 'active', '2025-01-01 09:24:56.833', '2026-01-23 05:03:37.052', '155 Lê Lợi', 'Quận 7', 'Quận 7', 'VN', 'TP.HCM', NULL, NULL, 0, NULL, NULL, 0),
+	(24, 'user_18_7042', 'tu18@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Trần Tú', '0847345923', 'customer', 'active', '2025-06-22 16:56:28.944', '2026-01-23 05:03:37.052', '275 Nguyễn Huệ', 'Bình Thạnh', 'Phú Nhuận', 'VN', 'Cần Thơ', NULL, NULL, 0, NULL, NULL, 0),
+	(25, 'user_19_7042', 'hoang19@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hồ Hoàng', '0967725098', 'customer', 'active', '2025-04-22 22:14:54.638', '2026-01-23 05:03:37.052', '342 Nam Kỳ Khởi Nghĩa', 'Cầu Giấy', 'Bình Thạnh', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL, 0),
+	(26, 'user_20_7042', 'ha20@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hoàng Hà', '0797051966', 'customer', 'active', '2025-03-23 01:37:46.842', '2026-01-23 05:03:37.052', '134 Pasteur', 'Quận 7', 'Gò Vấp', 'VN', 'Cần Thơ', NULL, NULL, 0, NULL, NULL, 0),
+	(27, 'user_21_7042', 'lan21@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Võ Lan', '0848952278', 'customer', 'active', '2025-05-07 10:14:08.481', '2026-01-23 05:03:37.052', '272 Võ Văn Tần', 'Quận 7', 'Thủ Đức', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL, 0),
+	(28, 'user_22_7042', 'nam22@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Võ Nam', '0976802340', 'customer', 'active', '2025-02-03 02:28:44.677', '2026-01-23 05:03:37.052', '246 Điện Biên Phủ', 'Quận 1', 'Phú Nhuận', 'VN', 'Hải Phòng', NULL, NULL, 0, NULL, NULL, 0),
+	(29, 'user_23_7042', 'dung23@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Phạm Dũng', '0836881070', 'customer', 'active', '2025-12-08 12:49:30.369', '2026-01-23 05:03:37.052', '326 Cách Mạng Tháng 8', 'Cầu Giấy', 'Bình Thạnh', 'VN', 'Đà Nẵng', NULL, NULL, 0, NULL, NULL, 0),
+	(30, 'user_24_7042', 'mai24@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Phạm Mai', '0948089368', 'customer', 'blocked', '2025-05-17 05:29:19.663', '2026-01-23 05:03:37.052', '424 Cách Mạng Tháng 8', 'Cầu Giấy', 'Đống Đa', 'VN', 'Hải Phòng', NULL, NULL, 0, NULL, NULL, 0),
+	(31, 'user_25_7042', 'hung25@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Phan Hùng', '0818206559', 'customer', 'active', '2025-05-11 07:28:10.396', '2026-01-23 05:03:37.052', '24 Điện Biên Phủ', 'Quận 3', 'Quận 3', 'VN', 'Nha Trang', NULL, NULL, 0, NULL, NULL, 0),
+	(32, 'user_26_7042', 'minh26@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Lê Minh', '0775762675', 'customer', 'active', '2025-02-22 21:44:37.700', '2026-01-23 05:03:37.052', '209 Cách Mạng Tháng 8', 'Thủ Đức', 'Phú Nhuận', 'VN', 'Huế', NULL, NULL, 0, NULL, NULL, 0),
+	(33, 'user_27_7042', 'tu27@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Huỳnh Tú', '0974138040', 'customer', 'blocked', '2025-12-19 21:30:02.150', '2026-01-23 05:03:37.052', '342 Lý Tự Trọng', 'Tân Bình', 'Phú Nhuận', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL, 0),
+	(34, 'user_28_7042', 'hai28@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hoàng Hải', '0945760009', 'customer', 'active', '2025-09-09 11:59:52.086', '2026-01-23 05:03:37.052', '344 Hai Bà Trưng', 'Quận 7', 'Quận 1', 'VN', 'Hải Phòng', NULL, NULL, 0, NULL, NULL, 0),
+	(35, 'user_29_7042', 'quang29@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Huỳnh Quang', '0968033057', 'customer', 'active', '2025-01-11 10:20:40.378', '2026-01-23 05:03:37.052', '346 Trần Hưng Đạo', 'Bình Thạnh', 'Bình Thạnh', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL, 0),
+	(36, 'user_30_7042', 'long30@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Phạm Long', '0763892863', 'customer', 'active', '2025-04-24 16:35:49.212', '2026-01-23 05:03:37.052', '182 Nguyễn Huệ', 'Bình Thạnh', 'Quận 1', 'VN', 'Nha Trang', NULL, NULL, 0, NULL, NULL, 0),
+	(37, 'user_31_7042', 'dung31@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Đặng Dũng', '0975199467', 'customer', 'active', '2025-09-20 17:59:34.773', '2026-01-23 05:03:37.052', '13 Pasteur', 'Phú Nhuận', 'Quận 3', 'VN', 'Hà Nội', NULL, NULL, 0, NULL, NULL, 0),
+	(38, 'user_32_7042', 'hoang32@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Trần Hoàng', '0944796027', 'customer', 'active', '2025-03-28 05:11:28.540', '2026-01-23 05:03:37.052', '9 Điện Biên Phủ', 'Đống Đa', 'Phú Nhuận', 'VN', 'Huế', NULL, NULL, 0, NULL, NULL, 0),
+	(39, 'user_33_7042', 'anh33@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Bùi Anh', '0836818399', 'customer', 'active', '2025-02-26 05:50:39.285', '2026-01-23 05:03:37.052', '451 Lý Tự Trọng', 'Cầu Giấy', 'Thủ Đức', 'VN', 'Hà Nội', NULL, NULL, 0, NULL, NULL, 0),
+	(40, 'user_34_7042', 'hai34@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hoàng Hải', '0995071772', 'customer', 'blocked', '2025-06-20 23:50:46.254', '2026-01-23 05:03:37.052', '256 Trần Hưng Đạo', 'Cầu Giấy', 'Cầu Giấy', 'VN', 'Nha Trang', NULL, NULL, 0, NULL, NULL, 0),
+	(41, 'user_35_7042', 'tuan35@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Đặng Tuấn', '0987425930', 'customer', 'blocked', '2025-07-24 20:41:50.936', '2026-01-23 05:03:37.052', '422 Nam Kỳ Khởi Nghĩa', 'Bình Thạnh', 'Thủ Đức', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL, 0),
+	(42, 'user_36_7042', 'minh36@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Võ Minh', '0769918268', 'customer', 'active', '2025-05-24 13:56:59.567', '2026-01-23 05:03:37.052', '299 Nguyễn Huệ', 'Quận 7', 'Thủ Đức', 'VN', 'Cần Thơ', NULL, NULL, 0, NULL, NULL, 0),
+	(43, 'user_37_7042', 'hai37@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Huỳnh Hải', '0944968231', 'customer', 'blocked', '2025-08-06 04:41:18.114', '2026-01-23 05:03:37.052', '280 Lê Lợi', 'Gò Vấp', 'Đống Đa', 'VN', 'Vũng Tàu', NULL, NULL, 0, NULL, NULL, 0),
+	(44, 'user_38_7042', 'thu38@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Trần Thu', '0783304050', 'customer', 'active', '2025-04-29 09:34:19.685', '2026-01-23 05:03:37.052', '229 Võ Văn Tần', 'Thủ Đức', 'Gò Vấp', 'VN', 'Huế', NULL, NULL, 0, NULL, NULL, 0),
+	(45, 'user_39_7042', 'linh39@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Huỳnh Linh', '0854910210', 'customer', 'active', '2025-03-02 16:03:01.638', '2026-01-23 05:03:37.052', '128 Võ Văn Tần', 'Quận 1', 'Bình Thạnh', 'VN', 'Buôn Ma Thuột', NULL, NULL, 0, NULL, NULL, 0),
+	(46, 'user_40_7042', 'huong40@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Vũ Hương', '0988275776', 'customer', 'active', '2025-07-15 17:46:57.407', '2026-01-23 05:03:37.052', '135 Trần Hưng Đạo', 'Đống Đa', 'Bình Thạnh', 'VN', 'Biên Hòa', NULL, NULL, 0, NULL, NULL, 0),
+	(47, 'user_41_7042', 'hai41@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Lê Hải', '0987115461', 'customer', 'active', '2025-04-02 18:54:17.294', '2026-01-23 05:03:37.052', '311 Nam Kỳ Khởi Nghĩa', 'Bình Thạnh', 'Phú Nhuận', 'VN', 'Hải Phòng', NULL, NULL, 0, NULL, NULL, 0),
+	(48, 'user_42_7042', 'tu42@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Ngô Tú', '0815280548', 'customer', 'active', '2025-10-07 12:48:01.448', '2026-01-23 05:03:37.052', '495 Võ Văn Tần', 'Gò Vấp', 'Quận 3', 'VN', 'TP.HCM', NULL, NULL, 0, NULL, NULL, 0),
+	(49, 'user_43_7042', 'long43@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Trần Long', '0838495721', 'customer', 'active', '2025-03-14 04:41:17.924', '2026-01-23 05:03:37.052', '368 Cách Mạng Tháng 8', 'Phú Nhuận', 'Quận 1', 'VN', 'Đà Nẵng', NULL, NULL, 0, NULL, NULL, 0),
+	(50, 'user_44_7042', 'tuan44@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Hồ Tuấn', '0963335814', 'customer', 'active', '2025-03-29 04:07:00.515', '2026-01-23 05:03:37.052', '280 Lý Tự Trọng', 'Phú Nhuận', 'Thủ Đức', 'VN', 'Buôn Ma Thuột', NULL, NULL, 0, NULL, NULL, 0),
+	(51, 'user_45_7042', 'lan45@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Đỗ Lan', '0843386466', 'customer', 'active', '2025-01-15 02:54:13.190', '2026-01-23 05:03:37.052', '64 Trần Hưng Đạo', 'Thủ Đức', 'Phú Nhuận', 'VN', 'Đà Nẵng', NULL, NULL, 0, NULL, NULL, 0),
+	(52, 'user_46_7042', 'quang46@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Dương Quang', '0847441303', 'customer', 'active', '2025-07-18 23:16:42.852', '2026-01-23 05:03:37.052', '447 Cách Mạng Tháng 8', 'Quận 3', 'Thủ Đức', 'VN', 'Nha Trang', NULL, NULL, 0, NULL, NULL, 0),
+	(53, 'user_47_7042', 'nam47@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Phạm Nam', '0816458478', 'customer', 'blocked', '2025-11-10 22:56:33.793', '2026-01-23 05:03:37.052', '340 Cách Mạng Tháng 8', 'Quận 1', 'Quận 7', 'VN', 'Huế', NULL, NULL, 0, NULL, NULL, 0),
+	(54, 'user_48_7042', 'duc48@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Bùi Đức', '0987366364', 'customer', 'active', '2025-10-12 17:29:34.208', '2026-01-23 05:03:37.052', '460 Pasteur', 'Phú Nhuận', 'Cầu Giấy', 'VN', 'TP.HCM', NULL, NULL, 0, NULL, NULL, 0),
+	(55, 'user_49_7042', 'hung49@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Ngô Hùng', '0819943586', 'customer', 'active', '2025-04-28 14:14:05.631', '2026-01-23 05:03:37.052', '438 Nam Kỳ Khởi Nghĩa', 'Đống Đa', 'Bình Thạnh', 'VN', 'Hải Phòng', NULL, NULL, 0, NULL, NULL, 0),
+	(56, 'user_50_7042', 'ha50@example.com', '$2a$10$n2N/rAcOk9hgDdeyyNil6O.M2eK6gR5IvrnFEL7eCraIWWQWjiisS', 'Võ Hà', '0852308122', 'customer', 'active', '2025-04-20 18:03:45.701', '2026-01-23 05:03:37.052', '299 Pasteur', 'Tân Bình', 'Phú Nhuận', 'VN', 'Huế', NULL, NULL, 0, NULL, NULL, 0),
+	(60, 'tongvanhoang782004', 'tongvanhoang782004@gmail.com', NULL, 'Tống Văn Hoàng', '', 'customer', 'active', '2026-01-29 10:03:09.596', '2026-02-27 16:11:28.785', '', NULL, '', 'VN', '', 'http://localhost:4000/uploads/1769687593335-248426637.jpg', '113035088560920067892', 0, NULL, NULL, 50),
+	(66, 'qa_admin_1770784498046', 'qa_admin_1770784498046@example.com', '$2a$10$8kj61XTltIipIldAmsIPl.63thrhSRQj3WH1KBnXIJREC4mmuwLi.', 'QA Admin User', '', 'admin', 'active', '2026-02-11 04:34:58.176', '2026-02-15 13:25:36.811', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(69, 'debug_admin_1770784558699', 'debug_admin_1770784558699@example.com', '$2a$10$iOM6xRCFnjW/5FxN.uoVQe.kP948QYJ/lZssXUqjxSlOpEkViPsHa', 'Debug Admin', '', 'admin', 'active', '2026-02-11 04:35:59.423', '2026-02-11 05:36:53.585', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(70, 'qa_admin_1770784609098', 'qa_admin_1770784609098@example.com', '$2a$10$5E9WsLfDZMKm0uXp7ikENOroCcXObdbIt/Fgxak0tmfhAGDRsTtPe', 'QA Admin User', '', 'admin', 'active', '2026-02-11 04:36:49.225', '2026-02-11 05:34:08.211', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(72, 'qa_admin_1770784637750', 'qa_admin_1770784637750@example.com', '$2a$10$mzHPa5VJUmU3oENPxPaMAeEkHWwPkkV3z/PNuQJ6cu1ZuXEoXf3/K', 'QA Admin User', NULL, 'admin', 'active', '2026-02-11 04:37:17.915', '2026-02-11 04:37:17.944', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(74, 'qa_admin_1770784702225', 'qa_admin_1770784702225@example.com', '$2a$10$paEy6Z1rynfWrPM.CE3IOejkb/75cQ2jFxH6t6qYai6DNvq9qMOc.', 'QA Admin User', NULL, 'admin', 'active', '2026-02-11 04:38:22.422', '2026-02-11 04:38:22.439', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(76, 'qa_admin_1770784726616', 'qa_admin_1770784726616@example.com', '$2a$10$pWPoaimgiRgwRtoB3W3gEe5hZGahWguf2g8TuuEcL36lFLmdx6Tny', 'QA Admin User', NULL, 'admin', 'active', '2026-02-11 04:38:46.811', '2026-02-11 04:38:46.839', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(78, 'phuc', '123@gmail.com', '$2a$10$v2xzLMiQVN20nCnwXe.FzuxXkAreIprDiPWQFubtzH/1doiPoIMNy', 'Phúc Staff', '', 'admin', 'active', '2026-02-11 04:47:57.735', '2026-02-11 04:53:05.365', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(79, 'admin_a_1770785413267', 'admin_a_1770785413267@ex.com', '$2a$10$tQzdPFuTceW7GiwLfg8s5uMOx1GxXxJVtnwqqXNFczpQ4axkq9.vm', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:50:13.397', '2026-02-11 04:50:13.414', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(80, 'admin_b_1770785413267', 'admin_b_1770785413267@ex.com', '$2a$10$jHAyrAv5VnD/0Kq4bGFKMO3WtGyjNw3O8dCftb4XlTtrl7CnoYtYW', 'Admin B', NULL, 'customer', 'active', '2026-02-11 04:50:13.497', '2026-02-11 04:50:13.511', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(81, 'admin_a_1770785444081', 'admin_a_1770785444081@ex.com', '$2a$10$cNjBwEoCk0cUOYcc.mg0huXXhFOXlMPBxAYJOmK9j9zIghB5fbS5.', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:50:44.264', '2026-02-11 04:50:44.284', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(82, 'admin_b_1770785444081', 'admin_b_1770785444081@ex.com', '$2a$10$kGkssThfFJAlRDVNOezj9u1F4YWiPOe2BkQf5x.smewbYqaebLC0e', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:50:44.372', '2026-02-11 04:50:44.378', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(83, 'admin_a_1770785461674', 'admin_a_1770785461674@ex.com', '$2a$10$YCwaPye1zbIYXfqkhnJzaes8BcYLbMD/L46vNsB2pgGHOfExmmtJy', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:51:01.804', '2026-02-11 04:51:01.817', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(84, 'admin_b_1770785461674', 'admin_b_1770785461674@ex.com', '$2a$10$d2FbRt6WHgu1zIFgkmhH8e8mxdRH6CaPEBTg6CRPEDHB2kqNrveqK', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:51:01.904', '2026-02-11 04:51:01.910', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(85, 'cust_c_1770785461919', 'cust_c_1770785461919@ex.com', '$2a$10$bE4gQn0ZrBNmrWRROnLjiecg81km/le5wiQU46EfWDahwdZXj4Rbe', 'Customer C UPDATED', NULL, 'customer', 'active', '2026-02-11 04:51:02.003', '2026-02-11 04:51:02.015', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(86, 'admin_a_1770785746664', 'admin_a_1770785746664@ex.com', '$2a$10$a57hNmw/tRb6W2untrCdb..sN01mPWt7QxdV3QX7lvKgUgqRVFLIK', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:55:46.796', '2026-02-11 04:55:46.810', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(87, 'admin_b_1770785746664', 'admin_b_1770785746664@ex.com', '$2a$10$oohWGTVnPCXtkJ.aJH3fTex8QWGsNlQtU4k1QrzNRkvNcG/RD5lCe', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:55:46.923', '2026-02-11 04:55:46.934', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(88, 'admin_a_1770785805640', 'admin_a_1770785805640@ex.com', '$2a$10$qDhFBgrol2QzUZQrjbEiie1Zvd9F5aFpNmyIuyvAm1pcK61mroZhC', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:56:45.777', '2026-02-11 04:56:45.805', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(89, 'admin_b_1770785805640', 'admin_b_1770785805640@ex.com', '$2a$10$CANn2t8BLadhaWAudA1GwufrXJ9Mb7/zBwiQACxg2seuASpTWDxXC', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:56:45.893', '2026-02-11 04:56:45.898', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(90, 'admin_a_1770785862197', 'admin_a_1770785862197@ex.com', '$2a$10$hIJZy.etCKDxHsk8HcxQ..2nYej4pIjnqjQI3UBlm3GXne.hc.4p2', 'Admin A', NULL, 'admin', 'active', '2026-02-11 04:57:42.387', '2026-02-11 04:57:42.407', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(91, 'admin_b_1770785862197', 'admin_b_1770785862197@ex.com', '$2a$10$anN4NFV/8BMfLbbM/dKsJOnB8pp6lJmZaGRvSKRPA18/TJBoOUDum', 'Admin B', NULL, 'admin', 'active', '2026-02-11 04:57:42.492', '2026-02-11 04:57:42.499', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0),
+	(92, 'manager_d_1770785862510', 'manager_d_1770785862510@ex.com', '$2a$10$oWJxYKKHwnqr5VuEbeTyr.0hVjn7iYMz.0B9r35fg13jn4gnGsy6e', 'Manager D', NULL, 'manager', 'active', '2026-02-11 04:57:42.586', '2026-02-11 04:57:42.592', NULL, NULL, NULL, 'VN', NULL, NULL, NULL, 0, NULL, NULL, 0);
 
 -- Dumping structure for table fashion_store.variant_option_values
 DROP TABLE IF EXISTS `variant_option_values`;
@@ -2157,13 +2196,14 @@ CREATE TABLE IF NOT EXISTS `wishlists` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `wishlists_user_id_key` (`user_id`),
   CONSTRAINT `wishlists_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table fashion_store.wishlists: ~3 rows (approximately)
 INSERT INTO `wishlists` (`id`, `user_id`, `created_at`) VALUES
 	(3, 6, '2026-01-24 07:19:09.579'),
 	(5, 60, '2026-01-29 10:03:09.707'),
-	(6, 78, '2026-02-11 04:53:12.246');
+	(6, 78, '2026-02-11 04:53:12.246'),
+	(7, 5, '2026-02-21 11:58:12.122');
 
 -- Dumping structure for table fashion_store.wishlist_items
 DROP TABLE IF EXISTS `wishlist_items`;
@@ -2177,13 +2217,12 @@ CREATE TABLE IF NOT EXISTS `wishlist_items` (
   KEY `idx_wl_product` (`product_id`),
   CONSTRAINT `wishlist_items_product_id_fkey` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `wishlist_items_wishlist_id_fkey` FOREIGN KEY (`wishlist_id`) REFERENCES `wishlists` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table fashion_store.wishlist_items: ~3 rows (approximately)
 INSERT INTO `wishlist_items` (`id`, `wishlist_id`, `product_id`, `created_at`) VALUES
 	(12, 5, 1, '2026-01-29 12:10:24.242'),
-	(14, 3, 1, '2026-02-17 09:56:08.903'),
-	(15, 3, 2, '2026-02-17 09:56:26.248');
+	(16, 3, 7, '2026-02-25 10:15:03.386');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

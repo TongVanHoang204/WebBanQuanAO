@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   Image as ImageIcon, 
   Plus, 
@@ -68,6 +69,9 @@ const positionLabels: Record<string, string> = {
 };
 
 export default function BannerListPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialPosition = searchParams.get('position') || '';
+  const initialPage = Math.max(1, Number(searchParams.get('page') || 1) || 1);
   const [banners, setBanners] = useState<Banner[]>([]);
   // ... (states remain same)
   const [loading, setLoading] = useState(true);
@@ -75,8 +79,8 @@ export default function BannerListPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(initialForm);
-  const [positionFilter, setPositionFilter] = useState<string>('');
-  const [page, setPage] = useState(1);
+  const [positionFilter, setPositionFilter] = useState<string>(initialPosition);
+  const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
 
   const fetchBanners = async () => {
@@ -108,6 +112,21 @@ export default function BannerListPage() {
   useEffect(() => {
     fetchBanners();
   }, [positionFilter, page]);
+
+  useEffect(() => {
+    const positionFromUrl = searchParams.get('position') || '';
+    const pageFromUrl = Math.max(1, Number(searchParams.get('page') || 1) || 1);
+    setPositionFilter(prev => (prev === positionFromUrl ? prev : positionFromUrl));
+    setPage(prev => (prev === pageFromUrl ? prev : pageFromUrl));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (positionFilter) next.set('position', positionFilter);
+    if (page > 1) next.set('page', String(page));
+    if (next.toString() === searchParams.toString()) return;
+    setSearchParams(next, { replace: true });
+  }, [positionFilter, page, searchParams, setSearchParams]);
 
   const handleEdit = (banner: Banner) => {
     setEditingId(banner.id);
@@ -306,9 +325,9 @@ export default function BannerListPage() {
       </div>
 
      <div className="flex gap-2">
-        <button onClick={() => setPositionFilter('')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${positionFilter === '' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-300'}`}>Tất cả</button>
+        <button onClick={() => { setPositionFilter(''); setPage(1); }} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${positionFilter === '' ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-300'}`}>Tất cả</button>
         {Object.entries(positionLabels).map(([key, label]) => (
-          <button key={key} onClick={() => setPositionFilter(key)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${positionFilter === key ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-300'}`}>{label}</button>
+          <button key={key} onClick={() => { setPositionFilter(key); setPage(1); }} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${positionFilter === key ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-300'}`}>{label}</button>
         ))}
       </div>
 

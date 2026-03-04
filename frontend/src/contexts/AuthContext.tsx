@@ -22,19 +22,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing token on mount
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    
-    if (token && savedUser) {
+    const initializeAuth = async () => {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        setUser(JSON.parse(savedUser));
-      } catch {
+        const response = await authAPI.getMe();
+        // Assuming your backend responds with data inside a standard structure
+        const user = response.data.data || response.data;
+        
+        setUser(user);
+        localStorage.setItem('user', JSON.stringify(user));
+      } catch (error) {
+        console.error('Token verification failed:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const mergeCart = async () => {

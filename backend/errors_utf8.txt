@@ -1,0 +1,7 @@
+﻿src/controllers/personalization.controller.ts(2,80): error TS2307: Cannot find module '../services/personalization.service' or its corresponding type declarations.
+src/controllers/personalization.controller.ts(36,44): error TS7006: Parameter 'product' implicitly has an 'any' type.
+src/controllers/personalization.controller.ts(44,54): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/routes/personalization.routes.ts(2,51): error TS2307: Cannot find module '../controllers/personalization.controller' or its corresponding type declarations.
+src/routes/personalization.routes.ts(3,29): error TS2307: Cannot find module '../middlewares/auth.middleware' or its corresponding type declarations.
+src/routes/review.routes.ts(2,69): error TS2307: Cannot find module '../controllers/review.controller' or its corresponding type declarations.
+src/routes/review.routes.ts(3,43): error TS2307: Cannot find module '../middlewares/auth.middleware' or its corresponding type declarations.

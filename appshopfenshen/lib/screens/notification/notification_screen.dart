@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/notification_service.dart';
+import '../../widgets/custom_pagination.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -12,6 +13,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
   final NotificationService _service = NotificationService();
   List<NotificationModel> _notifications = [];
   bool _isLoading = true;
+  int _currentPage = 1;
+  int _totalPages = 1;
 
   @override
   void initState() {
@@ -19,10 +22,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
     _load();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({int? page}) async {
     setState(() => _isLoading = true);
+    final targetPage = page ?? _currentPage;
     try {
-      _notifications = await _service.getNotifications();
+      final res = await _service.getNotifications(page: targetPage);
+      _notifications = res.data;
+      _totalPages = res.totalPages;
+      _currentPage = targetPage;
     } catch (_) {}
     if (mounted) setState(() => _isLoading = false);
   }
@@ -30,21 +37,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Future<void> _markAllRead() async {
     try {
       await _service.markAllAsRead();
-      _load();
+      _load(page: _currentPage);
     } catch (_) {}
   }
 
   Future<void> _markRead(String id) async {
     try {
       await _service.markAsRead(id);
-      _load();
+      _load(page: _currentPage);
     } catch (_) {}
   }
 
   Future<void> _delete(String id) async {
     try {
       await _service.deleteNotification(id);
-      _load();
+      _load(page: _currentPage);
     } catch (_) {}
   }
 
@@ -70,7 +77,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       case 'inventory':
         return Colors.green;
       default:
-        return const Color(0xFFD4AF37);
+        return const Color(0xFF7F19E6);
     }
   }
 
@@ -87,48 +94,69 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFFF7F6F8),
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: const Color(0xFFF7F6F8),
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF140E1B), size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Thông báo',
           style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+            color: Color(0xFF140E1B),
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
           ),
         ),
+        centerTitle: false,
         actions: [
           if (_notifications.any((n) => !n.isRead))
             TextButton(
               onPressed: _markAllRead,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                foregroundColor: const Color(0xFF7F19E6),
+              ),
               child: const Text(
                 'Đọc tất cả',
-                style: TextStyle(color: Color(0xFFD4AF37), fontSize: 13),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
               ),
             ),
         ],
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFD4AF37)),
+              child: CircularProgressIndicator(color: Color(0xFF7F19E6)),
             )
           : _notifications.isEmpty
           ? _buildEmpty()
-          : RefreshIndicator(
-              onRefresh: _load,
-              color: const Color(0xFFD4AF37),
-              child: ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: _notifications.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (_, i) => _buildNotifCard(_notifications[i]),
-              ),
+          : Column(
+              children: [
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () => _load(page: 1),
+                    color: const Color(0xFF7F19E6),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 16),
+                      itemCount: _notifications.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (_, i) => _buildNotifCard(_notifications[i]),
+                    ),
+                  ),
+                ),
+                if (_totalPages > 1)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 24, top: 8),
+                    child: CustomPagination(
+                      currentPage: _currentPage,
+                      totalPages: _totalPages,
+                      onPageChanged: (page) => _load(page: page),
+                    ),
+                  ),
+              ],
             ),
     );
   }
@@ -138,17 +166,35 @@ class _NotificationScreenState extends State<NotificationScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.notifications_off_outlined,
-            size: 64,
-            color: Colors.white.withValues(alpha: 0.1),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFF7F19E6).withOpacity(0.05),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.notifications_none_outlined,
+              size: 48,
+              color: Color(0xFF7F19E6),
+            ),
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Chưa có thông báo nào',
+          const SizedBox(height: 20),
+          const Text(
+            'Chưa có thông báo',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
-              fontSize: 16,
+              color: Color(0xFF140E1B),
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Tin tức, khuyến mãi và cập nhật\nđơn hàng sẽ hiển thị ở đây.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.grey.shade500,
+              fontSize: 14,
+              height: 1.5,
             ),
           ),
         ],
@@ -157,17 +203,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Widget _buildNotifCard(NotificationModel notif) {
+    final bool isUnread = !notif.isRead;
+    
     return Dismissible(
       key: Key(notif.id),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
+        padding: const EdgeInsets.only(right: 24),
         decoration: BoxDecoration(
-          color: Colors.red.shade700,
-          borderRadius: BorderRadius.circular(14),
+          color: Colors.red.shade400,
+          borderRadius: BorderRadius.circular(16),
         ),
-        child: const Icon(Icons.delete_outline, color: Colors.white, size: 24),
+        child: const Icon(Icons.delete_outline, color: Colors.white, size: 26),
       ),
       onDismissed: (_) => _delete(notif.id),
       child: GestureDetector(
@@ -175,34 +223,43 @@ class _NotificationScreenState extends State<NotificationScreen> {
           if (!notif.isRead) _markRead(notif.id);
         },
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: notif.isRead
-                ? const Color(0xFF141414)
-                : const Color(0xFFD4AF37).withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(14),
+            color: isUnread ? const Color(0xFF7F19E6).withOpacity(0.02) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: notif.isRead
-                  ? Colors.white.withValues(alpha: 0.04)
-                  : const Color(0xFFD4AF37).withValues(alpha: 0.2),
+              color: isUnread ? const Color(0xFF7F19E6).withValues(alpha: 0.15) : Colors.grey.shade100,
             ),
+            boxShadow: [
+              if (!isUnread)
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+            ],
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Icon Box
               Container(
-                padding: const EdgeInsets.all(8),
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: _typeColor(notif.type).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
+                  color: _typeColor(notif.type).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  _typeIcon(notif.type),
-                  color: _typeColor(notif.type),
-                  size: 20,
+                child: Center(
+                  child: Icon(
+                    _typeIcon(notif.type),
+                    color: _typeColor(notif.type),
+                    size: 22,
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
+              // Content Area
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,44 +270,44 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           child: Text(
                             notif.title,
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: notif.isRead
-                                  ? FontWeight.normal
-                                  : FontWeight.w600,
+                              color: const Color(0xFF140E1B),
+                              fontSize: 15,
+                              fontWeight: isUnread ? FontWeight.w700 : FontWeight.w600,
+                              height: 1.3,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (!notif.isRead)
+                        if (isUnread) ...[
+                          const SizedBox(width: 8),
                           Container(
                             width: 8,
                             height: 8,
                             decoration: const BoxDecoration(
-                              color: Color(0xFFD4AF37),
+                              color: Color(0xFF7F19E6),
                               shape: BoxShape.circle,
                             ),
                           ),
+                        ]
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       notif.message,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
+                        color: Colors.grey.shade600,
                         fontSize: 13,
-                        height: 1.3,
+                        height: 1.4,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     Text(
                       _timeAgo(notif.createdAt),
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        fontSize: 11,
+                        color: Colors.grey.shade400,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],

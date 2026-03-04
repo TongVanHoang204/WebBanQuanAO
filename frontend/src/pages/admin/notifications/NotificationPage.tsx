@@ -118,6 +118,20 @@ function NotificationPage() {
   const filteredList = getFilteredNotifications();
   const unreadCount = notifications.filter(n => !Number(n.is_read)).length;
 
+  const tabActiveClassMap = {
+    primary: 'bg-black dark:bg-white text-white dark:text-black shadow-lg shadow-secondary-500/30 transform scale-[1.02]',
+    blue: 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 transform scale-[1.02]',
+    rose: 'bg-rose-600 text-white shadow-lg shadow-rose-500/30 transform scale-[1.02]',
+    amber: 'bg-amber-600 text-white shadow-lg shadow-amber-500/30 transform scale-[1.02]',
+  } as const;
+
+  const tabIconClassMap = {
+    primary: 'text-secondary-500',
+    blue: 'text-blue-500',
+    rose: 'text-rose-500',
+    amber: 'text-amber-500',
+  } as const;
+
   return (
     <div className="flex flex-col lg:flex-row gap-8 h-full bg-secondary-50/50 dark:bg-transparent -m-4 p-4 lg:-m-8 lg:p-8 rounded-3xl overflow-hidden">
       {/* Sidebar Section */}
@@ -139,12 +153,12 @@ function NotificationPage() {
               onClick={() => setActiveTab(item.id as any)}
               className={`w-full flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${
                 activeTab === item.id 
-                  ? `bg-${item.color === 'primary' ? 'black dark:bg-white' : item.color + '-600'} ${item.color === 'primary' ? 'text-white dark:text-black' : 'text-white'} shadow-lg shadow-${item.color}-500/30 transform scale-[1.02]` 
+                  ? tabActiveClassMap[item.color as keyof typeof tabActiveClassMap]
                   : 'text-secondary-500 hover:bg-secondary-100 dark:hover:bg-secondary-800 hover:text-secondary-900 dark:hover:text-white'
               }`}
             >
               <div className="flex items-center gap-3">
-                <item.icon className={`w-5 h-5 ${activeTab === item.id ? '' : `text-${item.color === 'primary' ? 'secondary' : item.color}-500`}`} />
+                <item.icon className={`w-5 h-5 ${activeTab === item.id ? '' : tabIconClassMap[item.color as keyof typeof tabIconClassMap]}`} />
                 {item.label}
               </div>
               {item.count !== undefined && item.count > 0 && (
@@ -221,7 +235,7 @@ function NotificationPage() {
         />
 
         {/* List */}
-        <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar pb-12">
+        <div className="mt-6 flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar pb-12">
           {loading ? (
              <div className="space-y-4">
                {[1,2,3,4].map(i => (

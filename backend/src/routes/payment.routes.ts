@@ -1,7 +1,7 @@
 import express from 'express';
 import { createPaymentUrl, vnpayReturn, vnpayIpn, getTransactions } from '../controllers/payment.controller.js';
-import { handleBankWebhook } from '../controllers/payment-webhook.controller.js';
-import { verifyToken } from '../middlewares/auth.middleware.js';
+import { handleBankWebhook, verifyWebhookSignature } from '../controllers/payment-webhook.controller.js';
+import { verifyToken, authorize } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
@@ -52,9 +52,9 @@ router.get('/vnpay_ipn', vnpayIpn);
  *       200:
  *         description: List of transactions
  */
-router.get('/transactions', verifyToken, getTransactions);
+router.get('/transactions', verifyToken, authorize(['admin', 'manager']), getTransactions);
 
-// Bank Transfer Webhook (Casso/Sepay)
-router.post('/webhook/bank', handleBankWebhook);
+// Bank Transfer Webhook (Casso/Sepay) - with HMAC signature verification
+router.post('/webhook/bank', verifyWebhookSignature, handleBankWebhook);
 
 export default router;

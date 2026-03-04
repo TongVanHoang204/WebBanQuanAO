@@ -1,370 +1,366 @@
 import { PrismaClient } from '@prisma/client';
+import { z } from 'zod';
 const prisma = new PrismaClient();
-// Helper to serialize BigInt
-const serialize = (data) => {
-    return JSON.parse(JSON.stringify(data, (key, value) => typeof value === 'bigint' ? value.toString() : value));
-};
-/**
- * Get all reviews with filters
- * GET /api/admin/reviews
- */
-export const getReviews = async (req, res, next) => {
+// Validation schemas
+const createReviewSchema = z.object({
+    product_id: z.number().int().positive(),
+    rating: z.number().int().min(1).max(5),
+    title: z.string().max(255).optional(),
+    content: z.string().max(2000).optional(),
+    images: z.array(z.string().url()).optional()
+});
+export const getProductReviews = async (req, res) => {
     try {
-        const { page = '1', limit = '20', status, product_id, rating, search } = req.query;
-        const pageNum = Math.max(1, parseInt(page));
-        const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+        const productId = BigInt(req.params.id);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        const currentUserId = req.user?.id;
+        const reviewWhere = {
+            product_id: productId,
+            status: 'approved'
+        };
+        if (currentUserId) {
+            reviewWhere.OR = [
+                { status: 'approved' },
+                { user_id: currentUserId, status: { in: ['pending', 'approved'] } }
+            ];
+            delete reviewWhere.status;
+        }
+        let reviews = [];
+        let total = 0;
+        try {
+            [reviews, total] = await Promise.all([
+                prisma.product_reviews.findMany({
+                    where: reviewWhere,
+                    include: {
+                        user: { select: { full_name: true, avatar_url: true } },
+                        review_images: { select: { image_url: true } }
+                    },
+                    orderBy: { created_at: 'desc' },
+                    skip,
+                    take: limit,
+                }),
+                prisma.product_reviews.count({ where: reviewWhere })
+            ]);
+        }
+        catch (queryError) {
+            const msg = String(queryError?.message || '');
+            const isMissingReviewImagesTable = queryError?.code === 'P2021' || msg.includes('review_images');
+            if (!isMissingReviewImagesTable) {
+                throw queryError;
+            }
+            [reviews, total] = await Promise.all([
+                prisma.product_reviews.findMany({
+                    where: reviewWhere,
+                    include: {
+                        user: { select: { full_name: true, avatar_url: true } }
+                    },
+                    orderBy: { created_at: 'desc' },
+                    skip,
+                    take: limit,
+                }),
+                prisma.product_reviews.count({ where: reviewWhere })
+            ]);
+        }
+        // Calculate average rating and helpful statistics
+        const stats = await prisma.product_reviews.aggregate({
+            where: { product_id: productId, status: 'approved' },
+            _avg: { rating: true },
+            _count: { rating: true }
+        });
+        const formattedReviews = reviews.map(r => ({
+            ...r,
+            id: r.id.toString(),
+            product_id: r.product_id.toString(),
+            user_id: r.user_id?.toString() || null,
+            user_name: r.user?.full_name || r.author_name || 'Khách',
+            user_avatar: r.user?.avatar_url || null,
+            images: (r.review_images || []).map((img) => img.image_url)
+        }));
+        res.json({
+            success: true,
+            data: {
+                reviews: formattedReviews,
+                pagination: {
+                    total,
+                    page,
+                    limit,
+                    totalPages: Math.ceil(total / limit)
+                },
+                stats: {
+                    average_rating: stats._avg.rating ? Number(stats._avg.rating.toFixed(1)) : 0,
+                    total_reviews: stats._count.rating
+                }
+            }
+        });
+    }
+    catch (error) {
+        console.error('Lỗi khi lấy danh sách đánh giá:', error);
+        const err = error;
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi máy chủ nội bộ',
+            ...(process.env.NODE_ENV !== 'production' ? { error: err?.message || String(err) } : {})
+        });
+    }
+};
+export const createReview = async (req, res) => {
+    try {
+        const validatedData = createReviewSchema.parse(req.body);
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ success: false, message: 'Chưa đăng nhập' });
+            return;
+        }
+        // Verify if the user bought this product
+        const hasPurchased = await prisma.order_items.findFirst({
+            where: {
+                product_id: validatedData.product_id,
+                order: {
+                    user_id: userId,
+                    status: 'completed'
+                }
+            }
+        });
+        // We can auto-approve reviews for verified buyers, and mark is_verified
+        const isVerified = !!hasPurchased;
+        const status = isVerified ? 'approved' : 'pending';
+        // Check if user already reviewed
+        const existingReview = await prisma.product_reviews.findFirst({
+            where: { product_id: validatedData.product_id, user_id: userId }
+        });
+        if (existingReview) {
+            res.status(400).json({ success: false, message: 'Bạn đã đánh giá sản phẩm này rồi' });
+            return;
+        }
+        const hasImages = !!validatedData.images && validatedData.images.length > 0;
+        // Create review through transaction to also award points
+        let newReview;
+        let pointsAwarded = hasImages ? 100 : 50;
+        try {
+            newReview = await prisma.$transaction(async (tx) => {
+                const review = await tx.product_reviews.create({
+                    data: {
+                        product_id: validatedData.product_id,
+                        user_id: userId,
+                        rating: validatedData.rating,
+                        title: validatedData.title,
+                        content: validatedData.content,
+                        status: status,
+                        is_verified: isVerified,
+                        ...(hasImages ? {
+                            review_images: {
+                                create: validatedData.images.map(url => ({ image_url: url }))
+                            }
+                        } : {})
+                    }
+                });
+                await tx.users.update({
+                    where: { id: userId },
+                    data: { reward_points: { increment: pointsAwarded } }
+                });
+                return review;
+            });
+        }
+        catch (createError) {
+            const msg = String(createError?.message || '');
+            const isMissingReviewImagesTable = createError?.code === 'P2021' || msg.includes('review_images');
+            if (!isMissingReviewImagesTable || !hasImages) {
+                throw createError;
+            }
+            // Fallback: create review without images if review_images table is missing
+            pointsAwarded = 50;
+            newReview = await prisma.$transaction(async (tx) => {
+                const review = await tx.product_reviews.create({
+                    data: {
+                        product_id: validatedData.product_id,
+                        user_id: userId,
+                        rating: validatedData.rating,
+                        title: validatedData.title,
+                        content: validatedData.content,
+                        status: status,
+                        is_verified: isVerified
+                    }
+                });
+                await tx.users.update({
+                    where: { id: userId },
+                    data: { reward_points: { increment: pointsAwarded } }
+                });
+                return review;
+            });
+        }
+        res.status(201).json({
+            success: true,
+            message: 'Gửi đánh giá thành công',
+            data: {
+                id: newReview.id.toString(),
+                status: newReview.status,
+                points_awarded: pointsAwarded
+            }
+        });
+    }
+    catch (error) {
+        if (error instanceof z.ZodError) {
+            res.status(400).json({ success: false, message: 'Dữ liệu không hợp lệ', errors: error.errors });
+            return;
+        }
+        console.error('Lỗi khi tạo đánh giá:', error);
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ' });
+    }
+};
+export const updateReviewStatus = async (req, res) => {
+    try {
+        const reviewId = BigInt(req.params.id);
+        const { status } = req.body; // 'approved', 'rejected', 'hidden'
+        if (!['approved', 'rejected', 'hidden'].includes(status)) {
+            res.status(400).json({ success: false, message: 'Trạng thái không hợp lệ' });
+            return;
+        }
+        const review = await prisma.product_reviews.update({
+            where: { id: reviewId },
+            data: { status }
+        });
+        res.json({
+            success: true,
+            message: 'Cập nhật trạng thái đánh giá thành công',
+            data: { id: review.id.toString(), status: review.status }
+        });
+    }
+    catch (error) {
+        console.error('Lỗi khi cập nhật trạng thái đánh giá:', error);
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ' });
+    }
+};
+export const getAdminReviews = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        const search = req.query.search?.trim();
+        const status = req.query.status;
+        const rating = req.query.rating ? Number(req.query.rating) : undefined;
         const where = {};
-        if (status && status !== 'all') {
-            where.status = String(status);
+        if (status && ['pending', 'approved', 'rejected', 'hidden'].includes(status)) {
+            where.status = status;
         }
-        if (product_id) {
-            where.product_id = BigInt(String(product_id));
-        }
-        if (rating) {
-            where.rating = parseInt(String(rating));
+        if (rating && !Number.isNaN(rating)) {
+            where.rating = rating;
         }
         if (search) {
-            const searchStr = String(search);
             where.OR = [
-                { title: { contains: searchStr } },
-                { content: { contains: searchStr } },
-                { author_name: { contains: searchStr } }
+                { title: { contains: search } },
+                { content: { contains: search } },
+                { author_name: { contains: search } },
+                { product: { name: { contains: search } } }
             ];
         }
-        const [reviews, total] = await Promise.all([
+        const [reviews, total, statusGroups] = await Promise.all([
             prisma.product_reviews.findMany({
                 where,
-                orderBy: { created_at: 'desc' },
-                skip: (pageNum - 1) * limitNum,
-                take: limitNum,
                 include: {
                     product: {
                         select: {
                             id: true,
                             name: true,
                             slug: true,
-                            product_images: { take: 1, select: { url: true } }
+                            product_images: { select: { url: true }, take: 1 }
                         }
                     }
-                }
+                },
+                orderBy: { created_at: 'desc' },
+                skip,
+                take: limit
             }),
-            prisma.product_reviews.count({ where })
+            prisma.product_reviews.count({ where }),
+            prisma.product_reviews.groupBy({ by: ['status'], _count: { _all: true } })
         ]);
-        // Get status counts
-        const statusCounts = await prisma.product_reviews.groupBy({
-            by: ['status'],
-            _count: { id: true }
-        });
-        const stats = {
-            pending: 0,
-            approved: 0,
-            rejected: 0,
-            hidden: 0
-        };
-        statusCounts.forEach(s => {
-            stats[s.status] = s._count.id;
-        });
+        const stats = { pending: 0, approved: 0, rejected: 0, hidden: 0 };
+        for (const group of statusGroups) {
+            const key = group.status;
+            if (key in stats)
+                stats[key] = group._count._all;
+        }
         res.json({
             success: true,
             data: {
-                reviews: serialize(reviews),
+                reviews: reviews.map((r) => ({
+                    ...r,
+                    id: r.id.toString(),
+                    product_id: r.product_id.toString(),
+                    user_id: r.user_id?.toString() || null,
+                    product: r.product
+                        ? {
+                            ...r.product,
+                            id: r.product.id.toString()
+                        }
+                        : null
+                })),
                 stats,
                 pagination: {
-                    page: pageNum,
-                    limit: limitNum,
                     total,
-                    totalPages: Math.ceil(total / limitNum)
+                    page,
+                    limit,
+                    totalPages: Math.ceil(total / limit)
                 }
             }
         });
     }
     catch (error) {
-        next(error);
+        console.error('Lỗi khi lấy danh sách đánh giá admin:', error);
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ' });
     }
 };
-/**
- * Get review by ID
- * GET /api/admin/reviews/:id
- */
-export const getReviewById = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const review = await prisma.product_reviews.findUnique({
-            where: { id: BigInt(id) },
-            include: {
-                product: {
-                    select: {
-                        id: true,
-                        name: true,
-                        slug: true,
-                        product_images: { take: 1, select: { url: true } }
-                    }
-                }
-            }
-        });
-        if (!review) {
-            return res.status(404).json({
-                success: false,
-                error: { message: 'Không tìm thấy đánh giá' }
-            });
-        }
-        res.json({
-            success: true,
-            data: serialize(review)
-        });
-    }
-    catch (error) {
-        next(error);
-    }
-};
-/**
- * Update review status (approve/reject/hide)
- * PATCH /api/admin/reviews/:id/status
- */
-export const updateReviewStatus = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const { status } = req.body;
-        const validStatuses = ['pending', 'approved', 'rejected', 'hidden'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({
-                success: false,
-                error: { message: 'Trạng thái không hợp lệ' }
-            });
-        }
-        const review = await prisma.product_reviews.update({
-            where: { id: BigInt(id) },
-            data: { status }
-        });
-        res.json({
-            success: true,
-            data: serialize(review),
-            message: `Đã cập nhật trạng thái thành "${status}"`
-        });
-    }
-    catch (error) {
-        next(error);
-    }
-};
-/**
- * Bulk update review status
- * PATCH /api/admin/reviews/bulk-status
- */
-export const bulkUpdateStatus = async (req, res, next) => {
+export const bulkUpdateReviewStatus = async (req, res) => {
     try {
         const { ids, status } = req.body;
         if (!Array.isArray(ids) || ids.length === 0) {
-            return res.status(400).json({
-                success: false,
-                error: { message: 'Vui lòng chọn ít nhất 1 đánh giá' }
-            });
+            res.status(400).json({ success: false, message: 'Danh sách id không hợp lệ' });
+            return;
         }
-        const validStatuses = ['pending', 'approved', 'rejected', 'hidden'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({
-                success: false,
-                error: { message: 'Trạng thái không hợp lệ' }
-            });
+        if (!status || !['approved', 'rejected', 'hidden'].includes(status)) {
+            res.status(400).json({ success: false, message: 'Trạng thái không hợp lệ' });
+            return;
         }
+        const bigintIds = ids.map((id) => BigInt(id));
         const result = await prisma.product_reviews.updateMany({
-            where: { id: { in: ids.map((id) => BigInt(id)) } },
-            data: { status }
+            where: { id: { in: bigintIds } },
+            data: { status: status }
         });
-        res.json({
-            success: true,
-            message: `Đã cập nhật ${result.count} đánh giá`
-        });
+        res.json({ success: true, message: `Đã cập nhật ${result.count} đánh giá` });
     }
     catch (error) {
-        next(error);
+        console.error('Lỗi khi cập nhật trạng thái hàng loạt:', error);
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ' });
     }
 };
-/**
- * Delete review
- * DELETE /api/admin/reviews/:id
- */
-export const deleteReview = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        await prisma.product_reviews.delete({
-            where: { id: BigInt(id) }
-        });
-        res.json({
-            success: true,
-            message: 'Đã xóa đánh giá'
-        });
-    }
-    catch (error) {
-        next(error);
-    }
-};
-/**
- * Bulk delete reviews
- * DELETE /api/admin/reviews/bulk
- */
-export const bulkDeleteReviews = async (req, res, next) => {
+export const bulkDeleteReviews = async (req, res) => {
     try {
         const { ids } = req.body;
         if (!Array.isArray(ids) || ids.length === 0) {
-            return res.status(400).json({
-                success: false,
-                error: { message: 'Vui lòng chọn ít nhất 1 đánh giá' }
-            });
+            res.status(400).json({ success: false, message: 'Danh sách id không hợp lệ' });
+            return;
         }
+        const bigintIds = ids.map((id) => BigInt(id));
         const result = await prisma.product_reviews.deleteMany({
-            where: { id: { in: ids.map((id) => BigInt(id)) } }
+            where: { id: { in: bigintIds } }
         });
-        res.json({
-            success: true,
-            message: `Đã xóa ${result.count} đánh giá`
-        });
+        res.json({ success: true, message: `Đã xóa ${result.count} đánh giá` });
     }
     catch (error) {
-        next(error);
+        console.error('Lỗi khi xóa đánh giá hàng loạt:', error);
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ' });
     }
 };
-// ... (previous functions)
-/**
- * Get public reviews for a product
- * GET /api/reviews/product/:id
- */
-export const getPublicReviews = async (req, res, next) => {
+export const deleteReview = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { page = '1', limit = '10', sort = 'newest' } = req.query;
-        const pageNum = Math.max(1, parseInt(page));
-        const limitNum = Math.min(50, Math.max(1, parseInt(limit)));
-        const orderBy = {};
-        if (sort === 'highest')
-            orderBy.rating = 'desc';
-        else if (sort === 'lowest')
-            orderBy.rating = 'asc';
-        else
-            orderBy.created_at = 'desc';
-        const [reviews, total] = await Promise.all([
-            prisma.product_reviews.findMany({
-                where: {
-                    product_id: BigInt(String(id)),
-                    status: 'approved'
-                },
-                orderBy,
-                skip: (pageNum - 1) * limitNum,
-                take: limitNum,
-                select: {
-                    id: true,
-                    rating: true,
-                    title: true,
-                    content: true,
-                    author_name: true,
-                    created_at: true,
-                    is_verified: true,
-                    helpful_count: true
-                }
-            }),
-            prisma.product_reviews.count({
-                where: {
-                    product_id: BigInt(String(id)),
-                    status: 'approved'
-                }
-            })
-        ]);
-        // Calculate average rating
-        const aggregations = await prisma.product_reviews.aggregate({
-            where: {
-                product_id: BigInt(String(id)),
-                status: 'approved'
-            },
-            _avg: {
-                rating: true
-            },
-            _count: {
-                id: true
-            }
-        });
-        const ratingDistribution = await prisma.product_reviews.groupBy({
-            by: ['rating'],
-            where: {
-                product_id: BigInt(String(id)),
-                status: 'approved'
-            },
-            _count: {
-                id: true
-            }
-        });
-        res.json({
-            success: true,
-            data: {
-                reviews: serialize(reviews),
-                pagination: {
-                    page: pageNum,
-                    limit: limitNum,
-                    total,
-                    totalPages: Math.ceil(total / limitNum)
-                },
-                stats: {
-                    average: aggregations._avg.rating || 0,
-                    total: aggregations._count.id || 0,
-                    distribution: ratingDistribution.reduce((acc, curr) => {
-                        acc[curr.rating] = curr._count.id;
-                        return acc;
-                    }, {})
-                }
-            }
-        });
+        const reviewId = BigInt(req.params.id);
+        await prisma.product_reviews.delete({ where: { id: reviewId } });
+        res.json({ success: true, message: 'Đã xóa đánh giá' });
     }
     catch (error) {
-        next(error);
-    }
-};
-/**
- * Create a review
- * POST /api/reviews
- */
-export const createReview = async (req, res, next) => {
-    try {
-        const { product_id, rating, title, content, author_name } = req.body;
-        const userId = req.user?.id; // Optional if we allow guest reviews, but better to enforce auth or require author_name
-        if (!product_id || !rating || !content) {
-            return res.status(400).json({
-                success: false,
-                error: { message: 'Vui lòng điền đầy đủ thông tin (sản phẩm, số sao, nội dung)' }
-            });
-        }
-        // If user is logged in, check if they purchased the product to mark verified
-        let is_verified = false;
-        if (userId) {
-            const purchase = await prisma.order_items.findFirst({
-                where: {
-                    product_id: BigInt(product_id),
-                    order: {
-                        user_id: userId,
-                        status: 'completed'
-                    }
-                }
-            });
-            if (purchase)
-                is_verified = true;
-        }
-        const review = await prisma.product_reviews.create({
-            data: {
-                product_id: BigInt(product_id),
-                user_id: userId,
-                rating: Number(rating),
-                title,
-                content,
-                author_name: author_name || req.user?.full_name || 'Khách hàng',
-                status: 'pending', // Default pending moderation
-                is_verified
-            }
-        });
-        res.status(201).json({
-            success: true,
-            data: serialize(review),
-            message: 'Cảm ơn đánh giá của bạn! Đánh giá sẽ hiển thị sau khi được duyệt.'
-        });
-    }
-    catch (error) {
-        next(error);
+        console.error('Lỗi khi xóa đánh giá:', error);
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ' });
     }
 };
 //# sourceMappingURL=review.controller.js.map

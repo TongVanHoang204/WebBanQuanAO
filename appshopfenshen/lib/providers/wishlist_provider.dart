@@ -33,27 +33,48 @@ class WishlistProvider extends ChangeNotifier {
   }
 
   Future<bool> toggleWishlist(String productId) async {
+    final bool isAdding = !isWishlisted(productId);
+
+    // Optimistic UI update
+    if (isAdding) {
+      _wishlistIds.add(productId);
+    } else {
+      _wishlistIds.remove(productId);
+      _items.removeWhere((p) => p.id == productId);
+    }
+    notifyListeners();
+
     try {
-      if (isWishlisted(productId)) {
+      if (!isAdding) {
         final res = await _wishlistService.removeFromWishlist(productId);
         if (res['success'] == true) {
-          _wishlistIds.remove(productId);
-          _items.removeWhere((p) => p.id == productId);
-          notifyListeners();
           return true;
         }
       } else {
         final res = await _wishlistService.addToWishlist(productId);
         if (res['success'] == true) {
-          _wishlistIds.add(productId);
-          // Load full list to get product details
-          await loadWishlist();
+          // Fetch items silently without clearing the optimistically added ID
+          final newItems = await _wishlistService.getWishlist();
+          _items = newItems;
+          for (final item in _items) {
+            _wishlistIds.add(item.id);
+          }
+          notifyListeners();
           return true;
         }
       }
     } catch (e) {
       // error
     }
+
+    // Revert optimistic update on failure
+    if (isAdding) {
+      _wishlistIds.remove(productId);
+    } else {
+      _wishlistIds.add(productId);
+      loadWishlist(); // reload fully to restore items
+    }
+    notifyListeners();
     return false;
   }
 }

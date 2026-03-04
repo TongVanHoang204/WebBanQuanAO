@@ -25,7 +25,10 @@ export const getAllowedOrigins = (): string[] => {
     return [normalizeOrigin(process.env.FRONTEND_URL)];
   }
 
-  return ['http://localhost:5173'];
+  return [
+    'http://localhost:5173',
+    'http://10.0.2.2', // Flutter emulator requests
+  ];
 };
 
 type OriginCallback = (error: Error | null, allow?: boolean) => void;

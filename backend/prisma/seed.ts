@@ -140,7 +140,6 @@ async function main() {
           compare_at_price: basePrice * 1.2,
           is_active: true,
           category_id: randomElement(allCategories).id,
-          brand_id: randomInt(1, 4) as any,
           created_at: randomDate(new Date('2025-06-01'), new Date())
         }
       });

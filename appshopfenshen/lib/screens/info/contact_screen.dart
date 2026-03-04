@@ -60,18 +60,18 @@ class _ContactScreenState extends State<ContactScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFFF7F6F8),
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: const Color(0xFFF7F6F8),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: const Color(0xFF140E1B), size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Liên hệ',
           style: TextStyle(
-            color: Colors.white,
+            color: const Color(0xFF140E1B),
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -117,7 +117,7 @@ class _ContactScreenState extends State<ContactScreen> {
             const Text(
               'Gửi liên hệ',
               style: TextStyle(
-                color: Color(0xFFD4AF37),
+                color: Color(0xFF7F19E6),
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -162,17 +162,17 @@ class _ContactScreenState extends State<ContactScreen> {
                   TextFormField(
                     controller: _messageCtrl,
                     maxLines: 5,
-                    style: const TextStyle(color: Colors.white, fontSize: 15),
+                    style: const TextStyle(color: const Color(0xFF140E1B), fontSize: 15),
                     validator: (v) =>
                         v == null || v.isEmpty ? 'Bắt buộc' : null,
                     decoration: InputDecoration(
                       hintText: 'Nội dung tin nhắn',
                       hintStyle: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.3),
+                        color: Colors.grey.shade400,
                         fontSize: 15,
                       ),
                       filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.06),
+                      fillColor: const Color(0xFFF7F6F8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -180,13 +180,13 @@ class _ContactScreenState extends State<ContactScreen> {
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.08),
+                          color: Colors.grey.shade200,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(
-                          color: Color(0xFFD4AF37),
+                          color: Color(0xFF7F19E6),
                           width: 1,
                         ),
                       ),
@@ -207,8 +207,8 @@ class _ContactScreenState extends State<ContactScreen> {
                     child: ElevatedButton(
                       onPressed: _isSending ? null : _send,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFD4AF37),
-                        foregroundColor: Colors.black,
+                        backgroundColor: const Color(0xFF7F19E6),
+                        foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -220,7 +220,7 @@ class _ContactScreenState extends State<ContactScreen> {
                               width: 22,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.black,
+                                color: const Color(0xFFF7F6F8),
                               ),
                             )
                           : const Text(
@@ -253,19 +253,19 @@ class _ContactScreenState extends State<ContactScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF141414),
+          color: const Color(0xFFFFFFFF),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+          border: Border.all(color: Colors.grey.shade200),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                color: const Color(0xFF7F19E6).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: const Color(0xFFD4AF37), size: 22),
+              child: Icon(icon, color: const Color(0xFF7F19E6), size: 22),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -275,7 +275,7 @@ class _ContactScreenState extends State<ContactScreen> {
                   Text(
                     title,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.5),
+                      color: Colors.grey.shade500,
                       fontSize: 12,
                     ),
                   ),
@@ -283,7 +283,7 @@ class _ContactScreenState extends State<ContactScreen> {
                   Text(
                     value,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: const Color(0xFF140E1B),
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -295,7 +295,7 @@ class _ContactScreenState extends State<ContactScreen> {
               Icon(
                 Icons.open_in_new,
                 size: 16,
-                color: Colors.white.withValues(alpha: 0.3),
+                color: Colors.grey.shade400,
               ),
           ],
         ),
@@ -314,31 +314,31 @@ class _ContactScreenState extends State<ContactScreen> {
       controller: ctrl,
       validator: validator,
       keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white, fontSize: 15),
+      style: const TextStyle(color: const Color(0xFF140E1B), fontSize: 15),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(
-          color: Colors.white.withValues(alpha: 0.3),
+          color: Colors.grey.shade400,
           fontSize: 15,
         ),
         prefixIcon: Icon(
           icon,
-          color: Colors.white.withValues(alpha: 0.4),
+          color: Colors.grey.shade500,
           size: 20,
         ),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.06),
+        fillColor: const Color(0xFFF7F6F8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          borderSide: BorderSide(color: Colors.grey.shade200),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFD4AF37), width: 1),
+          borderSide: const BorderSide(color: Color(0xFF7F19E6), width: 1),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

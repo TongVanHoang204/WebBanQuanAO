@@ -1,7 +1,103 @@
 import { Ollama } from 'ollama';
 
-const ollama = new Ollama({ host: process.env.OLLAMA_URL || 'http://127.0.0.1:11434' });
-import { PrismaClient } from '@prisma/client';
+const DEFAULT_OLLAMA_HOST = 'http://127.0.0.1:11434';
+
+const normalizeOllamaHost = (rawHost?: string): string => {
+  const value = rawHost?.trim();
+  if (!value) {
+    return DEFAULT_OLLAMA_HOST;
+  }
+
+  const hostWithProtocol = /^https?:\/\//i.test(value) ? value : `http://${value}`;
+
+  try {
+    const parsed = new URL(hostWithProtocol);
+    const isPublicOllamaDomain = ['ollama.com', 'www.ollama.com'].includes(parsed.hostname.toLowerCase());
+    const allowPublicDomain = String(process.env.OLLAMA_ALLOW_PUBLIC_DOMAIN || '').toLowerCase() === 'true';
+
+    if (isPublicOllamaDomain && !allowPublicDomain) {
+      console.warn(
+        `[AI] Ignoring OLLAMA_URL=${hostWithProtocol} because it points to ${parsed.hostname}. Falling back to ${DEFAULT_OLLAMA_HOST}. Set OLLAMA_ALLOW_PUBLIC_DOMAIN=true to allow this host.`
+      );
+      return DEFAULT_OLLAMA_HOST;
+    }
+
+    parsed.hash = '';
+    parsed.search = '';
+    parsed.pathname = '';
+
+    return parsed.toString().replace(/\/$/, '');
+  } catch {
+    console.warn(`[AI] Invalid OLLAMA_URL=${value}. Falling back to ${DEFAULT_OLLAMA_HOST}.`);
+    return DEFAULT_OLLAMA_HOST;
+  }
+};
+
+const ACTIVE_OLLAMA_HOST = normalizeOllamaHost(process.env.OLLAMA_URL);
+const ollama = new Ollama({ host: ACTIVE_OLLAMA_HOST });
+const localOllama = new Ollama({ host: DEFAULT_OLLAMA_HOST });
+const REMOTE_HOST_COOLDOWN_MS = Number(process.env.OLLAMA_REMOTE_COOLDOWN_MS || 5 * 60 * 1000);
+let remoteHostBlockedUntil = 0;
+
+const isRetryableOllamaNetworkError = (error: any): boolean => {
+  const message = String(error?.message || error?.error || '').toLowerCase();
+  return (
+    message.includes('tls handshake timeout') ||
+    message.includes('fetch failed') ||
+    message.includes('timeout') ||
+    message.includes('econnrefused') ||
+    message.includes('network')
+  );
+};
+
+const shouldSkipRemoteHost = (): boolean => {
+  return ACTIVE_OLLAMA_HOST !== DEFAULT_OLLAMA_HOST && Date.now() < remoteHostBlockedUntil;
+};
+
+const markRemoteHostFailed = () => {
+  if (ACTIVE_OLLAMA_HOST !== DEFAULT_OLLAMA_HOST) {
+    remoteHostBlockedUntil = Date.now() + REMOTE_HOST_COOLDOWN_MS;
+  }
+};
+
+const chatWithFallback = async (payload: any): Promise<any> => {
+  if (shouldSkipRemoteHost()) {
+    return await localOllama.chat(payload);
+  }
+
+  try {
+    return await ollama.chat(payload);
+  } catch (error: any) {
+    if (ACTIVE_OLLAMA_HOST !== DEFAULT_OLLAMA_HOST && isRetryableOllamaNetworkError(error)) {
+      markRemoteHostFailed();
+      console.warn(
+        `[AI] Ollama chat failed on ${ACTIVE_OLLAMA_HOST}. Retrying with local host ${DEFAULT_OLLAMA_HOST}.`
+      );
+      return await localOllama.chat(payload);
+    }
+    throw error;
+  }
+};
+
+const generateWithFallback = async (payload: any): Promise<any> => {
+  if (shouldSkipRemoteHost()) {
+    return await localOllama.generate(payload);
+  }
+
+  try {
+    return await ollama.generate(payload);
+  } catch (error: any) {
+    if (ACTIVE_OLLAMA_HOST !== DEFAULT_OLLAMA_HOST && isRetryableOllamaNetworkError(error)) {
+      markRemoteHostFailed();
+      console.warn(
+        `[AI] Ollama generate failed on ${ACTIVE_OLLAMA_HOST}. Retrying with local host ${DEFAULT_OLLAMA_HOST}.`
+      );
+      return await localOllama.generate(payload);
+    }
+    throw error;
+  }
+};
+import { prisma } from '../lib/prisma.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -21,7 +117,7 @@ interface ToolDef {
 
 export class AIService {
   public static readonly MODEL = process.env.OLLAMA_MODEL || 'gemini-3-flash-preview:cloud'; 
-  private static readonly prisma = new PrismaClient();
+  private static readonly prisma = prisma;
 
   // --- LOGGING ---
   private static logDebug(message: string, data?: any) {
@@ -154,15 +250,31 @@ ${AIService.TOOLS.map(t => `- **${t.name}**: ${t.description}`).join('\n')}
   }
 
 
-  private static getCustomerSystemPrompt() {
+  private static getCustomerSystemPrompt(profileData?: any) {
     const now = new Date();
     const vietnamTime = now.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
     
+    let styleContext = '';
+    if (profileData) {
+       styleContext = `
+### 👗 THÔNG TIN KHÁCH HÀNG & GỢI Ý (VIRTUAL STYLIST):
+- Khách hàng: ${profileData.name || 'Bạn'}
+- Giới tính: ${profileData.gender || 'Chưa cập nhật'}
+- Chiều cao: ${profileData.height ? profileData.height + ' cm' : 'Chưa cập nhật'}
+- Cân nặng: ${profileData.weight ? profileData.weight + ' kg' : 'Chưa cập nhật'}
+- Phong cách yêu thích: ${profileData.style_preference || 'Chưa cập nhật'}
+- Sản phẩm vừa xem gần đây: ${profileData.recent_views || 'Chưa có'}
+
+=> HƯỚNG DẪN QUAN TRỌNG: Hãy sử dụng thông tin trên để TƯ VẤN CÁ NHÂN HÓA (Virtual Stylist). Ví dụ: Gợi ý size áo dưa trên chiều cao cân nặng, gợi ý màu sắc/kiểu dáng hợp phong cách yêu thích.
+`;
+    }
+
     return `
 Bạn là Feshen 🛍️ - Trợ lý AI thân thiện và nhiệt tình của cửa hàng thời trang "ShopFeshen".
 Nhiệm vụ: Giúp khách hàng tìm sản phẩm phù hợp, tư vấn thời trang, và giải đáp mọi thắc mắc với thái độ vui vẻ, chuyên nghiệp.
 
 ### THỜI GIAN HIỆN TẠI: ${vietnamTime}
+${styleContext}
 
 ### TÍNH CÁCH CỦA BẠN:
 - Thân thiện, vui vẻ, nhiệt tình như một người bạn 😊
@@ -300,7 +412,7 @@ KHI CẦN DÙNG CÔNG CỤ, trả về JSON như sau (không thêm text):
         ];
 
         // Direct call to LLM, no tools needed for generation
-        const response = await ollama.chat({
+        const response = await chatWithFallback({
             model: this.MODEL,
             messages: messages
         });
@@ -308,6 +420,339 @@ KHI CẦN DÙNG CÔNG CỤ, trả về JSON như sau (không thêm text):
         return response.message.content;
     } catch (e: any) {
         throw new Error(`AI Generation failed: ${e.message}`);
+    }
+  }
+
+  // --- VISUAL SEARCH (Structured AI Analysis + Relevance Scoring) ---
+
+  /**
+   * Phân tích ảnh bằng AI và trả về JSON cấu trúc:
+   * { product_type, color, material, style, gender, search_phrases }
+   */
+  private static async analyzeImageStructured(base64Image: string): Promise<{
+    product_type: string;
+    color: string;
+    material: string;
+    style: string;
+    gender: string;
+    search_phrases: string[];
+  }> {
+    const visionModel = process.env.OLLAMA_VISION_MODEL || this.MODEL;
+
+    const prompt = `Bạn là chuyên gia thời trang. Phân tích hình ảnh này và trả về JSON mô tả món đồ thời trang CHÍNH trong ảnh.
+
+CHỈ trả về JSON hợp lệ, KHÔNG giải thích, KHÔNG markdown:
+{
+  "product_type": "loại sản phẩm chính, ví dụ: áo thun, quần short, quần jean, váy, áo khoác, áo hoodie, thắt lưng, túi xách, giày",
+  "color": "màu sắc chính, ví dụ: trắng, đen, xanh, hồng, be, nâu",
+  "material": "chất liệu nếu nhận biết được, ví dụ: jean, thun, da, kaki, vải, nỉ. Để trống nếu không rõ",
+  "style": "kiểu dáng, ví dụ: form rộng, slimfit, oversize, cổ tròn, tay ngắn, zip kéo. Để trống nếu không rõ",
+  "gender": "nam hoặc nữ hoặc unisex, dựa vào kiểu dáng/người mặc trong ảnh",
+  "search_phrases": ["cụm từ tìm kiếm 2-4 từ", "ví dụ: quần short nữ", "áo thun nam cổ tròn"]
+}
+
+Lưu ý:
+- product_type là trường QUAN TRỌNG NHẤT, phải chính xác
+- search_phrases nên có 2-5 cụm từ ghép có nghĩa (không phải từ đơn)
+- Tất cả bằng tiếng Việt, viết thường`;
+
+    const response = await generateWithFallback({
+      model: visionModel,
+      prompt,
+      images: [base64Image]
+    });
+
+    const raw = response.response.trim();
+    this.logDebug('Visual Search AI raw response:', raw);
+
+    // Extract JSON from response (handle cases where AI wraps in ```json ... ```)
+    let jsonStr = raw;
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[0];
+    }
+
+    try {
+      const parsed = JSON.parse(jsonStr);
+      return {
+        product_type: (parsed.product_type || '').toLowerCase().trim(),
+        color: (parsed.color || '').toLowerCase().trim(),
+        material: (parsed.material || '').toLowerCase().trim(),
+        style: (parsed.style || '').toLowerCase().trim(),
+        gender: (parsed.gender || '').toLowerCase().trim(),
+        search_phrases: Array.isArray(parsed.search_phrases)
+          ? parsed.search_phrases.map((s: string) => s.toLowerCase().trim()).filter(Boolean)
+          : []
+      };
+    } catch {
+      // If JSON parsing fails, extract what we can from the raw text
+      this.logDebug('Visual Search JSON parse failed, extracting from raw text');
+      const words = raw
+        .toLowerCase()
+        .replace(/[.,;:!?"'()\[\]{}]/g, '')
+        .split(/\s+/)
+        .filter((w: string) => w.length > 1);
+      return {
+        product_type: words.slice(0, 2).join(' '),
+        color: '',
+        material: '',
+        style: '',
+        gender: '',
+        search_phrases: [words.slice(0, 3).join(' '), words.slice(0, 2).join(' ')].filter(Boolean)
+      };
+    }
+  }
+
+  /**
+   * Tính điểm tương đồng giữa sản phẩm và mô tả AI.
+   * Điểm càng cao = sản phẩm càng phù hợp.
+   */
+  private static scoreProduct(
+    product: { name: string; description: string | null; category?: { name: string } | null; tags?: string | null },
+    analysis: { product_type: string; color: string; material: string; style: string; gender: string; search_phrases: string[] }
+  ): number {
+    let score = 0;
+    const nameLC = product.name.toLowerCase();
+    const descLC = (product.description || '').toLowerCase();
+    const catLC = (product.category?.name || '').toLowerCase();
+    const tagsLC = (product.tags || '').toLowerCase();
+    const searchText = `${nameLC} ${descLC} ${catLC} ${tagsLC}`;
+
+    // --- Product type matching (HIGHEST weight: 50 points) ---
+    if (analysis.product_type) {
+      // Exact product type in name (most valuable)
+      if (nameLC.includes(analysis.product_type)) {
+        score += 50;
+      } else if (catLC.includes(analysis.product_type)) {
+        score += 40;
+      } else if (descLC.includes(analysis.product_type)) {
+        score += 25;
+      }
+      // Also check individual words of product_type for partial matches
+      const typeWords = analysis.product_type.split(/\s+/).filter(w => w.length > 1);
+      for (const w of typeWords) {
+        if (nameLC.includes(w)) score += 8;
+      }
+    }
+
+    // --- Color matching (20 points) ---
+    if (analysis.color) {
+      if (nameLC.includes(analysis.color)) score += 20;
+      else if (descLC.includes(analysis.color)) score += 10;
+      else if (tagsLC.includes(analysis.color)) score += 8;
+    }
+
+    // --- Material matching (15 points) ---
+    if (analysis.material) {
+      if (nameLC.includes(analysis.material)) score += 15;
+      else if (descLC.includes(analysis.material)) score += 8;
+    }
+
+    // --- Style matching (10 points) ---
+    if (analysis.style) {
+      const styleWords = analysis.style.split(/\s+/).filter(w => w.length > 1);
+      for (const w of styleWords) {
+        if (searchText.includes(w)) score += 5;
+      }
+    }
+
+    // --- Gender matching (10 points / penalty) ---
+    if (analysis.gender && analysis.gender !== 'unisex') {
+      if (searchText.includes(analysis.gender)) score += 10;
+      // Penalty for wrong gender
+      const oppositeGender = analysis.gender === 'nam' ? 'nữ' : 'nam';
+      if (nameLC.includes(oppositeGender) && !nameLC.includes(analysis.gender)) {
+        score -= 15;
+      }
+    }
+
+    // --- Search phrases bonus (5 points each) ---
+    for (const phrase of analysis.search_phrases) {
+      if (nameLC.includes(phrase)) score += 10;
+      else if (descLC.includes(phrase)) score += 5;
+    }
+
+    return score;
+  }
+
+  public static async visualSearch(imagePath: string): Promise<any> {
+    try {
+      if (!fs.existsSync(imagePath)) {
+        throw new Error('Image file not found');
+      }
+
+      // Convert image to base64
+      const imageBuffer = fs.readFileSync(imagePath);
+      const base64Image = imageBuffer.toString('base64');
+
+      // Step 1: Structured AI analysis
+      let analysis: {
+        product_type: string;
+        color: string;
+        material: string;
+        style: string;
+        gender: string;
+        search_phrases: string[];
+      };
+
+      try {
+        analysis = await this.analyzeImageStructured(base64Image);
+        this.logDebug('Visual Search structured analysis:', analysis);
+      } catch (ollamaError: any) {
+        console.warn(`Visual Search AI analysis failed: ${ollamaError.message}`);
+        // Fallback: return popular active products
+        const fallbackProducts = await this.prisma.products.findMany({
+          where: { is_active: true },
+          take: 12,
+          orderBy: { created_at: 'desc' },
+          include: {
+            product_images: { where: { is_primary: true }, take: 1 },
+            product_variants: { take: 1 },
+            category: true
+          }
+        });
+        return fallbackProducts.map(p => JSON.parse(JSON.stringify(p, (key, value) =>
+          typeof value === 'bigint' ? value.toString() : value
+        )));
+      }
+
+      // Step 2: Build search terms from analysis (compound phrases + individual important terms)
+      const searchTerms: string[] = [];
+
+      // Add product type as the PRIMARY search term
+      if (analysis.product_type) searchTerms.push(analysis.product_type);
+
+      // Add AI-generated search phrases
+      searchTerms.push(...analysis.search_phrases);
+
+      // Add individual important attributes
+      if (analysis.color) searchTerms.push(analysis.color);
+      if (analysis.material) searchTerms.push(analysis.material);
+
+      // Build product_type word parts for broader matching
+      const typeWords = analysis.product_type
+        ? analysis.product_type.split(/\s+/).filter(w => w.length > 1)
+        : [];
+
+      // De-duplicate search terms
+      const uniqueTerms = [...new Set(searchTerms)].filter(Boolean);
+
+      this.logDebug('Visual Search unique terms:', uniqueTerms);
+
+      if (uniqueTerms.length === 0) return [];
+
+      // Step 3: Fetch candidate products using broad OR search
+      // We fetch more candidates than needed, then rank them
+      const searchConditions = uniqueTerms.flatMap(term => [
+        { name: { contains: term } },
+        { description: { contains: term } }
+      ]);
+
+      // Also add individual type words for broader candidate pool
+      for (const w of typeWords) {
+        searchConditions.push({ name: { contains: w } });
+      }
+
+      let candidates = await this.prisma.products.findMany({
+        where: {
+          is_active: true,
+          OR: searchConditions
+        },
+        take: 50, // Fetch more candidates for scoring
+        include: {
+          product_images: { where: { is_primary: true }, take: 1 },
+          product_variants: { take: 1 },
+          category: true
+        }
+      });
+
+      this.logDebug(`Visual Search found ${candidates.length} candidates`);
+
+      // Step 4: If no candidates found, try category-based fallback
+      if (candidates.length === 0 && analysis.product_type) {
+        // Try matching by category name
+        const matchingCategories = await this.prisma.categories.findMany({
+          where: {
+            is_active: true,
+            name: { contains: analysis.product_type }
+          },
+          select: { id: true }
+        });
+
+        if (matchingCategories.length > 0) {
+          candidates = await this.prisma.products.findMany({
+            where: {
+              is_active: true,
+              category_id: { in: matchingCategories.map(c => c.id) }
+            },
+            take: 50,
+            include: {
+              product_images: { where: { is_primary: true }, take: 1 },
+              product_variants: { take: 1 },
+              category: true
+            }
+          });
+          this.logDebug(`Visual Search category fallback found ${candidates.length} candidates`);
+        }
+      }
+
+      // Step 5: If still nothing, try word-by-word with the most specific first
+      if (candidates.length === 0) {
+        for (const term of uniqueTerms) {
+          candidates = await this.prisma.products.findMany({
+            where: {
+              is_active: true,
+              OR: [
+                { name: { contains: term } },
+                { description: { contains: term } }
+              ]
+            },
+            take: 30,
+            include: {
+              product_images: { where: { is_primary: true }, take: 1 },
+              product_variants: { take: 1 },
+              category: true
+            }
+          });
+          if (candidates.length > 0) break;
+        }
+      }
+
+      if (candidates.length === 0) return [];
+
+      // Step 6: Score and rank all candidates
+      const scored = candidates.map(p => ({
+        product: p,
+        score: this.scoreProduct(
+          { name: p.name, description: p.description, category: p.category, tags: p.tags },
+          analysis
+        )
+      }));
+
+      // Sort by score descending, filter out very low scores
+      scored.sort((a, b) => b.score - a.score);
+
+      // Only keep products with positive relevance score
+      const relevant = scored.filter(s => s.score > 0);
+
+      // Take top 12 results (or all relevant if fewer)
+      const topResults = (relevant.length > 0 ? relevant : scored).slice(0, 12);
+
+      this.logDebug('Visual Search top scores:', topResults.map(r => ({
+        name: r.product.name,
+        score: r.score
+      })));
+
+      // Return full product objects (without the score, and without the category relation to keep backward compat)
+      return topResults.map(r => {
+        const { category, ...productWithoutCategory } = r.product;
+        return JSON.parse(JSON.stringify(productWithoutCategory, (key, value) =>
+          typeof value === 'bigint' ? value.toString() : value
+        ));
+      });
+    } catch (e: any) {
+       console.error('Visual Search error:', e);
+       throw new Error(`Visual Search failed: ${e.message}`);
     }
   }
 
@@ -1089,7 +1534,7 @@ KHI CẦN DÙNG CÔNG CỤ, trả về JSON như sau (không thêm text):
       if (hasCustomSystemPrompt) {
         // Direct LLM call — no tools, no retry loop
         try {
-          const response = await ollama.chat({
+          const response = await chatWithFallback({
             model: this.MODEL,
             messages: requestMessages,
             stream: false,
@@ -1115,8 +1560,40 @@ KHI CẦN DÙNG CÔNG CỤ, trả về JSON như sau (không thêm text):
 
   // Customer Chat Logic
   static async generateCustomerResponse(history: ChatMessage[], userMessage: string, user?: any) {
+      let profileData = null;
+      
+      if (user && user.id) {
+         try {
+             // Fetch user profile and recent views for Stylist Context
+             const [profile, recentViews] = await Promise.all([
+                 this.prisma.user_profiles.findUnique({
+                     where: { user_id: BigInt(user.id) }
+                 }),
+                 this.prisma.user_views.findMany({
+                     where: { user_id: BigInt(user.id) },
+                     orderBy: { viewed_at: 'desc' },
+                     take: 3,
+                     include: { product: { select: { name: true, category: { select: { name: true } } } } }
+                 })
+             ]);
+             
+             if (profile || recentViews.length > 0) {
+                 profileData = {
+                     name: user.full_name || user.username,
+                     gender: profile?.gender,
+                     height: profile?.height,
+                     weight: profile?.weight,
+                     style_preference: profile?.style_preference,
+                     recent_views: recentViews.map(v => `${v.product.name} (${v.product.category?.name})`).join(', ')
+                 };
+             }
+         } catch (e) {
+             console.error('Stylist profile fetch error:', e);
+         }
+      }
+
       const messages: ChatMessage[] = [
-          { role: 'system', content: this.getCustomerSystemPrompt() },
+          { role: 'system', content: this.getCustomerSystemPrompt(profileData) },
           ...history,
           { role: 'user', content: userMessage }
       ];
@@ -1134,7 +1611,7 @@ KHI CẦN DÙNG CÔNG CỤ, trả về JSON như sau (không thêm text):
         try {
             this.logDebug(`Requesting AI (Attempt ${retries + 1})`);
             
-            const response = await ollama.chat({
+            const response = await chatWithFallback({
                 model: this.MODEL,
                 messages: messages,
                 stream: false,
@@ -1173,7 +1650,7 @@ KHI CẦN DÙNG CÔNG CỤ, trả về JSON như sau (không thêm text):
 Hãy trả lời khách hàng dựa trên thông tin này. Nếu là danh sách sản phẩm, hãy tóm tắt ngắn gọn và mời khách xem chi tiết bên dưới.` 
                     });
 
-                    const finalResponse = await ollama.chat({
+                    const finalResponse = await chatWithFallback({
                         model: this.MODEL,
                         messages: messages,
                         stream: false,

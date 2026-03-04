@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
+import { productsAPI } from '../../services/api';
 
 interface Option {
   id: string;
@@ -30,6 +31,17 @@ export default function VariantManager({ variants, setVariants, options, setOpti
   // Bulk Edit State
   const [bulkPrice, setBulkPrice] = useState<string>('');
   const [bulkStock, setBulkStock] = useState<string>('');
+
+  // DB Options Suggestion State
+  const [dbOptions, setDbOptions] = useState<any[]>([]);
+
+  useEffect(() => {
+    productsAPI.getOptions().then(res => {
+      if (res.data?.success && Array.isArray(res.data?.data)) {
+        setDbOptions(res.data.data);
+      }
+    }).catch(err => console.error('Failed to fetch options for suggestions', err));
+  }, []);
 
   // Add a new Option (Attribute)
   const addOption = () => {
@@ -189,6 +201,7 @@ export default function VariantManager({ variants, setVariants, options, setOpti
                value={newOptionName}
                onChange={(e) => setNewOptionName(e.target.value)}
                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm"
+               list="attribute-suggestions"
                onKeyDown={(e) => {
                  if (e.key === 'Enter') {
                     e.preventDefault();
@@ -196,6 +209,21 @@ export default function VariantManager({ variants, setVariants, options, setOpti
                  }
                }}
              />
+             <datalist id="attribute-suggestions">
+                {dbOptions.map(opt => (
+                  <option key={opt.id} value={opt.name} />
+                ))}
+                {/* Fallbacks if DB is empty */}
+                {dbOptions.length === 0 && (
+                  <>
+                    <option value="Màu sắc" />
+                    <option value="Kích thước" />
+                    <option value="Dung lượng" />
+                    <option value="Chất liệu" />
+                    <option value="Kiểu dáng" />
+                  </>
+                )}
+             </datalist>
              <button 
                type="button" 
                onClick={addOption}

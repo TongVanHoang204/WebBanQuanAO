@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getCoupons, getCoupon, createCoupon, updateCoupon, deleteCoupon, applyCoupon } from '../controllers/coupon.controller.js';
-import { verifyToken, authorize } from '../middlewares/auth.middleware.js';
+import { verifyToken, authorize, optionalAuth } from '../middlewares/auth.middleware.js';
+import { rateLimit } from '../middlewares/rate-limit.middleware.js';
 const router = Router();
 /**
  * @swagger
@@ -19,16 +20,20 @@ const router = Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [code, subtotal]
  *             properties:
  *               code:
  *                 type: string
- *               cartTotal:
+ *               subtotal:
  *                 type: number
  *     responses:
  *       200:
  *         description: Coupon applied
+ *       429:
+ *         description: Rate limited
  */
-router.post('/apply', applyCoupon);
+router.post('/apply', rateLimit('coupon-apply', 15, 60_000), // 15 attempts per minute
+optionalAuth, applyCoupon);
 router.use(verifyToken);
 router.use(authorize(['admin', 'manager']));
 /**

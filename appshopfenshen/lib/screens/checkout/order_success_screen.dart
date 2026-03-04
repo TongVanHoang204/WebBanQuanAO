@@ -15,7 +15,7 @@ class OrderSuccessScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFFF7F6F8),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -26,16 +26,16 @@ class OrderSuccessScreen extends StatelessWidget {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                  color: const Color(0xFF7F19E6).withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
+                    color: const Color(0xFF7F19E6).withValues(alpha: 0.3),
                     width: 2,
                   ),
                 ),
                 child: const Icon(
                   Icons.check,
-                  color: Color(0xFFD4AF37),
+                  color: Color(0xFF7F19E6),
                   size: 50,
                 ),
               ),
@@ -43,7 +43,7 @@ class OrderSuccessScreen extends StatelessWidget {
               const Text(
                 'Đặt hàng thành công!',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: const Color(0xFF140E1B),
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
@@ -53,7 +53,7 @@ class OrderSuccessScreen extends StatelessWidget {
                 'Cảm ơn bạn đã đặt hàng.\nĐơn hàng đang được xử lý.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.5),
+                  color: Colors.grey.shade500,
                   fontSize: 15,
                   height: 1.5,
                 ),
@@ -67,10 +67,10 @@ class OrderSuccessScreen extends StatelessWidget {
                     vertical: 14,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF141414),
+                    color: const Color(0xFFFFFFFF),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
+                      color: Colors.grey.shade300,
                     ),
                   ),
                   child: Row(
@@ -78,12 +78,12 @@ class OrderSuccessScreen extends StatelessWidget {
                     children: [
                       const Text(
                         'Mã đơn: ',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                        style: TextStyle(color: Color(0xFF140E1B), fontSize: 14),
                       ),
                       Text(
                         orderCode,
                         style: const TextStyle(
-                          color: Color(0xFFD4AF37),
+                          color: Color(0xFF7F19E6),
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1,
@@ -102,7 +102,7 @@ class OrderSuccessScreen extends StatelessWidget {
                         },
                         child: Icon(
                           Icons.copy,
-                          color: Colors.white.withValues(alpha: 0.4),
+                          color: Colors.grey.shade500,
                           size: 16,
                         ),
                       ),
@@ -187,8 +187,8 @@ class OrderSuccessScreen extends StatelessWidget {
                   onPressed: () =>
                       Navigator.of(context).pushReplacementNamed('/orders'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD4AF37),
-                    foregroundColor: Colors.black,
+                    backgroundColor: const Color(0xFF7F19E6),
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -209,7 +209,7 @@ class OrderSuccessScreen extends StatelessWidget {
                       Navigator.of(context).pushReplacementNamed('/main'),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.15),
+                      color: Colors.grey.shade300,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -218,7 +218,7 @@ class OrderSuccessScreen extends StatelessWidget {
                   child: Text(
                     'Tiếp tục mua sắm',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: Colors.grey.shade700,
                       fontSize: 15,
                     ),
                   ),

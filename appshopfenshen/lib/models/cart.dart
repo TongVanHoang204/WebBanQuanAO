@@ -14,8 +14,9 @@ class Cart {
   });
 
   factory Cart.fromJson(Map<String, dynamic> json) {
-    final itemsList = json['cart_items'] != null
-        ? (json['cart_items'] as List).map((i) => CartItem.fromJson(i)).toList()
+    final itemsData = json['items'] ?? json['cart_items'];
+    final itemsList = itemsData != null
+        ? (itemsData as List).map((i) => CartItem.fromJson(i)).toList()
         : <CartItem>[];
 
     double total = 0;
@@ -56,9 +57,26 @@ class CartItem {
         ? ProductVariant.fromJson(json['variant'])
         : null;
 
-    // Product can be nested inside variant
+    // Product can be nested inside variant, or directly on the item
     Product? product;
-    if (json['variant']?['product'] != null) {
+    if (json['product'] != null) {
+      product = Product(
+        id: json['product']['id'].toString(),
+        name: json['product']['name'] ?? '',
+        slug: json['product']['slug'] ?? '',
+        basePrice: 0,
+        sku: '',
+        images: json['product']['image'] != null
+            ? [
+                ProductImage(
+                  id: '0',
+                  url: json['product']['image'].toString(),
+                  isPrimary: true,
+                )
+              ]
+            : [],
+      );
+    } else if (json['variant']?['product'] != null) {
       product = Product.fromJson(json['variant']['product']);
     }
 

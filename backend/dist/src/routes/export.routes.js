@@ -1,9 +1,10 @@
 import express from 'express';
 import { exportOrders, exportProducts, exportCustomers, exportRevenue } from '../controllers/export.controller.js';
-import { verifyToken } from '../middlewares/auth.middleware.js';
+import { verifyToken, authorize } from '../middlewares/auth.middleware.js';
 const router = express.Router();
-// All routes require authentication
+// All routes require authentication + admin/manager role
 router.use(verifyToken);
+router.use(authorize(['admin', 'manager']));
 // GET /api/admin/export/orders
 /**
  * @swagger

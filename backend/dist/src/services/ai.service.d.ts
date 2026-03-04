@@ -14,6 +14,17 @@ export declare class AIService {
     private static formatCurrency;
     private static formatDate;
     static generateContent(prompt: string, type?: string): Promise<string>;
+    /**
+     * Phân tích ảnh bằng AI và trả về JSON cấu trúc:
+     * { product_type, color, material, style, gender, search_phrases }
+     */
+    private static analyzeImageStructured;
+    /**
+     * Tính điểm tương đồng giữa sản phẩm và mô tả AI.
+     * Điểm càng cao = sản phẩm càng phù hợp.
+     */
+    private static scoreProduct;
+    static visualSearch(imagePath: string): Promise<any>;
     private static getDashboardStats;
     private static getRecentOrders;
     private static searchProducts;

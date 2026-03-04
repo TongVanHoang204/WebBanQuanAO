@@ -8,10 +8,10 @@ const attributeSchema = z.object({
 const variantSchema = z.object({
   variant_sku: z.string().max(120).optional(), // Optional if auto-generated
   sku: z.string().max(120).optional(), // Frontend calls it 'sku'
-  price: z.union([z.string(), z.number()]).transform(val => Number(val)),
-  compare_at_price: z.union([z.string(), z.number()]).transform(val => Number(val)).optional(),
+  price: z.union([z.string(), z.number()]).transform(val => Number(val)).pipe(z.number().nonnegative('Variant price must be non-negative')),
+  compare_at_price: z.union([z.string(), z.number()]).transform(val => Number(val)).pipe(z.number().nonnegative()).optional(),
   cost: z.number().nonnegative().optional(),
-  stock_qty: z.union([z.string(), z.number()]).transform(val => Number(val)).default(0),
+  stock_qty: z.union([z.string(), z.number()]).transform(val => Number(val)).pipe(z.number().int().nonnegative('Stock must be non-negative')).default(0),
   is_active: z.boolean().default(true),
   options: z.record(z.string()).optional(), // { "Color": "Red" }
   weight: z.number().optional()
@@ -28,11 +28,12 @@ export const createProductSchema = z.object({
   category_id: z.union([z.string(), z.number()]).optional(),
   brand_id: z.union([z.string(), z.number()]).optional(),
   sku: z.string().min(1, 'SKU is required').max(80),
-  name: z.string().min(1, 'Name is required').max(255),
+  name: z.string().min(1, 'Name is required').max(255)
+    .transform(v => v.replace(/<[^>]*>/g, '').trim()),   // strip HTML tags
   slug: z.string().min(1, 'Slug is required').max(270),
   description: z.string().optional(),
-  base_price: z.union([z.string(), z.number()]).transform(val => Number(val)),
-  compare_at_price: z.union([z.string(), z.number()]).transform(val => Number(val)).optional(),
+  base_price: z.union([z.string(), z.number()]).transform(val => Number(val)).pipe(z.number().nonnegative('Price must be non-negative').max(1_000_000_000, 'Price exceeds maximum')),
+  compare_at_price: z.union([z.string(), z.number()]).transform(val => Number(val)).pipe(z.number().nonnegative()).optional(),
   is_active: z.boolean().default(true),
   variants: z.array(variantSchema).optional(),
   attributes: z.array(attributeSchema).optional(),

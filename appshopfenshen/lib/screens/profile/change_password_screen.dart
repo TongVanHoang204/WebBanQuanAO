@@ -34,8 +34,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     try {
       final authService = AuthService();
       final res = await authService.changePassword(
-        currentPassword: _currentCtrl.text,
-        newPassword: _newCtrl.text,
+        _currentCtrl.text,
+        _newCtrl.text,
       );
 
       if (!mounted) return;
@@ -76,18 +76,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFFF7F6F8),
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: const Color(0xFFF7F6F8),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: const Color(0xFF140E1B),
+            size: 20,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Đổi mật khẩu',
           style: TextStyle(
-            color: Colors.white,
+            color: const Color(0xFF140E1B),
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -104,7 +108,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               Text(
                 'Để bảo mật, vui lòng nhập mật khẩu hiện tại trước khi tạo mật khẩu mới.',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.5),
+                  color: Colors.grey.shade500,
                   fontSize: 14,
                   height: 1.5,
                 ),
@@ -152,8 +156,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _changePassword,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD4AF37),
-                    foregroundColor: Colors.black,
+                    backgroundColor: const Color(0xFF7F19E6),
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -165,7 +169,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           width: 22,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.black,
+                            color: const Color(0xFFF7F6F8),
                           ),
                         )
                       : const Text(
@@ -195,39 +199,36 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       controller: controller,
       obscureText: !visible,
       validator: validator,
-      style: const TextStyle(color: Colors.white, fontSize: 15),
+      style: const TextStyle(color: const Color(0xFF140E1B), fontSize: 15),
       decoration: InputDecoration(
         hintText: label,
-        hintStyle: TextStyle(
-          color: Colors.white.withValues(alpha: 0.3),
-          fontSize: 15,
-        ),
+        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 15),
         prefixIcon: Icon(
           Icons.lock_outline,
-          color: Colors.white.withValues(alpha: 0.4),
+          color: Colors.grey.shade500,
           size: 20,
         ),
         suffixIcon: IconButton(
           icon: Icon(
             visible ? Icons.visibility_off : Icons.visibility,
-            color: Colors.white.withValues(alpha: 0.4),
+            color: Colors.grey.shade500,
             size: 20,
           ),
           onPressed: onToggle,
         ),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.06),
+        fillColor: const Color(0xFFF7F6F8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          borderSide: BorderSide(color: Colors.grey.shade200),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFD4AF37), width: 1),
+          borderSide: const BorderSide(color: Color(0xFF7F19E6), width: 1),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),

@@ -3,19 +3,19 @@ export declare const createProductSchema: z.ZodObject<{
     category_id: z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodNumber]>>;
     brand_id: z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodNumber]>>;
     sku: z.ZodString;
-    name: z.ZodString;
+    name: z.ZodEffects<z.ZodString, string, string>;
     slug: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
-    base_price: z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>;
-    compare_at_price: z.ZodOptional<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>>;
+    base_price: z.ZodPipeline<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>, z.ZodNumber>;
+    compare_at_price: z.ZodOptional<z.ZodPipeline<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>, z.ZodNumber>>;
     is_active: z.ZodDefault<z.ZodBoolean>;
     variants: z.ZodOptional<z.ZodArray<z.ZodObject<{
         variant_sku: z.ZodOptional<z.ZodString>;
         sku: z.ZodOptional<z.ZodString>;
-        price: z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>;
-        compare_at_price: z.ZodOptional<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>>;
+        price: z.ZodPipeline<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>, z.ZodNumber>;
+        compare_at_price: z.ZodOptional<z.ZodPipeline<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>, z.ZodNumber>>;
         cost: z.ZodOptional<z.ZodNumber>;
-        stock_qty: z.ZodDefault<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>>;
+        stock_qty: z.ZodDefault<z.ZodPipeline<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>, z.ZodNumber>>;
         is_active: z.ZodDefault<z.ZodBoolean>;
         options: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodString>>;
         weight: z.ZodOptional<z.ZodNumber>;
@@ -157,11 +157,11 @@ export declare const updateProductSchema: z.ZodObject<{
     category_id: z.ZodOptional<z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodNumber]>>>;
     brand_id: z.ZodOptional<z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodNumber]>>>;
     sku: z.ZodOptional<z.ZodString>;
-    name: z.ZodOptional<z.ZodString>;
+    name: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
     slug: z.ZodOptional<z.ZodString>;
     description: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-    base_price: z.ZodOptional<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>>;
-    compare_at_price: z.ZodOptional<z.ZodOptional<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>>>;
+    base_price: z.ZodOptional<z.ZodPipeline<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>, z.ZodNumber>>;
+    compare_at_price: z.ZodOptional<z.ZodOptional<z.ZodPipeline<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>, z.ZodNumber>>>;
     is_active: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
     attributes: z.ZodOptional<z.ZodOptional<z.ZodArray<z.ZodObject<{
         name: z.ZodString;
@@ -185,10 +185,10 @@ export declare const updateProductSchema: z.ZodObject<{
     variants: z.ZodOptional<z.ZodArray<z.ZodObject<{
         variant_sku: z.ZodOptional<z.ZodString>;
         sku: z.ZodOptional<z.ZodString>;
-        price: z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>;
-        compare_at_price: z.ZodOptional<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>>;
+        price: z.ZodPipeline<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>, z.ZodNumber>;
+        compare_at_price: z.ZodOptional<z.ZodPipeline<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>, z.ZodNumber>>;
         cost: z.ZodOptional<z.ZodNumber>;
-        stock_qty: z.ZodDefault<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>>;
+        stock_qty: z.ZodDefault<z.ZodPipeline<z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodNumber]>, number, string | number>, z.ZodNumber>>;
         is_active: z.ZodDefault<z.ZodBoolean>;
         options: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodString>>;
         weight: z.ZodOptional<z.ZodNumber>;

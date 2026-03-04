@@ -343,7 +343,13 @@ export const getAdminProducts = async (req, res, next) => {
             ];
         }
         if (category) {
-            where.category_id = BigInt(category);
+            const normalizedCategory = category.trim();
+            if (/^\d+$/.test(normalizedCategory)) {
+                where.category_id = BigInt(normalizedCategory);
+            }
+            else {
+                where.category = { slug: normalizedCategory };
+            }
         }
         if (status) {
             where.is_active = status === 'active';

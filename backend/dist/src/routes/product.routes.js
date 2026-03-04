@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getProducts, getProductBySlug, getProductById, getNewArrivals, searchProducts } from '../controllers/product.controller.js';
+import { getProducts, getProductBySlug, getProductById, getNewArrivals, searchProducts, getOptions } from '../controllers/product.controller.js';
 const router = Router();
 /**
  * @swagger
@@ -57,6 +57,17 @@ router.get('/new-arrivals', getNewArrivals);
  *         description: Search results
  */
 router.get('/search', searchProducts);
+/**
+ * @swagger
+ * /products/options:
+ *   get:
+ *     summary: Get all product attributes/options
+ *     tags: [Products]
+ *     responses:
+ *       200:
+ *         description: List of options
+ */
+router.get('/options', getOptions);
 /**
  * @swagger
  * /products/id/{id}:

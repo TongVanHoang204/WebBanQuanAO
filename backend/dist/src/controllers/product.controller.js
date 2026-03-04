@@ -279,7 +279,11 @@ export const getProductBySlug = async (req, res, next) => {
 };
 export const getProductById = async (req, res, next) => {
     try {
-        const { id } = req.params;
+        const id = req.params.id;
+        // Validate numeric ID to prevent BigInt conversion errors
+        if (!/^\d+$/.test(id)) {
+            throw new ApiError(400, 'Invalid product ID — must be numeric');
+        }
         const product = await prisma.products.findUnique({
             where: { id: BigInt(id) },
             include: {
@@ -320,7 +324,7 @@ export const getProductById = async (req, res, next) => {
 };
 export const getNewArrivals = async (req, res, next) => {
     try {
-        const limit = parseInt(req.query.limit) || 8;
+        const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 8));
         const products = await prisma.products.findMany({
             where: { is_active: true },
             orderBy: { created_at: 'desc' },
@@ -386,6 +390,20 @@ export const searchProducts = async (req, res, next) => {
         res.json({
             success: true,
             data: products.map(serializeProduct)
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+export const getOptions = async (req, res, next) => {
+    try {
+        const options = await prisma.options.findMany({
+            orderBy: { name: 'asc' }
+        });
+        res.json({
+            success: true,
+            data: options.map(serializeProduct)
         });
     }
     catch (error) {

@@ -93,7 +93,15 @@ export const uploadMultiple = async (req, res, next) => {
 export const deleteFile = async (req, res, next) => {
     try {
         const { filename } = req.params;
-        const filePath = path.join(uploadsDir, filename);
+        // Sanitize filename - prevent path traversal
+        const sanitizedFilename = path.basename(filename);
+        if (sanitizedFilename !== filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+            return res.status(400).json({
+                success: false,
+                error: { message: 'Invalid filename' }
+            });
+        }
+        const filePath = path.join(uploadsDir, sanitizedFilename);
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
             res.json({

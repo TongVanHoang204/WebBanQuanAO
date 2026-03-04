@@ -371,8 +371,15 @@ export const mergeCart = async (
 
     const userCart = await getOrCreateCart(userId);
 
-    // Merge items
+    // Merge items with stock validation
     for (const item of guestCart.cart_items) {
+      // Check stock availability for the variant
+      const variant = await prisma.product_variants.findUnique({
+        where: { id: item.variant_id }
+      });
+
+      if (!variant) continue; // Skip deleted variants
+
       const existingItem = await prisma.cart_items.findUnique({
         where: {
           cart_id_variant_id: {
@@ -382,17 +389,24 @@ export const mergeCart = async (
         }
       });
 
+      const currentQty = existingItem ? existingItem.qty : 0;
+      const mergedQty = currentQty + item.qty;
+      // Cap at available stock
+      const finalQty = Math.min(mergedQty, variant.stock_qty);
+
+      if (finalQty <= 0) continue; // No stock available
+
       if (existingItem) {
         await prisma.cart_items.update({
           where: { id: existingItem.id },
-          data: { qty: existingItem.qty + item.qty }
+          data: { qty: finalQty }
         });
       } else {
         await prisma.cart_items.create({
           data: {
             cart_id: userCart.id,
             variant_id: item.variant_id,
-            qty: item.qty,
+            qty: finalQty,
             price_at_add: item.price_at_add
           }
         });

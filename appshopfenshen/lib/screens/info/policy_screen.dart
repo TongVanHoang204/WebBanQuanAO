@@ -8,14 +8,14 @@ class PolicyScreen extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: const Color(0xFFF7F6F8),
         appBar: AppBar(
-          backgroundColor: Colors.black,
+          backgroundColor: const Color(0xFFF7F6F8),
           elevation: 0,
           leading: IconButton(
             icon: const Icon(
               Icons.arrow_back_ios,
-              color: Colors.white,
+              color: const Color(0xFF140E1B),
               size: 20,
             ),
             onPressed: () => Navigator.of(context).pop(),
@@ -23,15 +23,15 @@ class PolicyScreen extends StatelessWidget {
           title: const Text(
             'Chính sách',
             style: TextStyle(
-              color: Colors.white,
+              color: const Color(0xFF140E1B),
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
           ),
           bottom: TabBar(
-            indicatorColor: const Color(0xFFD4AF37),
-            labelColor: const Color(0xFFD4AF37),
-            unselectedLabelColor: Colors.white.withValues(alpha: 0.5),
+            indicatorColor: const Color(0xFF7F19E6),
+            labelColor: const Color(0xFF7F19E6),
+            unselectedLabelColor: Colors.grey.shade500,
             labelStyle: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -201,7 +201,7 @@ Widget _policySection(String title, List<Widget> items) {
       Text(
         title,
         style: const TextStyle(
-          color: Color(0xFFD4AF37),
+          color: Color(0xFF7F19E6),
           fontSize: 18,
           fontWeight: FontWeight.bold,
         ),
@@ -217,21 +217,21 @@ Widget _policyItem(IconData icon, String title, String content) {
     margin: const EdgeInsets.only(bottom: 14),
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: const Color(0xFF141414),
+      color: const Color(0xFFFFFFFF),
       borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+      border: Border.all(color: Colors.grey.shade200),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, color: const Color(0xFFD4AF37), size: 20),
+            Icon(icon, color: const Color(0xFF7F19E6), size: 20),
             const SizedBox(width: 10),
             Text(
               title,
               style: const TextStyle(
-                color: Colors.white,
+                color: const Color(0xFF140E1B),
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
               ),
@@ -242,7 +242,7 @@ Widget _policyItem(IconData icon, String title, String content) {
         Text(
           content,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.6),
+            color: Colors.grey.shade600,
             fontSize: 13,
             height: 1.6,
           ),

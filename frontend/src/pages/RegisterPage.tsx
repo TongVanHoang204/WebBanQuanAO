@@ -49,6 +49,21 @@ export default function RegisterPage() {
     setError('');
 
     // Validation - All Vietnamese
+    if (!formData.username || formData.username.length < 3) {
+      setError('Tên đăng nhập phải có ít nhất 3 ký tự');
+      return;
+    }
+
+    if (formData.username.length > 50) {
+      setError('Tên đăng nhập không quá 50 ký tự');
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      setError('Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Mật khẩu xác nhận không khớp');
       return;

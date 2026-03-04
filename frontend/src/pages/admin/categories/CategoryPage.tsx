@@ -101,8 +101,8 @@ export default function CategoryPage() {
     }
 
     return (
-      <>
-        <tr key={category.id} className={`hover:bg-gray-50 dark:hover:bg-secondary-700/50 border-b border-gray-100 dark:border-secondary-700 last:border-0 transition-colors ${!category.is_active ? 'bg-gray-50/50 dark:bg-secondary-800/50' : ''}`}>
+      <div key={`cat-${category.id}`} className="contents">
+        <tr className={`hover:bg-gray-50 dark:hover:bg-secondary-700/50 border-b border-gray-100 dark:border-secondary-700 last:border-0 transition-colors ${!category.is_active ? 'bg-gray-50/50 dark:bg-secondary-800/50' : ''}`}>
           <td className="px-6 py-4 whitespace-nowrap">
             <div className="flex items-center" style={{ paddingLeft: `${depth * 24}px` }}>
               {hasChildren ? (
@@ -165,7 +165,7 @@ export default function CategoryPage() {
         </tr>
         {/* Render Children */}
         {hasChildren && isExpanded && category.children.map((child: any) => renderCategoryRow(child, depth + 1))}
-      </>
+      </div>
     );
   };
 

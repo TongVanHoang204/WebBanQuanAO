@@ -38,23 +38,32 @@ class NotificationModel {
 class NotificationService {
   final ApiService _api = ApiService();
 
-  Future<List<NotificationModel>> getNotifications({int page = 1}) async {
+  Future<({List<NotificationModel> data, int totalPages})> getNotifications({int page = 1}) async {
     final res = await _api.get(
       ApiConfig.notifications,
       queryParameters: {'page': page},
     );
     if (res.data['data'] != null) {
       final data = res.data['data'];
+      int totalPages = 1;
+      
+      if (data is Map && data['totalPages'] != null) {
+        totalPages = data['totalPages'];
+      }
+      
       if (data is List) {
-        return data.map((n) => NotificationModel.fromJson(n)).toList();
+        return (data: data.map((n) => NotificationModel.fromJson(n)).toList(), totalPages: totalPages);
       }
       if (data is Map && data['notifications'] != null) {
-        return (data['notifications'] as List)
-            .map((n) => NotificationModel.fromJson(n))
-            .toList();
+        return (
+          data: (data['notifications'] as List)
+              .map((n) => NotificationModel.fromJson(n))
+              .toList(),
+          totalPages: totalPages
+        );
       }
     }
-    return [];
+    return (data: <NotificationModel>[], totalPages: 1);
   }
 
   Future<int> getUnreadCount() async {

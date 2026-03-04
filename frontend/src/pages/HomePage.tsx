@@ -10,14 +10,17 @@ import ProductCard from '../components/common/ProductCard';
 import HeroSection from '../components/home/HeroSection';
 import CategoryGrid from '../components/home/CategoryGrid';
 import { Product, Category, Banner } from '../types';
-import { productsAPI, bannersAPI } from '../services/api';
+import { productsAPI, bannersAPI, personalizationAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function HomePage() {
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
   const [flashSale, setFlashSale] = useState<Product[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [recommendations, setRecommendations] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const loadData = async () => {
@@ -26,20 +29,25 @@ export default function HomePage() {
           productsAPI.getNewArrivals(8),
           productsAPI.getAll({ sort: 'price_desc', limit: 8 }), // Best Sellers
           productsAPI.getAll({ sort: 'discount_desc', limit: 8, on_sale: true }),  // Flash Sale
-          bannersAPI.getAll({ position: 'home_hero' })
+          bannersAPI.getAll({ position: 'home_hero' }),
+          isAuthenticated ? personalizationAPI.getRecommendations(8) : Promise.resolve({ data: { success: false } })
         ]);
 
         const [
           newArrivalsRes, 
           bestSellersRes, 
           flashSaleRes, 
-          bannersRes
+          bannersRes,
+          recommendationsRes
         ] = results;
 
         if (newArrivalsRes.status === 'fulfilled') setNewArrivals(newArrivalsRes.value.data.data);
         if (bestSellersRes.status === 'fulfilled') setBestSellers(bestSellersRes.value.data.data.products);
         if (flashSaleRes.status === 'fulfilled') setFlashSale(flashSaleRes.value.data.data.products);
         if (bannersRes.status === 'fulfilled' && bannersRes.value.data.success) setBanners(bannersRes.value.data.data);
+        if (recommendationsRes.status === 'fulfilled' && recommendationsRes.value?.data?.success) {
+          setRecommendations(recommendationsRes.value.data.data);
+        }
 
       } catch (error) {
         console.error('Failed to load homepage data:', error);
@@ -48,7 +56,7 @@ export default function HomePage() {
       }
     };
     loadData();
-  }, []);
+  }, [isAuthenticated]);
 
   // Countdown Timer Logic
   const [timeLeft, setTimeLeft] = useState({
@@ -214,6 +222,29 @@ export default function HomePage() {
                 ))}
              </div>
         </section>
+
+        {/* RECOMMENDED FOR YOU */}
+        {isAuthenticated && recommendations.length > 0 && (
+          <section className="container-custom py-20 bg-secondary-50 dark:bg-secondary-900 transition-colors duration-300">
+               <div className="flex justify-between items-center mb-12">
+                   <div>
+                      <span className="text-primary-600 dark:text-primary-400 font-bold tracking-widest mb-2 block uppercase text-sm flex items-center gap-2">
+                         DÀNH CHO RIÊNG BẠN
+                      </span>
+                      <h2 className="text-4xl font-bold text-secondary-900 dark:text-white">Gợi ý từ AI của ShopEase</h2>
+                   </div>
+                   <Link to="/shop" className="text-sm font-bold border-b border-black dark:border-white pb-1 hover:text-primary-600 dark:hover:text-primary-400 dark:text-white transition-colors">
+                       Khám phá thêm
+                   </Link>
+               </div>
+  
+               <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                  {recommendations.slice(0, 4).map((product) => (
+                      <ProductCard key={product.id} product={product} />
+                  ))}
+               </div>
+          </section>
+        )}
 
         {/* NEWSLETTER - "Join the Inner Circle" */}
         <section className="container-custom py-24 border-t border-gray-100 dark:border-secondary-800 dark:bg-secondary-900">

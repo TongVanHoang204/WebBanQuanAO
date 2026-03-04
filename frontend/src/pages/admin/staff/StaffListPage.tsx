@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   Users, 
   Plus, 
@@ -56,6 +57,10 @@ const initialForm: FormData = {
 };
 
 export default function StaffListPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialSearch = searchParams.get('search') || '';
+  const initialRole = searchParams.get('role') || 'all';
+  const initialPage = Math.max(1, Number(searchParams.get('page') || 1) || 1);
   const { isAdmin } = useAuth();
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
@@ -64,9 +69,9 @@ export default function StaffListPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(initialForm);
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState<string>('all');
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(initialSearch);
+  const [roleFilter, setRoleFilter] = useState<string>(initialRole);
+  const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
 
   // Modal State
@@ -125,6 +130,24 @@ export default function StaffListPage() {
     }, 500);
     return () => clearTimeout(timer);
   }, [search]);
+
+  useEffect(() => {
+    const searchFromUrl = searchParams.get('search') || '';
+    const roleFromUrl = searchParams.get('role') || 'all';
+    const pageFromUrl = Math.max(1, Number(searchParams.get('page') || 1) || 1);
+    setSearch(prev => (prev === searchFromUrl ? prev : searchFromUrl));
+    setRoleFilter(prev => (prev === roleFromUrl ? prev : roleFromUrl));
+    setPage(prev => (prev === pageFromUrl ? prev : pageFromUrl));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (search) next.set('search', search);
+    if (roleFilter && roleFilter !== 'all') next.set('role', roleFilter);
+    if (page > 1) next.set('page', String(page));
+    if (next.toString() === searchParams.toString()) return;
+    setSearchParams(next, { replace: true });
+  }, [search, roleFilter, page, searchParams, setSearchParams]);
 
   const handleEdit = (staff: Staff) => {
     setEditingId(staff.id);
@@ -293,13 +316,19 @@ export default function StaffListPage() {
               type="text"
               placeholder="Tìm kiếm nhân viên..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               className="w-full pl-10 pr-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500"
             />
           </div>
           <select
             value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
+            onChange={(e) => {
+              setRoleFilter(e.target.value);
+              setPage(1);
+            }}
             className="px-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500"
           >
             <option value="all">Tất cả vai trò</option>

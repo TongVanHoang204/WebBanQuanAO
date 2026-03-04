@@ -117,7 +117,17 @@ export const deleteFile = async (
 ) => {
   try {
     const { filename } = req.params;
-    const filePath = path.join(uploadsDir, filename as string);
+    
+    // Sanitize filename - prevent path traversal
+    const sanitizedFilename = path.basename(filename as string);
+    if (sanitizedFilename !== filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Invalid filename' }
+      });
+    }
+    
+    const filePath = path.join(uploadsDir, sanitizedFilename);
 
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);

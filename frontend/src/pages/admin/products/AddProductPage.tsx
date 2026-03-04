@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronRight, Upload, X, Loader2, Save } from 'lucide-react';
 import { categoriesAPI, productsAPI, adminAPI, brandsAPI } from '../../../services/api';
 import RichTextEditor from '../../../components/common/RichTextEditor';
@@ -8,7 +8,9 @@ import VariantManager from '../../../components/products/VariantManager';
 import toast from 'react-hot-toast';
 
 export default function AddProductPage() {
+    const location = useLocation();
   const navigate = useNavigate();
+    const backToList = `/admin/products${location.search || ''}`;
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,10 +123,21 @@ export default function AddProductPage() {
         return;
     }
 
+    if (!formData.sku || formData.sku.trim() === '') {
+        toast.error('Vui lòng nhập mã SKU');
+        return;
+    }
+
     // Price validation
     const price = Number(formData.price);
     if (!price || price <= 0) {
         toast.error('Giá sản phẩm phải lớn hơn 0');
+        return;
+    }
+
+    // Compare at price validation
+    if (formData.compare_at_price && Number(formData.compare_at_price) < 0) {
+        toast.error('Giá so sánh không được âm');
         return;
     }
 
@@ -163,7 +176,7 @@ export default function AddProductPage() {
         await adminAPI.createProduct(productData);
         
         toast.success('Sản phẩm đã được tạo thành công');
-        navigate('/admin/products');
+        navigate(backToList);
         
     } catch (error: any) {
         console.error('Create product error:', error);
@@ -183,7 +196,7 @@ export default function AddProductPage() {
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
             <Link to="/admin/dashboard" className="hover:text-primary-600">Dashboard</Link>
             <ChevronRight className="w-4 h-4" />
-            <Link to="/admin/products" className="hover:text-primary-600">Sản phẩm</Link>
+                        <Link to={backToList} className="hover:text-primary-600">Sản phẩm</Link>
             <ChevronRight className="w-4 h-4" />
             <span className="text-gray-900 font-medium">Thêm mới</span>
           </div>
@@ -193,7 +206,7 @@ export default function AddProductPage() {
         <div className="flex items-center gap-3">
            <button 
              type="button"
-             onClick={() => navigate('/admin/products')}
+                         onClick={() => navigate(backToList)}
              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
            >
              Hủy bỏ

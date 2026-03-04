@@ -19,6 +19,7 @@ class ProductService {
     bool? onSale,
     int? minDiscount,
     String? brand,
+    String? search,
   }) async {
     final params = <String, dynamic>{'page': page, 'limit': limit};
     if (category != null) params['category'] = category;
@@ -29,6 +30,7 @@ class ProductService {
     if (onSale == true) params['on_sale'] = true;
     if (minDiscount != null) params['min_discount'] = minDiscount;
     if (brand != null) params['brand'] = brand;
+    if (search != null) params['search'] = search;
 
     final res = await _api.get(ApiConfig.products, queryParameters: params);
     final data = res.data;

@@ -17,17 +17,18 @@ class CartService {
     required String variantId,
     int qty = 1,
   }) async {
-    final res = await _api.post(ApiConfig.addToCart, data: {
-      'variant_id': int.tryParse(variantId) ?? variantId,
-      'qty': qty,
-    });
+    final res = await _api.post(
+      ApiConfig.addToCart,
+      data: {'variant_id': int.tryParse(variantId) ?? variantId, 'qty': qty},
+    );
     return res.data;
   }
 
-  Future<Map<String, dynamic>> updateCartItem(
-      String itemId, int qty) async {
-    final res =
-        await _api.put(ApiConfig.updateCartItem(itemId), data: {'qty': qty});
+  Future<Map<String, dynamic>> updateCartItem(String itemId, int qty) async {
+    final res = await _api.put(
+      ApiConfig.updateCartItem(itemId),
+      data: {'quantity': qty},
+    );
     return res.data;
   }
 
@@ -47,11 +48,13 @@ class CartService {
   }
 
   Future<Map<String, dynamic>> applyCoupon(
-      String code, double cartTotal) async {
-    final res = await _api.post(ApiConfig.applyCoupon, data: {
-      'code': code,
-      'cartTotal': cartTotal,
-    });
+    String code,
+    double cartTotal,
+  ) async {
+    final res = await _api.post(
+      ApiConfig.validateCoupon,
+      data: {'code': code, 'order_total': cartTotal},
+    );
     return res.data;
   }
 }

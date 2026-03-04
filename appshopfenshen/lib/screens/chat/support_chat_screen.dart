@@ -64,7 +64,12 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       _socketService.onMessage.listen((msg) {
         if (mounted && !_messageIds.contains(msg.id)) {
           _messageIds.add(msg.id);
-          setState(() => _messages.add(msg));
+          setState(() {
+            _messages.add(msg);
+            if (msg.senderType == 'admin') {
+              _isAdminTyping = false;
+            }
+          });
           _scrollToBottom();
         }
       }),
@@ -77,7 +82,6 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
             _adminName = name;
             _status = 'active';
           });
-          _addSystemMessage('$name đã tham gia cuộc hội thoại');
         }
       }),
     );
@@ -101,9 +105,13 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
 
     setState(() => _isConnected = _socketService.isConnected);
 
-    // If already has conversation, mark started
+    // If already has conversation, mark started and fetch history
     if (_socketService.conversationId != null) {
       setState(() => _conversationStarted = true);
+      _socketService.requestHistory();
+    } else if (_socketService.isConnected) {
+      // Check for active session using token if already connected
+      _socketService.requestHistory();
     }
   }
 
@@ -177,9 +185,9 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFFF7F6F8),
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: const Color(0xFFF7F6F8),
         title: Row(
           children: [
             Container(
@@ -202,7 +210,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                   Text(
                     _adminName ?? 'Hỗ trợ trực tuyến',
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: const Color(0xFF140E1B),
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -308,7 +316,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               const Text(
                 'Hỗ trợ trực tuyến',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: const Color(0xFF140E1B),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -317,7 +325,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               Text(
                 'Nhân viên của chúng tôi sẵn sàng hỗ trợ bạn',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.5),
+                  color: Colors.grey.shade500,
                   fontSize: 14,
                 ),
                 textAlign: TextAlign.center,
@@ -331,8 +339,8 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                   icon: const Icon(Icons.chat, size: 20),
                   label: const Text('Bắt đầu hội thoại'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD4AF37),
-                    foregroundColor: Colors.black,
+                    backgroundColor: const Color(0xFF7F19E6),
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -366,7 +374,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
           const Text(
             'Hỗ trợ trực tuyến',
             style: TextStyle(
-              color: Colors.white,
+              color: const Color(0xFF140E1B),
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -375,14 +383,14 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
           Text(
             'Vui lòng cung cấp thông tin để bắt đầu',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
+              color: Colors.grey.shade500,
               fontSize: 14,
             ),
           ),
           const SizedBox(height: 24),
           TextField(
             controller: _nameController,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: const Color(0xFF140E1B)),
             decoration: const InputDecoration(
               hintText: 'Tên của bạn *',
               prefixIcon: Icon(Icons.person_outline, color: Colors.grey),
@@ -391,7 +399,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
           const SizedBox(height: 12),
           TextField(
             controller: _emailController,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: const Color(0xFF140E1B)),
             keyboardType: TextInputType.emailAddress,
             decoration: const InputDecoration(
               hintText: 'Email (tùy chọn)',
@@ -407,8 +415,8 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               icon: const Icon(Icons.chat, size: 20),
               label: const Text('Bắt đầu hội thoại'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFD4AF37),
-                foregroundColor: Colors.black,
+                backgroundColor: const Color(0xFF7F19E6),
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -446,13 +454,13 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
+            color: const Color(0xFFF7F6F8),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             content,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
+              color: Colors.grey.shade500,
               fontSize: 12,
             ),
           ),
@@ -494,7 +502,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                     child: Text(
                       msg.senderName,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.4),
+                        color: Colors.grey.shade500,
                         fontSize: 11,
                       ),
                     ),
@@ -506,8 +514,9 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: isMe
-                        ? const Color(0xFFD4AF37)
-                        : const Color(0xFF1A1A1A),
+                        ? const Color(0xFF7F19E6)
+                        : const Color(0xFFFFFFFF),
+                    border: isMe ? null : Border.all(color: Colors.grey.shade200),
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(16),
                       topRight: const Radius.circular(16),
@@ -518,7 +527,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                   child: Text(
                     msg.content,
                     style: TextStyle(
-                      color: isMe ? Colors.black : Colors.white,
+                      color: isMe ? const Color(0xFFF7F6F8) : const Color(0xFF140E1B),
                       fontSize: 14,
                     ),
                   ),
@@ -559,7 +568,8 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFF1A1A1A),
+              color: const Color(0xFFFFFFFF),
+              border: Border.all(color: Colors.grey.shade200),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
@@ -571,7 +581,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                   height: 6,
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.3),
+                    color: Colors.grey.shade400,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -587,9 +597,9 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0A0A0A),
+        color: const Color(0xFFFFFFFF),
         border: Border(
-          top: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+          top: BorderSide(color: Colors.grey.shade200),
         ),
       ),
       child: SafeArea(
@@ -599,16 +609,16 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
             Expanded(
               child: TextField(
                 controller: _controller,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: const Color(0xFF140E1B), fontSize: 14),
                 maxLines: 4,
                 minLines: 1,
                 decoration: InputDecoration(
                   hintText: 'Nhập tin nhắn...',
                   hintStyle: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.3),
+                    color: Colors.grey.shade400,
                   ),
                   filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.06),
+                  fillColor: const Color(0xFFF7F6F8),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide.none,
@@ -628,11 +638,11 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
             const SizedBox(width: 8),
             Container(
               decoration: const BoxDecoration(
-                color: Color(0xFFD4AF37),
+                color: Color(0xFF7F19E6),
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: const Icon(Icons.send, color: Colors.black, size: 20),
+                icon: const Icon(Icons.send, color: const Color(0xFFF7F6F8), size: 20),
                 onPressed: _sendMessage,
               ),
             ),
@@ -646,14 +656,14 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
+        backgroundColor: const Color(0xFFFFFFFF),
         title: const Text(
           'Kết thúc hội thoại',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: const Color(0xFF140E1B)),
         ),
-        content: const Text(
+        content: Text(
           'Bạn có chắc muốn kết thúc cuộc hội thoại này?',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Colors.grey.shade700),
         ),
         actions: [
           TextButton(

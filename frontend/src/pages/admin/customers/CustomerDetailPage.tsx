@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { ArrowLeft, Mail, Phone, MapPin, Calendar, ShoppingBag, Loader2, CheckCircle2 } from 'lucide-react';
 import { adminAPI } from '../../../services/api';
 import toast from 'react-hot-toast';
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
+  const location = useLocation();
+  const backToList = `/admin/customers${location.search || ''}`;
   const [loading, setLoading] = useState(true);
   const [customer, setCustomer] = useState<any>(null);
 
@@ -40,7 +42,7 @@ export default function CustomerDetailPage() {
     return (
       <div className="text-center py-12">
         <p className="text-gray-500">Không tìm thấy khách hàng</p>
-        <Link to="/admin/customers" className="text-primary-600 hover:underline mt-2 inline-block">
+        <Link to={backToList} className="text-primary-600 hover:underline mt-2 inline-block">
           Quay lại danh sách
         </Link>
       </div>
@@ -54,7 +56,7 @@ export default function CustomerDetailPage() {
     <div className="max-w-5xl mx-auto pb-12">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <Link to="/admin/customers" className="p-2 hover:bg-gray-100 dark:hover:bg-secondary-800 rounded-lg transition-colors">
+        <Link to={backToList} className="p-2 hover:bg-gray-100 dark:hover:bg-secondary-800 rounded-lg transition-colors">
           <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-secondary-400" />
         </Link>
         <div className="flex-1">

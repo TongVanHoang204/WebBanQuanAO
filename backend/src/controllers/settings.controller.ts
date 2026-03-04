@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma.js';
+import { getIO } from '../socket.js';
 
 interface AuthRequest extends Request {
   user?: any;
@@ -85,6 +84,16 @@ export const updateSettings = async (
         `;
         results[key] = value;
       }
+    }
+
+    // Broadcast real-time update to all connected clients
+    try {
+      const io = getIO();
+      if (io) {
+        io.emit('settings-updated', results);
+      }
+    } catch (socketErr) {
+      console.error('Socket broadcast failed:', socketErr);
     }
 
     res.json({

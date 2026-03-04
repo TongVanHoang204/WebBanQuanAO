@@ -3,6 +3,42 @@ import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { notificationsAPI } from '../../services/api';
 
+const TwoToneBell = ({ className }: { className?: string }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 24 24" 
+    className={className}
+    fill="none"
+  >
+    {/* Clapper (bottom part) - darker/opacity tone */}
+    <path 
+      d="M13.73 21a2 2 0 0 1-3.46 0" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+      className="opacity-40 dark:opacity-50"
+    />
+    {/* Bell body - primary tone */}
+    <path 
+      d="M18.63 13A17.89 17.89 0 0 1 18 8C18 4.69 15.31 2 12 2C8.69 2 6 4.69 6 8a17.89 17.89 0 0 1-.63 5C3.86 15.82 2.72 17.75 3.32 19c.47 1 1.63 1 3.18 1h11c1.55 0 2.71 0 3.18-1c.6-1.25-.54-3.18-2.05-6Z" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+    />
+    {/* Highlight curve inside */}
+    <path 
+      d="M8.5 7.5c0-1.5 1-2.5 2.5-2.5" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+      className="opacity-50"
+    />
+  </svg>
+);
+
 interface Notification {
   id: string;
   type: 'order_new' | 'order_status' | 'product_low_stock' | 'product_out_of_stock' | 'system';
@@ -257,10 +293,10 @@ export const NotificationDropdown: React.FC = () => {
       {/* Notification Bell */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-secondary-600 dark:text-secondary-400 hover:bg-secondary-50 dark:hover:bg-secondary-700 rounded-lg transition-colors"
+        className="relative p-2 text-secondary-600 dark:text-secondary-400 hover:bg-secondary-50 dark:hover:bg-secondary-700 rounded-lg transition-colors group"
         title="Thông báo"
       >
-        <Bell className="w-5 h-5" />
+        <TwoToneBell className={`w-6 h-6 origin-top ${unreadCount > 0 ? 'animate-swing' : 'group-hover:animate-swing delay-75'}`} />
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>

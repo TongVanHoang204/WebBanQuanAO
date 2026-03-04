@@ -14,6 +14,9 @@ const router = Router();
  *   get:
  *     summary: Get user cart
  *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Uses optional auth - works for both guests (session-based) and logged-in users.
  *     responses:
  *       200:
  *         description: Cart details
@@ -25,6 +28,9 @@ router.get('/', optionalAuth, getCart);
  *   post:
  *     summary: Add item to cart
  *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Uses optional auth - supports guest carts.
  *     requestBody:
  *       content:
  *         application/json:

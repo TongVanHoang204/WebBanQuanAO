@@ -7,25 +7,144 @@ import {
   Loader2,
   Ticket,
   Calendar,
-  MoreVertical
+  MoreVertical,
+  Sparkles
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { couponService } from '../../../services/coupon.service';
+import { adminAPI } from '../../../services/api';
 import { toast } from 'react-hot-toast';
 import ConfirmModal from '../../../components/common/ConfirmModal';
 import Pagination from '../../../components/common/Pagination';
 import AIInsightPanel from '../../../components/common/AIInsightPanel';
+import AIPromptModal from '../../../components/common/AIPromptModal';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function CouponListPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialQuery = searchParams.get('query') || '';
+  const initialPage = Math.max(1, Number(searchParams.get('page') || 1) || 1);
   const [coupons, setCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; couponId: number | null }>({
     isOpen: false,
     couponId: null
   });
+  const { isAdmin } = useAuth();
+  
+  const [aiLoading, setAiLoading] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  
+  const handleAIGenerate = async (topic: string) => {
+    if (!topic) return;
+
+    setAiLoading(true);
+    const today = new Date().toISOString().split('T')[0];
+    const msgs = [
+      { role: 'system', content: `Bạn là trợ lý Marketing. Hôm nay là ${today}. Chỉ trả về duy nhất một mảng JSON Array (bắt đầu bằng [ và kết thúc bằng ]) chứa các Object mã khuyến mãi. Dù tạo 1 mã cũng phải bọc trong Array! Không giải thích, không dùng markdown block. Các key bắt buộc cho mỗi Object:
+{
+  "code": "MÃ IN HOA (VD: TINKY50)",
+  "type": "percent" hoặc "fixed",
+  "value": (số, ví dụ percent thì 5-30, fixed thì 20000, 50000),
+  "min_subtotal": (tối thiểu đơn hàng ví dụ 100000),
+  "usage_limit": (giới hạn lượt dùng vd: 50),
+  "start_at": "YYYY-MM-DD" (mặc định hôm nay),
+  "end_at": "YYYY-MM-DD" (sau ngày bắt đầu vài ngày)
+}` },
+      { role: 'user', content: `Yêu cầu tạo mã: "${topic}"` }
+    ];
+
+    try {
+      const res = await adminAPI.chat(msgs);
+      if (res.data?.success && res.data?.data?.message) {
+        let cleanStr = res.data.data.message.trim();
+        console.log("Raw AI Response:", cleanStr);
+        
+        // Strip out markdown code blocks if the AI decided to ignore instructions
+        if (cleanStr.includes('```json')) {
+            cleanStr = cleanStr.split('```json')[1].split('```')[0].trim();
+        } else if (cleanStr.includes('```')) {
+            cleanStr = cleanStr.split('```')[1].split('```')[0].trim();
+        }
+
+        // 1. Try to find the bounds of a JSON Array [ ... ]
+        const firstBracket = cleanStr.indexOf('[');
+        const lastBracket = cleanStr.lastIndexOf(']');
+        
+        let aiDataArray = null;
+
+        if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+           const jsonStr = cleanStr.substring(firstBracket, lastBracket + 1);
+           try {
+               const parsed = JSON.parse(jsonStr);
+               if (Array.isArray(parsed)) aiDataArray = parsed;
+           } catch (parseError) {
+               console.error("JSON Parse Error (Array):", jsonStr, parseError);
+           }
+        }
+        
+        // 2. Fallback to single Object { ... } if AI ignored the Array instruction
+        if (!aiDataArray) {
+            const firstBrace = cleanStr.indexOf('{');
+            const lastBrace = cleanStr.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+               const jsonStr = cleanStr.substring(firstBrace, lastBrace + 1);
+               try {
+                   const parsed = JSON.parse(jsonStr);
+                   if (parsed && typeof parsed === 'object') aiDataArray = [parsed];
+               } catch (parseError) {
+                   console.error("JSON Parse Error (Object):", jsonStr, parseError);
+               }
+            }
+        }
+
+        // Process data and auto-save
+        if (aiDataArray && aiDataArray.length > 0) {
+            let successCount = 0;
+            for (const aiData of aiDataArray) {
+               if (!aiData.code) continue;
+               const payload = {
+                  code: String(aiData.code).toUpperCase().replace(/\s+/g, ''),
+                  type: aiData.type === 'percent' || aiData.type === 'fixed' ? aiData.type : 'percent',
+                  value: Number(aiData.value) || 0,
+                  min_subtotal: Number(aiData.min_subtotal) || 0,
+                  usage_limit: aiData.usage_limit ? Number(aiData.usage_limit) : null,
+                  start_at: aiData.start_at || today,
+                  end_at: aiData.end_at || null,
+                  is_active: true
+               };
+               try {
+                  await couponService.createCoupon(payload);
+                  successCount++;
+               } catch (err) {
+                  console.error("Failed to auto-create coupon:", payload, err);
+               }
+            }
+            
+            if (successCount > 0) {
+               toast.success(`Đã tự động tạo và lưu ${successCount} mã khuyến mãi!`);
+               fetchCoupons();
+               return;
+            } else {
+               throw new Error("Không có mã nào hợp lệ được tạo.");
+            }
+        }
+
+        throw new Error("Format Invalid");
+      } else {
+        throw new Error("Lỗi phản hồi từ AI");
+      }
+    } catch (err: any) {
+       console.error("AI Generation Error:", err);
+       toast.error(err.response?.data?.message || "AI từ chối hoặc trả về sai định dạng, vui lòng thử lại!");
+    } finally {
+       setAiLoading(false);
+       setIsAiModalOpen(false);
+    }
+  };
 
   const fetchCoupons = async () => {
     try {
@@ -51,6 +170,23 @@ export default function CouponListPage() {
     }, 500);
     return () => clearTimeout(timer);
   }, [page, searchQuery]);
+
+  useEffect(() => {
+    const queryFromUrl = searchParams.get('query') || '';
+    const pageFromUrl = Math.max(1, Number(searchParams.get('page') || 1) || 1);
+    setSearchQuery(prev => (prev === queryFromUrl ? prev : queryFromUrl));
+    setPage(prev => (prev === pageFromUrl ? prev : pageFromUrl));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (searchQuery) next.set('query', searchQuery);
+    if (page > 1) next.set('page', String(page));
+    if (next.toString() === searchParams.toString()) return;
+    setSearchParams(next, { replace: true });
+  }, [searchQuery, page, searchParams, setSearchParams]);
+
+  const listQuery = searchParams.toString() ? `?${searchParams.toString()}` : '';
 
   const handleDelete = async () => {
     if (!deleteModal.couponId) return;
@@ -94,14 +230,34 @@ export default function CouponListPage() {
           </p>
         </div>
         
-        <Link
-          to="/admin/coupons/new"
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors font-medium"
-        >
-          <Plus className="w-5 h-5" />
-          Tạo mã mới
-        </Link>
+        <div className="flex items-center gap-3">
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => setIsAiModalOpen(true)}
+                disabled={aiLoading}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 dark:bg-indigo-900/40 dark:hover:bg-indigo-900/60 dark:text-indigo-300 rounded-lg font-medium transition-colors disabled:opacity-50"
+              >
+                {aiLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                Tạo tự động bằng AI
+              </button>
+            )}
+            <Link
+              to={`/admin/coupons/new${listQuery}`}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors font-medium"
+            >
+              <Plus className="w-5 h-5" />
+              Tạo mã mới
+            </Link>
+        </div>
       </div>
+      
+      <AIPromptModal
+         isOpen={isAiModalOpen}
+         onClose={() => setIsAiModalOpen(false)}
+         onSubmit={handleAIGenerate}
+         isLoading={aiLoading}
+      />
 
       {/* Filters */}
       <div className="bg-white dark:bg-secondary-800 p-4 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-sm">
@@ -111,7 +267,10 @@ export default function CouponListPage() {
             type="text"
             placeholder="Tìm kiếm theo mã..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
             className="w-full pl-10 pr-4 py-2 bg-secondary-50 dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-700 rounded-lg focus:ring-2 focus:ring-primary-500 text-secondary-900 dark:text-white"
           />
         </div>
@@ -150,13 +309,14 @@ export default function CouponListPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Giá trị</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Thời gian</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Trạng thái</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Đã dùng</th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center">
+                  <td colSpan={6} className="px-6 py-8 text-center">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary-500" />
                   </td>
                 </tr>
@@ -200,10 +360,16 @@ export default function CouponListPage() {
                         {getStatusText(coupon)}
                       </span>
                     </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-secondary-700 dark:text-secondary-300 font-medium">
+                        {coupon.used_count ?? coupon.times_used ?? 0}
+                      </span>
+                      <span className="text-xs text-secondary-400"> / {coupon.usage_limit ?? '∞'}</span>
+                    </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link 
-                          to={`/admin/coupons/${coupon.id}`}
+                          to={`/admin/coupons/${coupon.id}${listQuery}`}
                           className="p-2 text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-secondary-100 dark:hover:bg-secondary-700 rounded-lg transition-colors"
                         >
                           <Edit className="w-4 h-4" />

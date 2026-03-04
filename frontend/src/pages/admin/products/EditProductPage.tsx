@@ -1,15 +1,17 @@
 
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ChevronRight, Upload, X, Loader2, Save } from 'lucide-react';
-import { categoriesAPI, productsAPI, adminAPI, brandsAPI } from '../../../services/api';
+import { categoriesAPI, productsAPI, adminAPI, brandsAPI, toMediaUrl } from '../../../services/api';
 import RichTextEditor from '../../../components/common/RichTextEditor';
 import VariantManager from '../../../components/products/VariantManager';
 import toast from 'react-hot-toast';
 
 export default function EditProductPage() {
   const { id } = useParams();
+    const location = useLocation();
   const navigate = useNavigate();
+    const backToList = `/admin/products${location.search || ''}`;
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -162,14 +164,14 @@ export default function EditProductPage() {
       } catch (error) {
         console.error('Failed to load data', error);
         toast.error('Không thể tải thông tin sản phẩm');
-        navigate('/admin/products');
+                navigate(backToList);
       } finally {
         setIsLoading(false);
       }
     };
     
     if (id) fetchData();
-  }, [id, navigate]);
+    }, [id, navigate, backToList]);
 
   // Handle Input Changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -221,10 +223,21 @@ const handleSubmit = async (e: React.FormEvent) => {
     return;
   }
 
+  if (!formData.sku || formData.sku.trim() === '') {
+    toast.error('Vui lòng nhập mã SKU');
+    return;
+  }
+
   // Price validation
   const price = Number(formData.price);
   if (!price || price <= 0) {
     toast.error('Giá sản phẩm phải lớn hơn 0');
+    return;
+  }
+
+  // Compare at price validation
+  if (formData.compare_at_price && Number(formData.compare_at_price) < 0) {
+    toast.error('Giá so sánh không được âm');
     return;
   }
 
@@ -277,7 +290,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         await adminAPI.updateProduct(id!, productData);
         
         toast.success('Cập nhật sản phẩm thành công');
-        navigate('/admin/products');
+        navigate(backToList);
         
     } catch (error: any) {
         console.error('Update product error:', error);
@@ -309,7 +322,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
             <Link to="/admin/dashboard" className="hover:text-primary-600">Dashboard</Link>
             <ChevronRight className="w-4 h-4" />
-            <Link to="/admin/products" className="hover:text-primary-600">Sản phẩm</Link>
+                        <Link to={backToList} className="hover:text-primary-600">Sản phẩm</Link>
             <ChevronRight className="w-4 h-4" />
             <span className="text-gray-900 font-medium">Chỉnh sửa</span>
           </div>
@@ -319,7 +332,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         <div className="flex items-center gap-3">
            <button 
              type="button"
-             onClick={() => navigate('/admin/products')}
+                         onClick={() => navigate(backToList)}
              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
            >
              Hủy bỏ
@@ -410,7 +423,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
                         {existingImages.map((img, idx) => (
                             <div key={img.id || idx} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200">
-                                <img src={img.url} alt="Existing" className="w-full h-full object-cover" />
+                                <img src={toMediaUrl(img.url)} alt="Existing" className="w-full h-full object-cover" />
                                 <button 
                                     type="button"
                                     onClick={() => removeImage(idx, false)}

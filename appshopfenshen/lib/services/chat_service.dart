@@ -5,15 +5,17 @@ import 'api_service.dart';
 class ChatService {
   final Dio _dio = ApiService().dio;
 
-  /// Send message to AI chatbot
   Future<Map<String, dynamic>> sendMessage(
     String message,
     List<Map<String, String>> history,
   ) async {
     try {
+      final messages = List<Map<String, String>>.from(history)
+        ..add({'role': 'user', 'content': message});
+
       final res = await _dio.post(
-        ApiConfig.chatAI,
-        data: {'message': message, 'history': history},
+        '${ApiConfig.baseUrl}/api/v1/ai/chat',
+        data: {'messages': messages},
       );
 
       if (res.statusCode == 200 && res.data['success'] == true) {
@@ -30,7 +32,7 @@ class ChatService {
   /// Check AI health
   Future<bool> checkHealth() async {
     try {
-      final res = await _dio.get(ApiConfig.chatHealth);
+      final res = await _dio.get('${ApiConfig.baseUrl}/api/v1/ai/health');
       return res.statusCode == 200;
     } catch (_) {
       return false;

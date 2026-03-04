@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma.js';
 import { ApiError } from '../middlewares/error.middleware.js';
-const prisma = new PrismaClient();
 // Get wishlist items
 export const getWishlist = async (req, res, next) => {
     try {
@@ -40,19 +39,22 @@ export const getWishlist = async (req, res, next) => {
             });
         }
         // Format response
-        const items = wishlist?.wishlist_items.map((item) => ({
-            id: item.id.toString(),
-            product_id: item.product_id.toString(),
-            name: item.product.name,
-            slug: item.product.slug,
-            image: item.product.product_images[0]?.url || null,
-            price: Number(item.product.product_variants[0]?.price || 0),
-            compare_at_price: item.product.product_variants[0]?.compare_at_price ? Number(item.product.product_variants[0].compare_at_price) : null,
-            variant_id: item.product.product_variants[0]?.id.toString(),
-            stock_qty: item.product.product_variants[0]?.stock_qty || 0,
-            description: item.product.description,
-            added_at: item.created_at
-        })) || [];
+        const items = wishlist?.wishlist_items.map((item) => {
+            const p = item.product;
+            return {
+                id: p.id.toString(), // Needs to be the product ID for Flutter Product.fromJson
+                wishlist_item_id: item.id.toString(),
+                name: p.name,
+                slug: p.slug,
+                description: p.description,
+                // Map to what Product.fromJson expects in Flutter
+                base_price: Number(p.product_variants?.[0]?.price || 0),
+                compare_at_price: p.product_variants?.[0]?.compare_at_price ? Number(p.product_variants[0].compare_at_price) : null,
+                product_images: p.product_images || [],
+                product_variants: p.product_variants || [],
+                added_at: item.created_at
+            };
+        }) || [];
         res.json({
             success: true,
             data: items

@@ -1,12 +1,10 @@
 import { Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
 import crypto from 'crypto';
 import querystring from 'qs';
 import dayjs from 'dayjs';
 import { logActivity } from '../services/logger.service.js';
-
-const prisma = new PrismaClient();
 
 // VNPay Config (Should be in env)
 const vnp_TmnCode = process.env.VNP_TMN_CODE || '2QXUI4J4'; // Demo code
@@ -63,6 +61,11 @@ export const createPaymentUrl = async (req: AuthRequest, res: Response, next: Ne
 
         if (!order) {
             return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        // Verify order ownership
+        if (req.user && order.user_id?.toString() !== req.user.id.toString()) {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
         }
 
         const date = new Date();
@@ -142,6 +145,17 @@ export const vnpayReturn = async (req: AuthRequest, res: Response, next: NextFun
 
             if (order) {
                 if (rspCode === '00') {
+                    // Verify payment amount matches order total
+                    const vnpAmount = Number(vnp_Params['vnp_Amount']) / 100;
+                    if (vnpAmount < Number(order.grand_total)) {
+                        return res.status(400).json({ success: false, message: 'Payment amount mismatch' });
+                    }
+                    
+                    // Skip if already paid (prevent duplicate processing)
+                    if (order.status === 'paid') {
+                        return res.json({ success: true, message: 'Payment already processed', data: { order_code: orderCode } });
+                    }
+                    
                     // Success
                     await prisma.orders.update({
                         where: { id: order.id },
@@ -221,6 +235,17 @@ export const vnpayIpn = async (req: AuthRequest, res: Response, next: NextFuncti
             
             if (order) {
                 if (rspCode === '00') {
+                    // Verify payment amount
+                    const vnpAmount = Number(vnp_Params['vnp_Amount']) / 100;
+                    if (vnpAmount < Number(order.grand_total)) {
+                        return res.status(200).json({ RspCode: '04', Message: 'Amount mismatch' });
+                    }
+                    
+                    // Skip if already paid
+                    if (order.status === 'paid') {
+                        return res.status(200).json({ RspCode: '02', Message: 'Already confirmed' });
+                    }
+                    
                     await prisma.orders.update({
                         where: { id: order.id },
                         data: { status: 'paid' }

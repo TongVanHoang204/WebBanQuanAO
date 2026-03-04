@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { settingsAPI } from '../services/api';
 
 interface Settings {
   store_name: string;
@@ -31,7 +31,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const fetchSettings = async () => {
     try {
-      const response = await axios.get('/api/admin/settings/public');
+      const response = await settingsAPI.getPublic();
       if (response.data.success) {
         setSettings(response.data.data);
       }

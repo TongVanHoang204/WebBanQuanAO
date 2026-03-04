@@ -32,23 +32,34 @@ class OrderService {
     return res.data;
   }
 
-  Future<List<Order>> getOrders({int page = 1, int limit = 10}) async {
+  Future<({List<Order> data, int totalPages})> getOrders({int page = 1, int limit = 10}) async {
     final res = await _api.get(ApiConfig.orders, queryParameters: {
       'page': page,
       'limit': limit,
     });
     if (res.data['data'] != null) {
-      final ordersData = res.data['data'];
-      if (ordersData is List) {
-        return ordersData.map((o) => Order.fromJson(o)).toList();
+      final data = res.data['data'];
+      int totalPages = 1;
+
+      if (data is Map && data['pagination'] != null && data['pagination']['totalPages'] != null) {
+        totalPages = data['pagination']['totalPages'];
       }
-      if (ordersData is Map && ordersData['orders'] != null) {
-        return (ordersData['orders'] as List)
-            .map((o) => Order.fromJson(o))
-            .toList();
+
+      if (data is Map && data['orders'] != null) {
+        return (
+          data: (data['orders'] as List).map((o) => Order.fromJson(o)).toList(), 
+          totalPages: totalPages
+        );
+      }
+      
+      if (data is List) {
+        return (
+          data: data.map((o) => Order.fromJson(o)).toList(), 
+          totalPages: totalPages
+        );
       }
     }
-    return [];
+    return (data: <Order>[], totalPages: 1);
   }
 
   Future<Order?> getOrderById(String id) async {

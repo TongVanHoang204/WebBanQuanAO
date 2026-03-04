@@ -3,7 +3,14 @@ import { io, Socket } from 'socket.io-client';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:4000';
+const SOCKET_URL = (() => {
+  try {
+    const url = new URL(import.meta.env.VITE_API_URL || 'http://localhost:4000');
+    return url.origin; // e.g. "http://localhost:4000"
+  } catch {
+    return 'http://localhost:4000';
+  }
+})();
 
 export interface Message {
   id: string;
@@ -60,7 +67,9 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [isSupportMode, setIsSupportMode] = useState(false);
   const [isAdminConnected, setIsAdminConnected] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  // @ts-ignore - Ignore exact role type matching to prevent strict overlap errors
+  const isAdmin = user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff';
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messagesByConv, setMessagesByConv] = useState<Record<string, Message[]>>({});
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -310,6 +319,31 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       }
     });
 
+    // Real-time Settings Updates (Maintenance Mode)
+    newSocket.on('settings-updated', (settings: { [key: string]: string }) => {
+      if (settings && settings.maintenance_mode !== undefined) {
+        const path = window.location.pathname;
+        const isMaintenanceOn = settings.maintenance_mode === 'true';
+
+        if (isMaintenanceOn) {
+          if (!path.includes('/maintenance') && !path.startsWith('/admin') && !isAdmin) {
+             toast.error('Hệ thống đang được bảo trì', { icon: '🚧', duration: 3000 });
+             setTimeout(() => {
+               window.location.href = '/maintenance';
+             }, 1000);
+          }
+        } else {
+          // Maintenance mode turned off
+          if (path.includes('/maintenance')) {
+             toast.success('Hệ thống đã hoạt động trở lại!', { icon: '🎉', duration: 3000 });
+             setTimeout(() => {
+               window.location.href = '/';
+             }, 1000);
+          }
+        }
+      }
+    });
+
     setSocket(newSocket);
 
     return () => {
@@ -325,11 +359,12 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   }, [socket]);
 
   const sendMessage = useCallback((content: string, specificConvId?: string) => {
-    const targetId = specificConvId || conversationId;
+    const targetId = specificConvId || conversationIdRef.current;
+    console.log('[Socket] sendMessage called:', { targetId, content: content.trim(), socketConnected: !!socket });
     if (socket && targetId && content.trim()) {
       socket.emit('send-message', { conversationId: targetId, content: content.trim() });
     }
-  }, [socket, conversationId]);
+  }, [socket]);
 
   const setTyping = useCallback((isTyping: boolean, specificConvId?: string) => {
     const targetId = specificConvId || conversationId;

@@ -1,9 +1,7 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
 import { getIO } from '../socket.js';
-
-const prisma = new PrismaClient();
 
 // Notification type for serialization
 interface NotificationData {

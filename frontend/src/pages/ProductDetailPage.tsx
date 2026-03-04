@@ -17,12 +17,13 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ImageGallery from '../components/common/ImageGallery';
-import ReviewsSection from '../components/common/ReviewsSection';
+import { ProductReviews } from '../components/common/ProductReviews';
 import VariantSelector from '../components/common/VariantSelector';
 import ProductCard from '../components/common/ProductCard';
 import { Product, ProductVariant } from '../types';
-import { productsAPI } from '../services/api';
+import { productsAPI, personalizationAPI } from '../services/api';
 import { formatPrice, getDiscountPercent } from '../hooks/useShop';
+import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 
@@ -38,6 +39,7 @@ export default function ProductDetailPage() {
   const [addedToCart, setAddedToCart] = useState(false);
   const { addToCart } = useCart();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const { isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<'details' | 'specs' | 'shipping'>('details');
 
   useEffect(() => {
@@ -59,6 +61,15 @@ export default function ProductDetailPage() {
             relatedRes.data.data.products.filter((p: Product) => p.id !== productData.id)
           );
         }
+
+        // Track view for personalization if authenticated
+        if (isAuthenticated) {
+          try {
+            await personalizationAPI.trackView(productData.id);
+          } catch (e) {
+            console.error('Failed to track view:', e);
+          }
+        }
       } catch (error) {
         console.error('Failed to load product:', error);
       } finally {
@@ -67,7 +78,7 @@ export default function ProductDetailPage() {
     };
     loadProduct();
     window.scrollTo(0, 0);
-  }, [slug]);
+  }, [slug, isAuthenticated]);
 
   const handleAddToCart = async () => {
     if (!selectedVariant) return;
@@ -423,7 +434,7 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Reviews Section */}
-        <ReviewsSection productId={product.id} />
+        <ProductReviews productId={product.id.toString()} />
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (

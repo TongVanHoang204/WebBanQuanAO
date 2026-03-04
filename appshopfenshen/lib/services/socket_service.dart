@@ -38,10 +38,10 @@ class SocketService {
     if (_socket != null && _isConnected) return;
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
+    final token = prefs.getString('token');
 
     _socket = io.io(
-      ApiConfig.socketUrl,
+      ApiConfig.baseUrl,
       io.OptionBuilder()
           .setTransports(['websocket', 'polling'])
           .enableAutoConnect()
@@ -55,12 +55,10 @@ class SocketService {
       _connectionController.add(true);
       debugPrint('[Socket] Connected');
 
-      // Restore conversation if exists
-      if (_conversationId != null) {
-        _socket!.emit('check-active-conversation', {
-          'conversationId': _conversationId,
-        });
-      }
+      // Always check for active conversation (backend will use token's userId or the provided id)
+      _socket!.emit('check-active-conversation', {
+        if (_conversationId != null) 'conversationId': _conversationId,
+      });
     });
 
     _socket!.onDisconnect((_) {
@@ -85,9 +83,17 @@ class SocketService {
 
     _socket!.on('new-message', (data) {
       try {
-        final msg = SupportMessage.fromJson(
-          data is Map<String, dynamic> ? data : {},
-        );
+        debugPrint('[Socket] new-message received: $data');
+        Map<String, dynamic> msgData;
+        if (data is Map<String, dynamic>) {
+          msgData = data;
+        } else if (data is Map) {
+          msgData = Map<String, dynamic>.from(data);
+        } else {
+          debugPrint('[Socket] Unexpected data type: ${data.runtimeType}');
+          return;
+        }
+        final msg = SupportMessage.fromJson(msgData);
         _messagesController.add(msg);
       } catch (e) {
         debugPrint('[Socket] Error parsing message: $e');
@@ -95,12 +101,23 @@ class SocketService {
     });
 
     _socket!.on('conversation-messages', (data) {
+      debugPrint('[Socket] conversation-messages received. Count: ${data['messages']?.length}');
       if (data['messages'] is List) {
         for (final m in data['messages']) {
           try {
-            final msg = SupportMessage.fromJson(m);
+            Map<String, dynamic> msgData;
+            if (m is Map<String, dynamic>) {
+              msgData = m;
+            } else if (m is Map) {
+              msgData = Map<String, dynamic>.from(m);
+            } else {
+              continue;
+            }
+            final msg = SupportMessage.fromJson(msgData);
             _messagesController.add(msg);
-          } catch (_) {}
+          } catch (e) {
+            debugPrint('[Socket] Error parsing history message: $e');
+          }
         }
       }
     });
@@ -128,6 +145,14 @@ class SocketService {
       debugPrint('[Socket] Force logout: ${data['message']}');
       disconnect();
     });
+  }
+
+  void requestHistory() {
+    if (_socket != null) {
+      _socket!.emit('check-active-conversation', {
+        if (_conversationId != null) 'conversationId': _conversationId,
+      });
+    }
   }
 
   void startSupport({String? guestName, String? guestEmail}) {

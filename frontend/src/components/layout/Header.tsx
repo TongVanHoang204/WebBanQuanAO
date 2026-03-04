@@ -12,7 +12,8 @@ import {
   Settings,
   Heart,
   Sun, 
-  Moon
+  Moon,
+  Camera
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
@@ -22,11 +23,13 @@ import { useSettings } from '../../contexts/SettingsContext';
 import { Product } from '../../types';
 import { NotificationDropdown } from '../common/NotificationDropdown';
 import { toMediaUrl } from '../../services/api';
+import VisualSearchModal from '../common/VisualSearchModal';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isVisualSearchOpen, setIsVisualSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   
@@ -128,9 +131,9 @@ export default function Header() {
       <div className="container-custom py-4">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
+          <Link to="/" className="flex-shrink-0 flex items-center h-full">
             {settings?.store_logo ? (
-               <img src={toMediaUrl(settings.store_logo)} alt={settings.store_name} className="h-10 object-contain" />
+               <img src={toMediaUrl(settings.store_logo)} alt={settings.store_name} className="h-14 lg:h-18 object-contain transition-all" />
             ) : (
               <h1 className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                 {settings?.store_name || 'Fashion'}
@@ -149,9 +152,17 @@ export default function Header() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => searchQuery.length >= 2 && setIsSearchOpen(true)}
-                  className="input pl-12 pr-4 rounded-full"
+                  className="input pl-12 pr-12 rounded-full"
                 />
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
+                <button
+                  type="button"
+                  onClick={() => setIsVisualSearchOpen(true)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                  title="Tìm kiếm bằng hình ảnh"
+                >
+                  <Camera className="w-5 h-5" />
+                </button>
               </div>
             </form>
 
@@ -369,10 +380,20 @@ export default function Header() {
                   placeholder="Tìm kiếm sản phẩm..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="input pl-12 dark:bg-secondary-800 dark:border-secondary-700 dark:text-white"
+                  className="input pl-12 pr-12 dark:bg-secondary-800 dark:border-secondary-700 dark:text-white"
                   autoFocus
                 />
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400 dark:text-secondary-500" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSearchOpen(false);
+                    setIsVisualSearchOpen(true);
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                >
+                  <Camera className="w-5 h-5" />
+                </button>
               </div>
             </form>
             <div className="flex justify-around mt-4">
@@ -480,6 +501,12 @@ export default function Header() {
           </nav>
         </div>
       )}
+
+      {/* Visual Search Modal */}
+      <VisualSearchModal 
+        isOpen={isVisualSearchOpen} 
+        onClose={() => setIsVisualSearchOpen(false)} 
+      />
     </header>
   );
 }

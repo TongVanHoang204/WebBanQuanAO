@@ -108,6 +108,7 @@ class OrderItem {
   final double unitPrice;
   final int qty;
   final double lineTotal;
+  final String productId;
 
   OrderItem({
     required this.id,
@@ -117,6 +118,7 @@ class OrderItem {
     required this.unitPrice,
     required this.qty,
     required this.lineTotal,
+    required this.productId,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
@@ -128,6 +130,7 @@ class OrderItem {
       unitPrice: Order._toDouble(json['unit_price']),
       qty: json['qty'] ?? 1,
       lineTotal: Order._toDouble(json['line_total']),
+      productId: json['product_id']?.toString() ?? '',
     );
   }
 }

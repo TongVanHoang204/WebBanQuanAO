@@ -24,7 +24,7 @@ class BannerModel {
       id: json['id'].toString(),
       title: json['title'] ?? '',
       subtitle: json['subtitle'],
-      imageUrl: json['image_url'] ?? '',
+      imageUrl: json['image_url'] ?? (json['banner_images'] != null && (json['banner_images'] as List).isNotEmpty ? (json['banner_images'] as List).first['image_url'] : ''),
       linkUrl: json['link_url'],
       buttonText: json['button_text'],
       sortOrder: json['sort_order'] ?? 0,

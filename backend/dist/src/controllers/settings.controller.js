@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma.js';
 // Default settings
 const DEFAULT_SETTINGS = {
     store_name: 'Fashion Store',

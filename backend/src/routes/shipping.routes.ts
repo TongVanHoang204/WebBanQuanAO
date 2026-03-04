@@ -7,7 +7,7 @@ import {
   deleteShippingMethod,
   calculateShippingFee
 } from '../controllers/shipping.controller.js';
-import { verifyToken } from '../middlewares/auth.middleware.js';
+import { verifyToken, authorize } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
@@ -39,8 +39,9 @@ const router = express.Router();
  */
 router.post('/calculate', calculateShippingFee);
 
-// Admin routes - require authentication
+// Admin routes - require authentication + admin/manager role
 router.use(verifyToken);
+router.use(authorize(['admin', 'manager']));
 
 /**
  * @swagger

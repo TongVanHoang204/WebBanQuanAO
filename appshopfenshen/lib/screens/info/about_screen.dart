@@ -6,18 +6,18 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFFF7F6F8),
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: const Color(0xFFF7F6F8),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: const Color(0xFF140E1B), size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Về ShopFeshen',
           style: TextStyle(
-            color: Colors.white,
+            color: const Color(0xFF140E1B),
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -37,7 +37,7 @@ class AboutScreen extends StatelessWidget {
                     height: 80,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFFD4AF37), Color(0xFFF5E6A8)],
+                        colors: [Color(0xFF7F19E6), Color(0xFFAB5CFF)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -49,7 +49,7 @@ class AboutScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.w900,
-                          color: Colors.black,
+                          color: const Color(0xFFF7F6F8),
                         ),
                       ),
                     ),
@@ -58,7 +58,7 @@ class AboutScreen extends StatelessWidget {
                   const Text(
                     'Shop Feshen',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: const Color(0xFF140E1B),
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -67,7 +67,7 @@ class AboutScreen extends StatelessWidget {
                   Text(
                     'Thời trang đẳng cấp',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.5),
+                      color: Colors.grey.shade500,
                       fontSize: 14,
                     ),
                   ),
@@ -130,7 +130,7 @@ class AboutScreen extends StatelessWidget {
               child: Text(
                 'Phiên bản 1.0.0',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: Colors.grey.shade400,
                   fontSize: 12,
                 ),
               ),
@@ -146,7 +146,7 @@ class AboutScreen extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-        color: Color(0xFFD4AF37),
+        color: Color(0xFF7F19E6),
         fontSize: 18,
         fontWeight: FontWeight.bold,
       ),
@@ -157,7 +157,7 @@ class AboutScreen extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        color: Colors.white.withValues(alpha: 0.7),
+        color: Colors.grey.shade700,
         fontSize: 14,
         height: 1.6,
       ),
@@ -168,9 +168,9 @@ class AboutScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF141414),
+        color: const Color(0xFFFFFFFF),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,10 +178,10 @@ class AboutScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+              color: const Color(0xFF7F19E6).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: const Color(0xFFD4AF37), size: 22),
+            child: Icon(icon, color: const Color(0xFF7F19E6), size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -191,7 +191,7 @@ class AboutScreen extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: const Color(0xFF140E1B),
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
@@ -200,7 +200,7 @@ class AboutScreen extends StatelessWidget {
                 Text(
                   desc,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: Colors.grey.shade600,
                     fontSize: 13,
                     height: 1.4,
                   ),
@@ -217,10 +217,10 @@ class AboutScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFF141414),
+        color: const Color(0xFFFFFFFF),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
+          color: Colors.grey.shade200,
         ),
       ),
       child: Column(
@@ -228,7 +228,7 @@ class AboutScreen extends StatelessWidget {
           Text(
             value,
             style: const TextStyle(
-              color: Color(0xFFD4AF37),
+              color: Color(0xFF7F19E6),
               fontSize: 22,
               fontWeight: FontWeight.w800,
             ),
@@ -237,7 +237,7 @@ class AboutScreen extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
+              color: Colors.grey.shade500,
               fontSize: 12,
             ),
           ),

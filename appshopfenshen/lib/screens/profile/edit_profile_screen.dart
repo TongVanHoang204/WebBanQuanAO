@@ -106,18 +106,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context).user;
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFFF7F6F8),
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: const Color(0xFFF7F6F8),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: const Color(0xFF140E1B), size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Chỉnh sửa hồ sơ',
           style: TextStyle(
-            color: Colors.white,
+            color: const Color(0xFF140E1B),
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -135,7 +135,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   children: [
                     CircleAvatar(
                       radius: 48,
-                      backgroundColor: const Color(0xFFD4AF37),
+                      backgroundColor: const Color(0xFF7F19E6),
                       backgroundImage: user?.avatarUrl != null
                           ? NetworkImage(
                               user!.avatarUrl!.startsWith('http')
@@ -151,7 +151,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               style: const TextStyle(
                                 fontSize: 36,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                color: const Color(0xFFF7F6F8),
                               ),
                             )
                           : null,
@@ -162,13 +162,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: const BoxDecoration(
-                          color: Color(0xFFD4AF37),
+                          color: Color(0xFF7F19E6),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.camera_alt,
                           size: 16,
-                          color: Colors.black,
+                          color: const Color(0xFFF7F6F8),
                         ),
                       ),
                     ),
@@ -225,8 +225,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _save,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD4AF37),
-                    foregroundColor: Colors.black,
+                    backgroundColor: const Color(0xFF7F19E6),
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -238,7 +238,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           width: 22,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.black,
+                            color: const Color(0xFFF7F6F8),
                           ),
                         )
                       : const Text(
@@ -271,33 +271,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       keyboardType: keyboardType,
       enabled: enabled,
       style: TextStyle(
-        color: enabled ? Colors.white : Colors.white.withValues(alpha: 0.4),
+        color: enabled ? const Color(0xFF140E1B) : Colors.grey.shade500,
         fontSize: 15,
       ),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(
-          color: Colors.white.withValues(alpha: 0.3),
+          color: Colors.grey.shade400,
           fontSize: 15,
         ),
         prefixIcon: Icon(
           icon,
-          color: Colors.white.withValues(alpha: 0.4),
+          color: Colors.grey.shade500,
           size: 20,
         ),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: enabled ? 0.06 : 0.03),
+        fillColor: enabled ? Colors.white : Colors.grey.shade50,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          borderSide: BorderSide(color: Colors.grey.shade200),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFD4AF37), width: 1),
+          borderSide: const BorderSide(color: Color(0xFF7F19E6), width: 1),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

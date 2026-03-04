@@ -1,6 +1,6 @@
 import express from 'express';
 import { getShippingMethods, getShippingMethodById, createShippingMethod, updateShippingMethod, deleteShippingMethod, calculateShippingFee } from '../controllers/shipping.controller.js';
-import { verifyToken } from '../middlewares/auth.middleware.js';
+import { verifyToken, authorize } from '../middlewares/auth.middleware.js';
 const router = express.Router();
 // Public route - calculate shipping fee
 /**
@@ -28,8 +28,9 @@ const router = express.Router();
  *         description: Shipping fee
  */
 router.post('/calculate', calculateShippingFee);
-// Admin routes - require authentication
+// Admin routes - require authentication + admin/manager role
 router.use(verifyToken);
+router.use(authorize(['admin', 'manager']));
 /**
  * @swagger
  * /admin/shipping:

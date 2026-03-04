@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import ExcelJS from 'exceljs';
 import { logActivity } from '../services/logger.service.js';
 import { createNotification } from './notificationController.js';
@@ -12,7 +11,7 @@ const uploadsDir = path.join(process.cwd(), 'public/uploads');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
-const prisma = new PrismaClient();
+const prisma = (await import('../lib/prisma.js')).prisma;
 /**
  * Download product import template
  * GET /api/admin/import/products/template
@@ -97,6 +96,7 @@ export const downloadProductTemplate = async (req, res, next) => {
  */
 export const importProducts = async (req, res, next) => {
     try {
+        const isPreview = req.query.preview === 'true';
         if (!req.file) {
             return res.status(400).json({
                 success: false,
@@ -117,8 +117,41 @@ export const importProducts = async (req, res, next) => {
             total: 0,
             created: 0,
             updated: 0,
-            errors: []
+            unchanged: 0,
+            errors: [],
+            validRows: []
         };
+        // Helper to safely get string from cell value
+        const getCellValue = (value) => {
+            if (value === null || value === undefined)
+                return '';
+            if (typeof value === 'object') {
+                if (value.text)
+                    return String(value.text); // Rich Text
+                if (value.result)
+                    return String(value.result); // Formula
+                if (value.hyperlink && value.text)
+                    return String(value.text);
+                return JSON.stringify(value); // Fallback
+            }
+            return String(value);
+        };
+        // Strict Header Validation: Prevent importing wrong files (e.g. Student lists)
+        const headerRow = sheet.getRow(1).values;
+        if (!headerRow || headerRow.length < 3) {
+            return res.status(400).json({
+                success: false,
+                error: { message: 'File Excel không đúng định dạng. Cấu trúc cột bị thiếu.' }
+            });
+        }
+        const col1 = getCellValue(headerRow[1]).toLowerCase();
+        const col2 = getCellValue(headerRow[2]).toLowerCase();
+        if (!col1.includes('sku') || !col2.includes('tên sản phẩm')) {
+            return res.status(400).json({
+                success: false,
+                error: { message: 'File Excel không đúng định dạng (sai tiêu đề cột). Vui lòng tải file mẫu nhập sản phẩm chuẩn để sử dụng.' }
+            });
+        }
         // Get all categories and brands for lookup
         const categories = await prisma.categories.findMany({ select: { id: true, name: true } });
         const brands = await prisma.brands.findMany({ select: { id: true, name: true } });
@@ -169,21 +202,6 @@ export const importProducts = async (req, res, next) => {
             }
         });
         results.total = rows.length;
-        // Helper to safely get string from cell value
-        const getCellValue = (value) => {
-            if (value === null || value === undefined)
-                return '';
-            if (typeof value === 'object') {
-                if (value.text)
-                    return String(value.text); // Rich Text
-                if (value.result)
-                    return String(value.result); // Formula
-                if (value.hyperlink && value.text)
-                    return String(value.text);
-                return JSON.stringify(value); // Fallback
-            }
-            return String(value);
-        };
         for (const { rowNumber, values } of rows) {
             try {
                 // values[0] is empty in exceljs (1-based index), actual data starts at index 1
@@ -241,26 +259,54 @@ export const importProducts = async (req, res, next) => {
                     is_active: status === 'active'
                 };
                 let productId;
+                let changes = [];
                 if (existingProduct) {
-                    productId = existingProduct.id;
-                    await prisma.products.update({
-                        where: { id: productId },
-                        data: productData
-                    });
-                    results.updated++;
+                    // Calculate changes
+                    if (existingProduct.name !== name)
+                        changes.push({ field: 'Tên sản phẩm', old: existingProduct.name, new: name });
+                    if (Number(existingProduct.base_price) !== basePrice)
+                        changes.push({ field: 'Giá gốc', old: Number(existingProduct.base_price), new: basePrice });
+                    if ((existingProduct.compare_at_price ? Number(existingProduct.compare_at_price) : null) !== comparePrice)
+                        changes.push({ field: 'Giá so sánh', old: existingProduct.compare_at_price ? Number(existingProduct.compare_at_price) : null, new: comparePrice });
+                    if (existingProduct.is_active !== productData.is_active)
+                        changes.push({ field: 'Trạng thái', old: existingProduct.is_active ? 'Đang bán' : 'Bản nháp', new: productData.is_active ? 'Đang bán' : 'Bản nháp' });
+                    if (existingProduct.category_id !== categoryId)
+                        changes.push({ field: 'Danh mục (ID)', old: existingProduct.category_id ? String(existingProduct.category_id) : null, new: categoryId ? String(categoryId) : null });
+                    if (existingProduct.brand_id !== brandId)
+                        changes.push({ field: 'Thương hiệu (ID)', old: existingProduct.brand_id ? String(existingProduct.brand_id) : null, new: brandId ? String(brandId) : null });
+                    if (!isPreview) {
+                        productId = existingProduct.id;
+                        if (changes.length > 0) {
+                            await prisma.products.update({
+                                where: { id: productId },
+                                data: productData
+                            });
+                        }
+                    }
+                    if (changes.length > 0) {
+                        results.updated++;
+                        results.validRows.push({ row: rowNumber, sku, name, type: 'update', changes });
+                    }
+                    else {
+                        results.unchanged++;
+                        results.validRows.push({ row: rowNumber, sku, name, type: 'unchanged', changes: [] });
+                    }
                 }
                 else {
-                    const newProduct = await prisma.products.create({
-                        data: productData
-                    });
-                    productId = newProduct.id;
+                    if (!isPreview) {
+                        const newProduct = await prisma.products.create({
+                            data: productData
+                        });
+                        productId = newProduct.id;
+                    }
                     results.created++;
+                    results.validRows.push({ row: rowNumber, sku, name, type: 'create' });
                 }
                 // Handle Images (Both generic URLs and embedded images)
                 const embeddedImages = imageMap.get(rowNumber) || [];
                 const stringImages = imagesStr ? imagesStr.split(',').map(url => url.trim()).filter(url => url) : [];
                 const allImageUrls = [...stringImages, ...embeddedImages];
-                if (allImageUrls.length > 0) {
+                if (allImageUrls.length > 0 && !isPreview) {
                     let startSortOrder = 0;
                     if (existingProduct) {
                         // 1. Get existing URLs to prevent duplicates
@@ -312,22 +358,24 @@ export const importProducts = async (req, res, next) => {
                 });
             }
         }
-        await logActivity({
-            user_id: BigInt(req.user?.id || 0),
-            action: 'import_products',
-            entity_type: 'product',
-            details: `Imported products: ${results.created} created, ${results.updated} updated, ${results.errors.length} errors`,
-            ip_address: req.ip,
-            user_agent: req.headers['user-agent']
-        });
-        // Notify admins about the import
-        await createNotification({
-            user_id: null, // Broadcast to admins
-            type: 'system',
-            title: 'Nhập dữ liệu thành công',
-            message: `Quá trình nhập dữ liệu hoàn tất: ${results.created} tạo mới, ${results.updated} cập nhật.`,
-            link: '/admin/products'
-        });
+        if (!isPreview) {
+            await logActivity({
+                user_id: BigInt(req.user?.id || 0),
+                action: 'import_products',
+                entity_type: 'product',
+                details: `Imported products: ${results.created} created, ${results.updated} updated, ${results.errors.length} errors`,
+                ip_address: req.ip,
+                user_agent: req.headers['user-agent']
+            });
+            // Notify admins about the import
+            await createNotification({
+                user_id: null, // Broadcast to admins
+                type: 'system',
+                title: 'Nhập dữ liệu thành công',
+                message: `Quá trình nhập dữ liệu hoàn tất: ${results.created} tạo mới, ${results.updated} cập nhật.`,
+                link: '/admin/products'
+            });
+        }
         res.json({
             success: true,
             data: results

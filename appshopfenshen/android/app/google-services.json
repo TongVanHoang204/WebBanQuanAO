@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "458611172557",
+    "project_id": "fashionstore-40fc2",
+    "storage_bucket": "fashionstore-40fc2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:458611172557:android:1d56049592d5df46edf584",
+        "android_client_info": {
+          "package_name": "com.example.appshopfenshen"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "458611172557-qjl920heicctskkrf2krmj1j2aggb5hm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.appshopfenshen",
+            "certificate_hash": "3b53b1a6ae81f899c70398ed87067f0dd6414569"
+          }
+        },
+        {
+          "client_id": "458611172557-1j9aro3qrtmqjut33uet5bpm5unklva4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDA1FjESrybZS5pe7yiDfgIMzqzv4mBRAA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "458611172557-1j9aro3qrtmqjut33uet5bpm5unklva4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

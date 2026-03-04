@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   CreditCard, 
   Search, 
@@ -26,11 +27,15 @@ interface Transaction {
 }
 
 export default function TransactionListPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialSearch = searchParams.get('search') || '';
+  const initialStatus = searchParams.get('status') || 'all';
+  const initialPage = Math.max(1, Number(searchParams.get('page') || 1) || 1);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(initialSearch);
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
+  const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
 
   const fetchTransactions = async () => {
@@ -65,6 +70,24 @@ export default function TransactionListPage() {
     return () => clearTimeout(timer);
   }, [search, statusFilter, page]);
 
+  useEffect(() => {
+    const searchFromUrl = searchParams.get('search') || '';
+    const statusFromUrl = searchParams.get('status') || 'all';
+    const pageFromUrl = Math.max(1, Number(searchParams.get('page') || 1) || 1);
+    setSearch(prev => (prev === searchFromUrl ? prev : searchFromUrl));
+    setStatusFilter(prev => (prev === statusFromUrl ? prev : statusFromUrl));
+    setPage(prev => (prev === pageFromUrl ? prev : pageFromUrl));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (search) next.set('search', search);
+    if (statusFilter && statusFilter !== 'all') next.set('status', statusFilter);
+    if (page > 1) next.set('page', String(page));
+    if (next.toString() === searchParams.toString()) return;
+    setSearchParams(next, { replace: true });
+  }, [search, statusFilter, page, searchParams, setSearchParams]);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -85,13 +108,19 @@ export default function TransactionListPage() {
             type="text"
             placeholder="Tìm mã giao dịch, mã đơn..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             className="w-full pl-10 pr-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500"
           />
         </div>
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(1);
+          }}
           className="px-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500"
         >
           <option value="all">Tất cả trạng thái</option>

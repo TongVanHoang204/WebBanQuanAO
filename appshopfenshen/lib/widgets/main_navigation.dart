@@ -1,103 +1,119 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
+import '../providers/wishlist_provider.dart';
+import '../providers/auth_provider.dart';
 import '../screens/home/home_screen.dart';
-import '../screens/shop/shop_screen.dart';
+import '../screens/product/search_screen.dart';
 import '../screens/cart/cart_screen.dart';
-import '../screens/wishlist/wishlist_screen.dart';
 import '../screens/profile/profile_screen.dart';
+import '../screens/wishlist/wishlist_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
-
   @override
   State<MainNavigation> createState() => _MainNavigationState();
 }
 
 class _MainNavigationState extends State<MainNavigation> {
-  int _selectedIndex = 0;
+  int _idx = 0;
+  static const _primary = Color(0xFF7F19E6);
 
   final _screens = const [
-    HomeScreen(),
-    ShopScreen(),
-    CartScreen(),
-    WishlistScreen(),
-    ProfileScreen(),
+    HomeScreen(), 
+    SearchScreen(), 
+    WishlistScreen(), 
+    CartScreen(), 
+    ProfileScreen()
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-load cart and wishlist if logged in
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      if (auth.isLoggedIn) {
+        Provider.of<CartProvider>(context, listen: false).loadCart();
+        Provider.of<WishlistProvider>(context, listen: false).loadWishlist();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: _screens),
+      body: IndexedStack(index: _idx, children: _screens),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF0A0A0A),
-          border: Border(
-            top: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Colors.grey.shade100)),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 20, offset: const Offset(0, -4))],
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              _navItem(0, Icons.home_outlined, Icons.home_rounded, 'Trang chủ'),
+              _navItem(1, Icons.search, Icons.search, 'Tìm kiếm'),
+              _navItem(2, Icons.favorite_border, Icons.favorite, 'Yêu thích'),
+              _cartNavItem(),
+              _navItem(4, Icons.person_outline, Icons.person, 'Tài khoản'),
+            ]),
           ),
         ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (i) => setState(() => _selectedIndex = i),
-          backgroundColor: const Color(0xFF0A0A0A),
-          selectedItemColor: const Color(0xFFD4AF37),
-          unselectedItemColor: Colors.white.withValues(alpha: 0.35),
-          type: BottomNavigationBarType.fixed,
-          elevation: 0,
-          selectedFontSize: 11,
-          unselectedFontSize: 11,
-          items: [
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Trang chủ',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.storefront_outlined),
-              activeIcon: Icon(Icons.storefront),
-              label: 'Cửa hàng',
-            ),
-            BottomNavigationBarItem(
-              icon: Consumer<CartProvider>(
-                builder: (_, cart, child) {
-                  final count = cart.items.length;
-                  return Badge(
-                    isLabelVisible: count > 0,
-                    label: Text('$count', style: const TextStyle(fontSize: 10)),
-                    backgroundColor: const Color(0xFFD4AF37),
-                    textColor: Colors.black,
-                    child: child,
-                  );
-                },
-                child: const Icon(Icons.shopping_bag_outlined),
-              ),
-              activeIcon: Consumer<CartProvider>(
-                builder: (_, cart, child) {
-                  final count = cart.items.length;
-                  return Badge(
-                    isLabelVisible: count > 0,
-                    label: Text('$count', style: const TextStyle(fontSize: 10)),
-                    backgroundColor: const Color(0xFFD4AF37),
-                    textColor: Colors.black,
-                    child: child,
-                  );
-                },
-                child: const Icon(Icons.shopping_bag),
-              ),
-              label: 'Giỏ hàng',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_border),
-              activeIcon: Icon(Icons.favorite),
-              label: 'Yêu thích',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Tài khoản',
-            ),
-          ],
-        ),
+      ),
+    );
+  }
+
+  Widget _navItem(int idx, IconData icon, IconData activeIcon, String label) {
+    final sel = _idx == idx;
+    return GestureDetector(
+      onTap: () => setState(() => _idx = idx),
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 72,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Icon(sel ? activeIcon : icon, size: 26, color: sel ? _primary : Colors.grey.shade400),
+          const SizedBox(height: 4),
+          Text(label, style: TextStyle(fontSize: 10, fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
+            color: sel ? _primary : Colors.grey.shade400)),
+          const SizedBox(height: 2),
+          AnimatedContainer(duration: const Duration(milliseconds: 200),
+            width: sel ? 20 : 0, height: 3,
+            decoration: BoxDecoration(color: _primary, borderRadius: BorderRadius.circular(2))),
+        ]),
+      ),
+    );
+  }
+
+  Widget _cartNavItem() {
+    final sel = _idx == 3;
+    return GestureDetector(
+      onTap: () => setState(() => _idx = 3),
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 72,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Stack(clipBehavior: Clip.none, children: [
+            Icon(sel ? Icons.shopping_cart_rounded : Icons.shopping_cart_outlined, size: 26, color: sel ? _primary : Colors.grey.shade400),
+            Consumer<CartProvider>(builder: (_, cart, __) {
+              if (cart.itemCount == 0) return const SizedBox();
+              return Positioned(top: -6, right: -8, child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(color: _primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 1.5)),
+                child: Text('${cart.itemCount > 9 ? '9+' : cart.itemCount}',
+                  style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w800))));
+            }),
+          ]),
+          const SizedBox(height: 4),
+          Text('Giỏ hàng', style: TextStyle(fontSize: 10, fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
+            color: sel ? _primary : Colors.grey.shade400)),
+          const SizedBox(height: 2),
+          AnimatedContainer(duration: const Duration(milliseconds: 200),
+            width: sel ? 20 : 0, height: 3,
+            decoration: BoxDecoration(color: _primary, borderRadius: BorderRadius.circular(2))),
+        ]),
       ),
     );
   }

@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma.js';
 // Get all permissions
 export const getPermissions = async (req, res, next) => {
     try {

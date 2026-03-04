@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import AIInsightPanel from '../../../components/common/AIInsightPanel';
 import {
   Activity,
@@ -67,13 +68,19 @@ const ENTITY_MAP: Record<string, string> = {
 };
 
 export default function ActivityLogPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialAction = searchParams.get('action') || '';
+  const initialEntity = searchParams.get('entity_type') || '';
+  const initialDate = searchParams.get('start_date') || '';
+  const initialSearch = searchParams.get('search') || '';
+  const initialPage = Math.max(1, Number(searchParams.get('page') || 1) || 1);
   const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actionFilter, setActionFilter] = useState('');
-  const [entityFilter, setEntityFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [page, setPage] = useState(1);
+  const [actionFilter, setActionFilter] = useState(initialAction);
+  const [entityFilter, setEntityFilter] = useState(initialEntity);
+  const [dateFilter, setDateFilter] = useState(initialDate);
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -115,10 +122,30 @@ export default function ActivityLogPage() {
     return () => clearTimeout(timer);
   }, [actionFilter, entityFilter, dateFilter, searchQuery, page]);
 
-  // Reset page when filters change
   useEffect(() => {
-    setPage(1);
-  }, [actionFilter, entityFilter, dateFilter, searchQuery]);
+    const actionFromUrl = searchParams.get('action') || '';
+    const entityFromUrl = searchParams.get('entity_type') || '';
+    const dateFromUrl = searchParams.get('start_date') || '';
+    const searchFromUrl = searchParams.get('search') || '';
+    const pageFromUrl = Math.max(1, Number(searchParams.get('page') || 1) || 1);
+
+    setActionFilter(prev => (prev === actionFromUrl ? prev : actionFromUrl));
+    setEntityFilter(prev => (prev === entityFromUrl ? prev : entityFromUrl));
+    setDateFilter(prev => (prev === dateFromUrl ? prev : dateFromUrl));
+    setSearchQuery(prev => (prev === searchFromUrl ? prev : searchFromUrl));
+    setPage(prev => (prev === pageFromUrl ? prev : pageFromUrl));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (actionFilter) next.set('action', actionFilter);
+    if (entityFilter) next.set('entity_type', entityFilter);
+    if (dateFilter) next.set('start_date', dateFilter);
+    if (searchQuery) next.set('search', searchQuery);
+    if (page > 1) next.set('page', String(page));
+    if (next.toString() === searchParams.toString()) return;
+    setSearchParams(next, { replace: true });
+  }, [actionFilter, entityFilter, dateFilter, searchQuery, page, searchParams, setSearchParams]);
 
   const toggleExpand = (id: string) => {
     setExpandedIds(prev => {
@@ -338,7 +365,10 @@ export default function ActivityLogPage() {
               type="text"
               placeholder="Tìm kiếm theo tên người dùng, mã..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
               className="w-full pl-10 pr-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white placeholder-secondary-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
             />
           </div>
@@ -348,7 +378,10 @@ export default function ActivityLogPage() {
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
             <select
               value={actionFilter}
-              onChange={(e) => setActionFilter(e.target.value)}
+              onChange={(e) => {
+                setActionFilter(e.target.value);
+                setPage(1);
+              }}
               className="pl-10 pr-8 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500 appearance-none cursor-pointer transition-colors"
             >
               <option value="">Tất cả hành động</option>
@@ -364,7 +397,10 @@ export default function ActivityLogPage() {
             <Settings className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
             <select
               value={entityFilter}
-              onChange={(e) => setEntityFilter(e.target.value)}
+              onChange={(e) => {
+                setEntityFilter(e.target.value);
+                setPage(1);
+              }}
               className="pl-10 pr-8 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500 appearance-none cursor-pointer transition-colors"
             >
               <option value="">Tất cả đối tượng</option>
@@ -382,7 +418,10 @@ export default function ActivityLogPage() {
           <input
             type="date"
             value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
+            onChange={(e) => {
+              setDateFilter(e.target.value);
+              setPage(1);
+            }}
             className="px-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-colors"
           />
         </div>
@@ -394,29 +433,35 @@ export default function ActivityLogPage() {
             {actionFilter && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 text-xs font-medium">
                 {ACTION_MAP[actionFilter] || actionFilter}
-                <button onClick={() => setActionFilter('')} className="hover:text-primary-900 dark:hover:text-white">×</button>
+                <button onClick={() => { setActionFilter(''); setPage(1); }} className="hover:text-primary-900 dark:hover:text-white">×</button>
               </span>
             )}
             {entityFilter && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs font-medium">
                 {ENTITY_MAP[entityFilter] || entityFilter}
-                <button onClick={() => setEntityFilter('')} className="hover:text-blue-900 dark:hover:text-white">×</button>
+                <button onClick={() => { setEntityFilter(''); setPage(1); }} className="hover:text-blue-900 dark:hover:text-white">×</button>
               </span>
             )}
             {dateFilter && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 text-xs font-medium">
                 {dateFilter}
-                <button onClick={() => setDateFilter('')} className="hover:text-secondary-900 dark:hover:text-white">×</button>
+                <button onClick={() => { setDateFilter(''); setPage(1); }} className="hover:text-secondary-900 dark:hover:text-white">×</button>
               </span>
             )}
             {searchQuery && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 text-xs font-medium">
                 "{searchQuery}"
-                <button onClick={() => setSearchQuery('')} className="hover:text-secondary-900 dark:hover:text-white">×</button>
+                <button onClick={() => { setSearchQuery(''); setPage(1); }} className="hover:text-secondary-900 dark:hover:text-white">×</button>
               </span>
             )}
             <button
-              onClick={() => { setActionFilter(''); setEntityFilter(''); setDateFilter(''); setSearchQuery(''); }}
+              onClick={() => {
+                setActionFilter('');
+                setEntityFilter('');
+                setDateFilter('');
+                setSearchQuery('');
+                setPage(1);
+              }}
               className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-300 font-medium transition-colors"
             >
               Xóa tất cả

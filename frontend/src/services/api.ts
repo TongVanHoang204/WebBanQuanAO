@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 const ABSOLUTE_URL_PATTERN = /^https?:\/\//i;
 
 const stripTrailingSlash = (value: string): string => value.replace(/\/+$/, '');
@@ -10,7 +10,7 @@ export const getApiBaseUrl = (): string => API_BASE_URL;
 
 export const getApiOrigin = (): string => {
   if (isAbsoluteUrl(API_BASE_URL)) {
-    return stripTrailingSlash(API_BASE_URL).replace(/\/api$/i, '');
+    return stripTrailingSlash(API_BASE_URL).replace(/\/api(\/v\d+)?$/i, '');
   }
 
   if (typeof window !== 'undefined') {
@@ -25,14 +25,17 @@ export const resolveApiUrl = (path: string): string => {
     return path;
   }
 
-  if (path.startsWith('/api/')) {
+  if (path.startsWith('/api/v1/')) {
     if (isAbsoluteUrl(API_BASE_URL)) {
       return `${getApiOrigin()}${path}`;
     }
     return path;
   }
 
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  let normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  if (normalizedPath.startsWith('/api/')) {
+    normalizedPath = normalizedPath.substring(4); // Remove legacy /api
+  }
   return `${stripTrailingSlash(API_BASE_URL)}${normalizedPath}`;
 };
 
@@ -95,6 +98,28 @@ api.interceptors.response.use(
           localStorage.removeItem('user');
           window.location.href = '/login?reason=blocked';
        }
+    } else if (error.response?.status === 503) {
+      // Handle Maintenance Mode
+      const errorCode = error.response.data?.error?.code;
+      if (errorCode === 'MAINTENANCE_MODE') {
+        const path = window.location.pathname;
+        let isAdmin = false;
+        try {
+          const userStr = localStorage.getItem('user');
+          if (userStr) {
+            const user = JSON.parse(userStr);
+            if (['admin', 'manager', 'staff'].includes(user.role)) {
+              isAdmin = true;
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing user data in interceptor', e);
+        }
+
+        if (!isAdmin && !path.includes('/maintenance') && !path.startsWith('/admin') && !path.includes('/login')) {
+          window.location.href = '/maintenance';
+        }
+      }
     }
     return Promise.reject(error);
   }
@@ -163,7 +188,8 @@ export const productsAPI = {
   getNewArrivals: (limit?: number) => 
     api.get('/products/new-arrivals', { params: { limit } }),
   
-  search: (q: string, signal?: AbortSignal) => api.get('/products/search', { params: { q }, signal })
+  search: (q: string, signal?: AbortSignal) => api.get('/products/search', { params: { q }, signal }),
+  getOptions: () => api.get('/products/options')
 };
 
 // Categories API
@@ -280,8 +306,9 @@ export const adminAPI = {
   createProduct: (data: any) => api.post('/admin/products', data),
   updateProduct: (id: string, data: any) => api.put(`/admin/products/${id}`, data),
   deleteProduct: (id: string) => api.delete(`/admin/products/${id}`),
-  importProducts: (formData: FormData) => api.post('/admin/import/products', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
+  importProducts: (formData: FormData, preview?: boolean, onUploadProgress?: (progressEvent: any) => void) => api.post(`/admin/import/products${preview ? '?preview=true' : ''}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress
   }),
   
   // Orders
@@ -331,7 +358,7 @@ export const adminAPI = {
   deleteNotification: (id: string) => api.delete(`/admin/notifications/${id}`),
 
   // AI Assistant
-  chat: (messages: { role: string; content: string }[]) => api.post('/admin/ai/chat', { messages }),
+  chat: (messages: { role: string; content: string }[], options?: any) => api.post('/admin/ai/chat', { messages, ...options }),
   generate: (prompt: string, type: 'product_description' | 'seo_meta' | 'chat_reply' = 'product_description') => 
     api.post('/admin/ai/generate', { prompt, type }),
 };
@@ -365,6 +392,23 @@ export const reviewsAPI = {
 // Public Settings API
 export const settingsAPI = {
   getPublic: () => api.get('/admin/settings/public')
+};
+
+// Personalization API
+export const personalizationAPI = {
+  trackView: (productId: number | string) => 
+    api.post('/personalization/track/view', { product_id: productId }),
+  getRecommendations: (limit = 8) => 
+    api.get('/personalization/recommendations', { params: { limit } })
+};
+
+// AI API
+export const aiAPI = {
+  chat: (messages: any[]) => api.post('/ai/chat', { messages }),
+  generateContent: (prompt: string, type: string) => 
+    api.post('/ai/generate', { prompt, type }),
+  visualSearch: (imageUrl: string) =>
+    api.post('/ai/visual-search', { imageUrl })
 };
 
 // Banners API (Public)

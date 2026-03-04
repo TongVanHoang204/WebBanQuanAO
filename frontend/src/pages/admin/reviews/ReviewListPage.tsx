@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   Star, 
   Search, 
@@ -42,14 +43,19 @@ interface Stats {
 }
 
 export default function ReviewListPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialSearch = searchParams.get('search') || '';
+  const initialStatus = searchParams.get('status') || 'all';
+  const initialRating = searchParams.get('rating') || '';
+  const initialPage = Math.max(1, Number(searchParams.get('page') || 1) || 1);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<Stats>({ pending: 0, approved: 0, rejected: 0, hidden: 0 });
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [ratingFilter, setRatingFilter] = useState<string>('');
+  const [search, setSearch] = useState(initialSearch);
+  const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
+  const [ratingFilter, setRatingFilter] = useState<string>(initialRating);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
 
   const fetchReviews = async () => {
@@ -92,6 +98,27 @@ export default function ReviewListPage() {
     }, 500);
     return () => clearTimeout(timer);
   }, [search]);
+
+  useEffect(() => {
+    const searchFromUrl = searchParams.get('search') || '';
+    const statusFromUrl = searchParams.get('status') || 'all';
+    const ratingFromUrl = searchParams.get('rating') || '';
+    const pageFromUrl = Math.max(1, Number(searchParams.get('page') || 1) || 1);
+    setSearch(prev => (prev === searchFromUrl ? prev : searchFromUrl));
+    setStatusFilter(prev => (prev === statusFromUrl ? prev : statusFromUrl));
+    setRatingFilter(prev => (prev === ratingFromUrl ? prev : ratingFromUrl));
+    setPage(prev => (prev === pageFromUrl ? prev : pageFromUrl));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (search) next.set('search', search);
+    if (statusFilter && statusFilter !== 'all') next.set('status', statusFilter);
+    if (ratingFilter) next.set('rating', ratingFilter);
+    if (page > 1) next.set('page', String(page));
+    if (next.toString() === searchParams.toString()) return;
+    setSearchParams(next, { replace: true });
+  }, [search, statusFilter, ratingFilter, page, searchParams, setSearchParams]);
 
   const handleUpdateStatus = async (id: string, status: string) => {
     try {
@@ -254,7 +281,10 @@ export default function ReviewListPage() {
         ].map(stat => (
           <button
             key={stat.filter}
-            onClick={() => setStatusFilter(statusFilter === stat.filter ? 'all' : stat.filter)}
+            onClick={() => {
+              setStatusFilter(statusFilter === stat.filter ? 'all' : stat.filter);
+              setPage(1);
+            }}
             className={`p-4 rounded-xl border transition-all ${
               statusFilter === stat.filter
                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
@@ -285,14 +315,20 @@ export default function ReviewListPage() {
               type="text"
               placeholder="Tìm kiếm đánh giá..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               className="w-full pl-10 pr-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500"
             />
           </div>
           
           <select
             value={ratingFilter}
-            onChange={(e) => setRatingFilter(e.target.value)}
+            onChange={(e) => {
+              setRatingFilter(e.target.value);
+              setPage(1);
+            }}
             className="px-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Tất cả sao</option>

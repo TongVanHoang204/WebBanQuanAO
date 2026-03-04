@@ -1,89 +1,24 @@
-import express from 'express';
-import {
-  getReviews,
-  getReviewById,
-  updateReviewStatus,
-  bulkUpdateStatus,
-  deleteReview,
-  bulkDeleteReviews,
-  getPublicReviews,
-  createReview
-} from '../controllers/review.controller.js';
-import { verifyToken, optionalAuth, authorize } from '../middlewares/auth.middleware.js';
+import { Router } from 'express';
+import { bulkDeleteReviews, bulkUpdateReviewStatus, createReview, deleteReview, getAdminReviews, getProductReviews, updateReviewStatus } from '../controllers/review.controller.js';
+import { verifyToken, requireAdmin, optionalAuth } from '../middlewares/auth.middleware.js';
 
-const router = express.Router();
+const router = Router();
 
 // Public routes
-/**
- * @swagger
- * tags:
- *   name: Reviews
- *   description: Product reviews management
- */
+router.get('/product/:id', optionalAuth, getProductReviews);
 
-/**
- * @swagger
- * /reviews/product/{id}:
- *   get:
- *     summary: Get product reviews
- *     tags: [Reviews]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: List of reviews
- */
-router.get('/product/:id', getPublicReviews);
+// Protected routes (Customer)
+router.post('/', verifyToken, createReview);
 
-/**
- * @swagger
- * /reviews:
- *   post:
- *     summary: Create new review
- *     tags: [Reviews]
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               product_id:
- *                 type: integer
- *               rating:
- *                 type: integer
- *               comment:
- *                 type: string
- *     responses:
- *       201:
- *         description: Review created
- */
-router.post('/', optionalAuth, createReview);
+// Admin routes
+router.get('/', verifyToken, requireAdmin, getAdminReviews);
+router.patch('/:id/status', verifyToken, requireAdmin, updateReviewStatus);
+router.patch('/bulk-status', verifyToken, requireAdmin, bulkUpdateReviewStatus);
+router.delete('/bulk', verifyToken, requireAdmin, bulkDeleteReviews);
+router.delete('/:id', verifyToken, requireAdmin, deleteReview);
 
-// All admin routes require authentication
-router.use(verifyToken);
-router.use(authorize(['admin', 'manager', 'staff']));
-
-/**
- * @swagger
- * /admin/reviews:
- *   get:
- *     summary: Get all reviews (Admin)
- *     tags: [Reviews]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of reviews
- */
-router.get('/', getReviews);
-router.get('/:id', getReviewById);
-router.patch('/bulk-status', bulkUpdateStatus);
-router.patch('/:id/status', updateReviewStatus);
-router.delete('/bulk', bulkDeleteReviews);
-router.delete('/:id', deleteReview);
+// Backward compatibility for old path/method
+router.put('/:id/status', verifyToken, requireAdmin, updateReviewStatus);
+router.put('/reviews/:id/status', verifyToken, requireAdmin, updateReviewStatus);
 
 export default router;

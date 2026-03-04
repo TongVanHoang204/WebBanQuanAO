@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Search, Download, Pencil, Trash2, Loader2, Eye, UserX, UserCheck } from 'lucide-react';
 import { adminAPI } from '../../../services/api';
 import Pagination from '../../../components/common/Pagination';
@@ -10,13 +10,16 @@ import toast from 'react-hot-toast';
 
 export default function CustomerListPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialSearch = searchParams.get('search') || '';
+  const initialPage = Math.max(1, Number(searchParams.get('page') || 1) || 1);
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, active: 0, new_this_week: 0 });
   
   // Filters
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(initialSearch);
+  const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
 
   // Modal
@@ -66,6 +69,23 @@ export default function CustomerListPage() {
     fetchCustomers();
   }, [page, search]);
 
+  useEffect(() => {
+    const searchFromUrl = searchParams.get('search') || '';
+    const pageFromUrl = Math.max(1, Number(searchParams.get('page') || 1) || 1);
+    setSearch(prev => (prev === searchFromUrl ? prev : searchFromUrl));
+    setPage(prev => (prev === pageFromUrl ? prev : pageFromUrl));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (search) next.set('search', search);
+    if (page > 1) next.set('page', String(page));
+    if (next.toString() === searchParams.toString()) return;
+    setSearchParams(next, { replace: true });
+  }, [search, page, searchParams, setSearchParams]);
+
+  const listQuery = searchParams.toString() ? `?${searchParams.toString()}` : '';
+
   const handleEdit = (customer: any) => {
     setSelectedCustomer(customer);
     setIsModalOpen(true);
@@ -106,7 +126,7 @@ export default function CustomerListPage() {
   };
 
   const handleView = (customer: any) => {
-    navigate(`/admin/customers/${customer.id}`);
+    navigate(`/admin/customers/${customer.id}${listQuery}`);
   };
 
   return (
@@ -164,7 +184,10 @@ export default function CustomerListPage() {
                placeholder="Tìm kiếm theo tên, email hoặc số điện thoại..."
                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-secondary-600 bg-white dark:bg-secondary-900 text-gray-900 dark:text-white rounded-lg focus:ring-primary-500 focus:border-primary-500 transition-colors"
                value={search}
-               onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
             />
          </div>
          <div className="flex items-center gap-3">

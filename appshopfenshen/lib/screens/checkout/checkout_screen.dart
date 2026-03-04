@@ -24,6 +24,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   String _paymentMethod = 'cod';
   bool _ordering = false;
+  bool _applyingCoupon = false;
   double _discount = 0;
 
   @override
@@ -44,10 +45,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _applyCoupon() async {
-    if (_couponCtrl.text.trim().isEmpty) return;
+    if (_couponCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập mã giảm giá'), backgroundColor: Colors.orange, behavior: SnackBarBehavior.floating));
+      return;
+    }
+    setState(() => _applyingCoupon = true);
     final cart = Provider.of<CartProvider>(context, listen: false);
     final result = await cart.applyCoupon(_couponCtrl.text.trim());
     if (!mounted) return;
+    setState(() => _applyingCoupon = false);
 
     if (result != null) {
       setState(() {
@@ -162,18 +169,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFFF7F6F8),
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: const Color(0xFFF7F6F8),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: const Color(0xFF140E1B), size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Thanh toán',
           style: TextStyle(
-            color: Colors.white,
+            color: const Color(0xFF140E1B),
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -268,16 +275,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   SizedBox(
                     height: 52,
                     child: ElevatedButton(
-                      onPressed: _applyCoupon,
+                      onPressed: _applyingCoupon ? null : _applyCoupon,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1A1A1A),
-                        foregroundColor: const Color(0xFFD4AF37),
+                        backgroundColor: const Color(0xFF7F19E6),
+                        foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         elevation: 0,
                       ),
-                      child: const Text('Áp dụng'),
+                      child: _applyingCoupon
+                        ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('Áp dụng', style: TextStyle(fontWeight: FontWeight.w700)),
                     ),
                   ),
                 ],
@@ -292,10 +301,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 builder: (_, cart, __) => Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF141414),
+                    color: const Color(0xFFFFFFFF),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.06),
+                      color: Colors.grey.shade200,
                     ),
                   ),
                   child: Column(
@@ -316,11 +325,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       _summaryRow(
                         'Phí vận chuyển',
                         'Miễn phí',
-                        valueColor: const Color(0xFFD4AF37),
+                        valueColor: const Color(0xFF7F19E6),
                       ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Divider(color: Color(0xFF2A2A2A)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Divider(color: Colors.grey.shade200, height: 1),
                       ),
                       _summaryRow(
                         'Tổng cộng',
@@ -341,8 +350,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: ElevatedButton(
                   onPressed: _ordering ? null : _placeOrder,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD4AF37),
-                    foregroundColor: Colors.black,
+                    backgroundColor: const Color(0xFF7F19E6),
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -354,7 +363,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           width: 22,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.black,
+                            color: const Color(0xFFF7F6F8),
                           ),
                         )
                       : const Text(
@@ -379,7 +388,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Text(
       title,
       style: const TextStyle(
-        color: Colors.white,
+        color: const Color(0xFF140E1B),
         fontSize: 17,
         fontWeight: FontWeight.w600,
       ),
@@ -397,31 +406,31 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       controller: ctrl,
       validator: validator,
       keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white, fontSize: 15),
+      style: const TextStyle(color: const Color(0xFF140E1B), fontSize: 15),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(
-          color: Colors.white.withValues(alpha: 0.3),
+          color: Colors.grey.shade400,
           fontSize: 15,
         ),
         prefixIcon: Icon(
           icon,
-          color: Colors.white.withValues(alpha: 0.4),
+          color: Colors.grey.shade500,
           size: 20,
         ),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.06),
+        fillColor: const Color(0xFFF7F6F8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          borderSide: BorderSide(color: Colors.grey.shade200),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFD4AF37), width: 1),
+          borderSide: const BorderSide(color: Color(0xFF7F19E6), width: 1),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -443,13 +452,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xFFD4AF37).withValues(alpha: 0.1)
-              : const Color(0xFF141414),
+              ? const Color(0xFF7F19E6).withValues(alpha: 0.1)
+              : const Color(0xFFFFFFFF),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected
-                ? const Color(0xFFD4AF37)
-                : Colors.white.withValues(alpha: 0.06),
+                ? const Color(0xFF7F19E6)
+                : Colors.grey.shade300,
             width: selected ? 1.5 : 1,
           ),
         ),
@@ -457,22 +466,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           children: [
             Icon(
               icon,
-              color: selected ? const Color(0xFFD4AF37) : Colors.grey,
+              color: selected ? const Color(0xFF7F19E6) : Colors.grey,
               size: 22,
             ),
             const SizedBox(width: 14),
             Text(
               label,
               style: TextStyle(
-                color: selected ? const Color(0xFFD4AF37) : Colors.white,
+                color: selected ? const Color(0xFF7F19E6) : const Color(0xFF140E1B),
                 fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
             ),
             const Spacer(),
             if (selected)
               const Icon(
                 Icons.check_circle,
-                color: Color(0xFFD4AF37),
+                color: Color(0xFF7F19E6),
                 size: 20,
               ),
           ],
@@ -493,7 +503,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: isBold ? 1 : 0.6),
+            color: isBold ? const Color(0xFF140E1B) : Colors.grey.shade600,
             fontSize: isBold ? 16 : 14,
             fontWeight: isBold ? FontWeight.w700 : FontWeight.normal,
           ),
@@ -502,9 +512,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           value,
           style: TextStyle(
             color:
-                valueColor ?? (isBold ? const Color(0xFFD4AF37) : Colors.white),
+                valueColor ?? (isBold ? const Color(0xFF7F19E6) : const Color(0xFF140E1B)),
             fontSize: isBold ? 18 : 14,
-            fontWeight: isBold ? FontWeight.w800 : FontWeight.w500,
+            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
           ),
         ),
       ],

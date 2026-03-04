@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma.js';
 export const getCoupons = async (req, res) => {
     try {
         const page = Number(req.query.page) || 1;
@@ -58,6 +57,18 @@ export const createCoupon = async (req, res) => {
         if (value === undefined || value === null) {
             return res.status(400).json({ message: 'Coupon value is required' });
         }
+        if (!type || !['percent', 'fixed'].includes(type)) {
+            return res.status(400).json({ message: 'Type must be "percent" or "fixed"' });
+        }
+        if (Number(value) < 0) {
+            return res.status(400).json({ message: 'Value must be non-negative' });
+        }
+        if (type === 'percent' && Number(value) > 100) {
+            return res.status(400).json({ message: 'Percent value cannot exceed 100' });
+        }
+        if (start_at && end_at && new Date(end_at) <= new Date(start_at)) {
+            return res.status(400).json({ message: 'End date must be after start date' });
+        }
         // Check if code exists
         const existing = await prisma.coupons.findUnique({
             where: { code }
@@ -88,6 +99,33 @@ export const updateCoupon = async (req, res) => {
     try {
         const { id } = req.params;
         const { code, type, value, min_subtotal, start_at, end_at, usage_limit, is_active } = req.body;
+        // Validate type if provided
+        if (type && !['percent', 'fixed'].includes(type)) {
+            return res.status(400).json({ message: 'Type must be "percent" or "fixed"' });
+        }
+        if (value !== undefined && Number(value) < 0) {
+            return res.status(400).json({ message: 'Value must be non-negative' });
+        }
+        if (type === 'percent' && value !== undefined && Number(value) > 100) {
+            return res.status(400).json({ message: 'Percent value cannot exceed 100' });
+        }
+        if (start_at && end_at && new Date(end_at) <= new Date(start_at)) {
+            return res.status(400).json({ message: 'End date must be after start date' });
+        }
+        // Check if coupon exists
+        const existing = await prisma.coupons.findUnique({
+            where: { id: BigInt(id) }
+        });
+        if (!existing) {
+            return res.status(404).json({ message: 'Coupon not found' });
+        }
+        // Check code uniqueness if code is being changed
+        if (code && code !== existing.code) {
+            const duplicate = await prisma.coupons.findUnique({ where: { code } });
+            if (duplicate) {
+                return res.status(400).json({ message: 'Coupon code already exists' });
+            }
+        }
         const coupon = await prisma.coupons.update({
             where: { id: BigInt(id) },
             data: {
@@ -134,10 +172,15 @@ export const deleteCoupon = async (req, res) => {
 // ... (previous functions)
 export const applyCoupon = async (req, res) => {
     try {
-        const { code, subtotal } = req.body;
-        if (!code) {
-            return res.status(400).json({ message: 'Vui lòng nhập mã giảm giá' });
+        // Validate input with Zod
+        const { applyCouponSchema } = await import('../validators/coupon.validator.js');
+        const parsed = applyCouponSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({
+                message: parsed.error.issues[0]?.message || 'Dữ liệu không hợp lệ'
+            });
         }
+        const { code, subtotal } = parsed.data;
         const coupon = await prisma.coupons.findUnique({
             where: { code }
         });
@@ -171,9 +214,15 @@ export const applyCoupon = async (req, res) => {
         let discountAmount = 0;
         if (coupon.type === 'percent') {
             discountAmount = (subtotal * Number(coupon.value)) / 100;
+            if (coupon.max_discount) {
+                discountAmount = Math.min(discountAmount, Number(coupon.max_discount));
+            }
         }
         else {
             discountAmount = Number(coupon.value);
+            if (coupon.max_discount) {
+                discountAmount = Math.min(discountAmount, Number(coupon.max_discount));
+            }
         }
         // Ensure discount doesn't exceed subtotal
         discountAmount = Math.min(discountAmount, subtotal);
