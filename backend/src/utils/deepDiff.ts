@@ -22,8 +22,11 @@ export const deepDiff = (oldData: any, newData: any, prefix = ''): DiffResult =>
   const allKeys = new Set([...Object.keys(oldData), ...Object.keys(newData)]);
 
   for (const key of allKeys) {
-    // Skip internal/meta fields
-    if (['password_hash', 'password', 'two_factor_otp', 'two_factor_expires'].includes(key)) continue;
+    // Skip internal/meta fields and DB-only fields that shouldn't appear in diffs
+    if ([
+      'password_hash', 'password', 'two_factor_otp', 'two_factor_expires',
+      'id', 'created_at', 'updated_at', 'product_id'
+    ].includes(key)) continue;
 
     const oldVal = normalizeValue(oldData[key]);
     const newVal = normalizeValue(newData[key]);
@@ -48,10 +51,49 @@ export const deepDiff = (oldData: any, newData: any, prefix = ''): DiffResult =>
 
     // Arrays
     if (Array.isArray(oldVal) || Array.isArray(newVal)) {
-      const oldStr = JSON.stringify(oldVal);
-      const newStr = JSON.stringify(newVal);
-      if (oldStr !== newStr) {
-        diff[fullKey] = { from: oldVal, to: newVal };
+      const oldArr = Array.isArray(oldVal) ? oldVal : (oldVal !== undefined ? [oldVal] : []);
+      const newArr = Array.isArray(newVal) ? newVal : (newVal !== undefined ? [newVal] : []);
+      
+      if (JSON.stringify(oldArr) === JSON.stringify(newArr)) continue;
+
+      // Match by ID if it's an array of objects with IDs
+      const hasIds = oldArr.some((i: any) => i && typeof i === 'object' && 'id' in i) || 
+                     newArr.some((i: any) => i && typeof i === 'object' && 'id' in i);
+
+      if (hasIds) {
+        // Diff by ID
+        const oldMap = new Map(oldArr.filter((i: any) => i && i.id).map((i: any) => [String(i.id), i]));
+        const newMap = new Map(newArr.filter((i: any) => i && i.id).map((i: any) => [String(i.id), i]));
+        
+        for (const [id, oldItem] of oldMap) {
+          const newItem = newMap.get(id);
+          if (!newItem) {
+            diff[`${fullKey}[id=${id}]`] = { from: oldItem, to: null };
+          } else {
+            const itemDiff = deepDiff(oldItem, newItem, `${fullKey}[id=${id}]`);
+            Object.assign(diff, itemDiff);
+          }
+        }
+        for (const [id, newItem] of newMap) {
+          if (!oldMap.has(id)) {
+            diff[`${fullKey}[id=${id}]`] = { from: null, to: newItem };
+          }
+        }
+      } else {
+        // Diff by index
+        const maxLen = Math.max(oldArr.length, newArr.length);
+        for (let i = 0; i < maxLen; i++) {
+          const oldItem = oldArr[i];
+          const newItem = newArr[i];
+          if (JSON.stringify(oldItem) !== JSON.stringify(newItem)) {
+            if (typeof oldItem === 'object' && typeof newItem === 'object' && oldItem !== null && newItem !== null) {
+              const itemDiff = deepDiff(oldItem, newItem, `${fullKey}[${i}]`);
+              Object.assign(diff, itemDiff);
+            } else {
+              diff[`${fullKey}[${i}]`] = { from: oldItem ?? null, to: newItem ?? null };
+            }
+          }
+        }
       }
       continue;
     }

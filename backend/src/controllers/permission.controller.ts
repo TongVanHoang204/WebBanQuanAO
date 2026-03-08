@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma.js';
+import { logActivity } from '../services/logger.service.js';
 
 interface AuthRequest extends Request {
   user?: any;
@@ -32,6 +33,16 @@ export const createPermission = async (req: AuthRequest, res: Response, next: Ne
       VALUES (${name}, ${description}, NOW())
     `;
 
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Tạo quyền/vai trò',
+      entity_type: 'permission',
+      entity_id: name,
+      details: { name, description },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.json({ success: true, message: 'Tạo quyền thành công' });
   } catch (error) {
     next(error);
@@ -57,6 +68,16 @@ export const updatePermission = async (req: AuthRequest, res: Response, next: Ne
       SET name = ${name}, description = ${description}
       WHERE id = ${id}
     `;
+
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Cập nhật quyền/vai trò',
+      entity_type: 'permission',
+      entity_id: String(id),
+      details: { name, description },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
 
     res.json({ success: true, message: 'Cập nhật quyền thành công' });
   } catch (error) {
@@ -91,6 +112,17 @@ export const deletePermission = async (req: AuthRequest, res: Response, next: Ne
     }
 
     await prisma.$executeRaw`DELETE FROM permissions WHERE id = ${permId}`;
+
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Xóa quyền/vai trò',
+      entity_type: 'permission',
+      entity_id: String(id),
+      details: { name: roleName },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.json({ success: true, message: 'Xóa quyền thành công' });
   } catch (error) {
     next(error);

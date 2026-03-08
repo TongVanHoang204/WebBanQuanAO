@@ -13,7 +13,7 @@ export declare class AIService {
     private static extractJson;
     private static formatCurrency;
     private static formatDate;
-    static generateContent(prompt: string, type?: string): Promise<string>;
+    static generateContent(prompt: string, type?: string): Promise<any>;
     /**
      * Phân tích ảnh bằng AI và trả về JSON cấu trúc:
      * { product_type, color, material, style, gender, search_phrases }
@@ -42,7 +42,7 @@ export declare class AIService {
     private static searchByPriceRange;
     private static compareProducts;
     private static executeTool;
-    static generateChatResponse(messages: ChatMessage[], user?: any): Promise<string>;
+    static generateChatResponse(messages: ChatMessage[], user?: any): Promise<any>;
     static generateCustomerResponse(history: ChatMessage[], userMessage: string, user?: any): Promise<{
         message: string;
         products?: any[];

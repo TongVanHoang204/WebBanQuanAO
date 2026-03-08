@@ -36,7 +36,7 @@ const router = express.Router();
  *         description: AI response
  */
 // Rate limit: 20 AI chat requests per minute, 10 content generation per minute
-router.post('/chat', verifyToken, rateLimit('ai-chat', 20, 60_000), chatWithAI);
+router.post('/chat', verifyToken, authorize(['admin']), rateLimit('ai-chat', 20, 60_000), chatWithAI);
 router.post('/generate', verifyToken, authorize(['admin', 'manager', 'staff']), rateLimit('ai-generate', 10, 60_000), generateContent);
 router.post('/visual-search', verifyToken, rateLimit('ai-vision', 5, 60_000), visualSearch);
 export default router;

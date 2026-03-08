@@ -24,6 +24,7 @@ export const errorHandler = (
   // Handle Zod Validation Errors
   if (err instanceof ZodError) {
     statusCode = 400;
+    console.error('[ZodError Details]:', JSON.stringify(err.errors, null, 2));
     // Format Zod errors into a readable string
     // e.g. "price: Price must be non-negative"
     message = err.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');

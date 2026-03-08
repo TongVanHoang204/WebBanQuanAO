@@ -487,12 +487,12 @@ export const updateOrderStatus = async (
     const { id } = req.params;
     const validatedData = updateOrderStatusSchema.parse(req.body);
 
-    // Valid status transitions
+    // Valid status transitions (admin can do more flexible transitions)
     const validTransitions: Record<string, string[]> = {
-      pending: ['confirmed', 'processing', 'cancelled'],
-      confirmed: ['processing', 'cancelled'],
-      paid: ['processing', 'shipped', 'cancelled', 'refunded'],
-      processing: ['shipped', 'cancelled'],
+      pending: ['confirmed', 'paid', 'processing', 'shipped', 'cancelled'],
+      confirmed: ['paid', 'processing', 'shipped', 'cancelled'],
+      paid: ['processing', 'shipped', 'completed', 'cancelled', 'refunded'],
+      processing: ['shipped', 'completed', 'cancelled'],
       shipped: ['completed', 'cancelled'],
       completed: ['refunded'],
       cancelled: [],

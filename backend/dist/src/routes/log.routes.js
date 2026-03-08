@@ -1,5 +1,5 @@
 import express from 'express';
-import { getLogs } from '../controllers/log.controller.js';
+import { getLogs, getLogStats, exportLogs } from '../controllers/log.controller.js';
 import { verifyToken, authorize } from '../middlewares/auth.middleware.js';
 const router = express.Router();
 router.use(verifyToken);
@@ -10,6 +10,24 @@ router.use(authorize(['admin', 'manager']));
  *   name: Logs
  *   description: Activity logs
  */
+/**
+ * @swagger
+ * /admin/logs/stats:
+ *   get:
+ *     summary: Get activity log statistics
+ *     tags: [Logs]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/stats', getLogStats);
+/**
+ * @swagger
+ * /admin/logs/export:
+ *   get:
+ *     summary: Export activity logs as CSV
+ *     tags: [Logs]
+ */
+router.get('/export', exportLogs);
 /**
  * @swagger
  * /admin/logs:

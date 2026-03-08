@@ -39,6 +39,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { resolveApiUrl } from '../../../services/api';
 import Pagination from '../../../components/common/Pagination';
+import ConfirmModal from '../../../components/common/ConfirmModal';
 
 interface UserOption {
   id: string;
@@ -158,6 +159,16 @@ export default function ActivityLogPage() {
   const [autoRefresh, setAutoRefresh] = useState(() => localStorage.getItem('logAutoRefresh') === 'true');
   const [exporting, setExporting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  
+  // Selection & Deletion State
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, isBulk: boolean, idToDelete: string | null}>({
+    isOpen: false,
+    isBulk: false,
+    idToDelete: null
+  });
+
   const autoRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Calculate date range from preset
@@ -273,6 +284,78 @@ export default function ActivityLogPage() {
       setExporting(false);
     }
   };
+
+  // --- Deletion Handlers ---
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      if (deleteModal.isBulk) {
+        if (selectedIds.size === 0) return;
+        const res = await fetch(resolveApiUrl('/api/admin/logs/bulk-delete'), {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}` 
+          },
+          body: JSON.stringify({ ids: Array.from(selectedIds) })
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast.success(data.message || 'Xóa thành công');
+          setSelectedIds(new Set());
+          fetchLogs();
+          fetchStats();
+        } else {
+          toast.error(data.message || 'Xóa thất bại');
+        }
+      } else {
+        if (!deleteModal.idToDelete) return;
+        const res = await fetch(resolveApiUrl(`/api/admin/logs/${deleteModal.idToDelete}`), {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast.success('Xóa nhật ký thành công');
+          setSelectedIds(prev => {
+            const next = new Set(prev);
+            next.delete(deleteModal.idToDelete!);
+            return next;
+          });
+          fetchLogs();
+          fetchStats();
+        } else {
+          toast.error(data.message || 'Xóa thất bại');
+        }
+      }
+    } catch (err) {
+      toast.error('Có lỗi xảy ra khi xóa');
+    } finally {
+      setIsDeleting(false);
+      setDeleteModal({ isOpen: false, isBulk: false, idToDelete: null });
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.size === logs.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(logs.map(log => log.id)));
+    }
+  };
+
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [page, actionFilter, entityFilter, roleFilter, userFilter, datePreset, searchQuery]);
 
   useEffect(() => {
     const timer = setTimeout(() => { fetchLogs(); }, 300);
@@ -583,10 +666,8 @@ export default function ActivityLogPage() {
             Xem chi tiết
           </button>
           {isExpanded && (
-            <div className="mt-2 p-3 bg-secondary-50 dark:bg-secondary-900 rounded-lg text-xs animate-fadeIn">
-              <pre className="whitespace-pre-wrap font-mono text-secondary-600 dark:text-secondary-400 overflow-x-auto">
-                {JSON.stringify(parsed, null, 2)}
-              </pre>
+            <div className="mt-2 p-3 bg-secondary-50 dark:bg-secondary-900/50 border border-secondary-200 dark:border-secondary-700 rounded-lg text-xs animate-fadeIn overflow-x-auto">
+               {renderValue(parsed)}
             </div>
           )}
         </div>
@@ -966,9 +1047,27 @@ export default function ActivityLogPage() {
           <>
             {/* Header bar */}
             <div className="px-4 py-3 bg-secondary-50 dark:bg-secondary-900/50 border-b border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
-              <span className="text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">
-                {totalLogs > 0 ? `${totalLogs.toLocaleString('vi-VN')} bản ghi` : `${logs.length} bản ghi`}
-              </span>
+              <div className="flex items-center gap-3">
+                <input 
+                  type="checkbox" 
+                  checked={logs.length > 0 && selectedIds.size === logs.length}
+                  onChange={handleSelectAll}
+                  className="w-4 h-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                />
+                <span className="text-xs font-semibold text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">
+                  {totalLogs > 0 ? `${totalLogs.toLocaleString('vi-VN')} bản ghi` : `${logs.length} bản ghi`}
+                </span>
+                
+                {selectedIds.size > 0 && (
+                  <button
+                    onClick={() => setDeleteModal({ isOpen: true, isBulk: true, idToDelete: null })}
+                    className="flex items-center gap-1.5 px-2 py-1 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 rounded text-xs font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors animate-fadeIn"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Xóa {selectedIds.size} mục
+                  </button>
+                )}
+              </div>
               <div className="flex items-center gap-3">
                 {autoRefresh && (
                   <span className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
@@ -1060,14 +1159,27 @@ export default function ActivityLogPage() {
                               </div>
                             </div>
 
-                            {/* Copy + Timestamp (visible on hover on desktop) */}
-                            <div className="flex items-center gap-2 shrink-0">
+                            {/* Copy + Timestamp + Checkbox (visible on hover on desktop) */}
+                            <div className="flex items-center gap-3 shrink-0">
+                               <input 
+                                 type="checkbox"
+                                 checked={selectedIds.has(log.id)}
+                                 onChange={() => toggleSelect(log.id)}
+                                 className="w-4 h-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                               />
                               <button
                                 onClick={() => copyLog(log)}
                                 className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-secondary-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 dark:hover:text-primary-400 opacity-0 group-hover:opacity-100 transition-all"
                                 title="Sao chép nhật ký"
                               >
                                 {copiedId === log.id ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                              </button>
+                              <button
+                                onClick={() => setDeleteModal({ isOpen: true, isBulk: false, idToDelete: log.id })}
+                                className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-secondary-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                                title="Xóa nhật ký"
+                              >
+                                <Trash2 className="w-3 h-3" />
                               </button>
                               <span className="hidden lg:block text-[10px] text-secondary-400 dark:text-secondary-500 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity font-mono">
                                 {new Date(log.created_at).toLocaleTimeString('vi-VN')}
@@ -1101,6 +1213,19 @@ export default function ActivityLogPage() {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, isBulk: false, idToDelete: null })}
+        onConfirm={handleDelete}
+        title={deleteModal.isBulk ? "Xác nhận xóa hàng loạt" : "Xác nhận xóa nhật ký"}
+        message={deleteModal.isBulk 
+          ? `Bạn có chắc chắn muốn xóa ${selectedIds.size} nhật ký đã chọn? Hành động này không thể hoàn tác.` 
+          : "Bạn có chắc chắn muốn xóa nhật ký này? Hành động này không thể hoàn tác."}
+        confirmText="Xóa nhật ký"
+        cancelText="Hủy"
+        isDestructive={true}
+      />
     </div>
   );
 }

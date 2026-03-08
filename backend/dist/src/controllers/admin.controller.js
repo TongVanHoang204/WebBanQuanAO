@@ -3,23 +3,14 @@ import { ApiError } from '../middlewares/error.middleware.js';
 import { createProductSchema, updateProductSchema } from '../validators/product.validator.js';
 import { Prisma } from '@prisma/client';
 import { logActivity } from '../services/logger.service.js';
+import { deepDiff, createDeleteSnapshot } from '../utils/deepDiff.js';
 import { getIO } from '../socket.js';
 // Helper to convert BigInt to string for JSON serialization
 const serialize = (data) => {
     return JSON.parse(JSON.stringify(data, (key, value) => typeof value === 'bigint' ? value.toString() : value));
 };
-// Helper to get diff between two objects
-const getDiff = (oldData, newData) => {
-    const diff = {};
-    Object.keys(newData).forEach(key => {
-        if (key === 'variants' || key === 'images' || key === 'attributes')
-            return; // Skip complex relations for simple diff
-        if (oldData[key] !== undefined && newData[key] !== undefined && oldData[key] != newData[key]) {
-            diff[key] = { from: oldData[key], to: newData[key] };
-        }
-    });
-    return diff;
-};
+// Helper to get diff between two objects (using deepDiff utility)
+const getDiff = deepDiff;
 // Generate slug from name
 const generateSlug = (name) => {
     return name
@@ -425,6 +416,12 @@ export const deleteProduct = async (req, res, next) => {
                 message: `Không thể xóa sản phẩm này vì đang có ${pendingOrderItems} đơn hàng chưa hoàn thành.`
             });
         }
+        // Snapshot before delete for forensics
+        const productToDelete = await prisma.products.findUnique({
+            where: { id: productId },
+            include: { product_variants: true, category: true }
+        });
+        const snapshot = productToDelete ? createDeleteSnapshot(serialize(productToDelete)) : {};
         await prisma.products.delete({
             where: { id: productId }
         });
@@ -433,6 +430,7 @@ export const deleteProduct = async (req, res, next) => {
             action: 'Xóa sản phẩm',
             entity_type: 'product',
             entity_id: String(id),
+            details: { deleted_data: snapshot },
             ip_address: req.ip,
             user_agent: req.get('User-Agent')
         });
@@ -691,6 +689,8 @@ export const updateCategory = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { name, slug, parent_id, is_active, sort_order } = req.body;
+        // Fetch old data for diff
+        const oldCategory = await prisma.categories.findUnique({ where: { id: BigInt(id) } });
         const category = await prisma.categories.update({
             where: { id: BigInt(id) },
             data: {
@@ -701,12 +701,13 @@ export const updateCategory = async (req, res, next) => {
                 sort_order
             }
         });
+        const diff = oldCategory ? deepDiff(serialize(oldCategory), serialize(category)) : {};
         await logActivity({
             user_id: BigInt(req.user?.id || 0),
             action: 'Cập nhật danh mục',
             entity_type: 'category',
             entity_id: String(id),
-            details: { updates: req.body },
+            details: { diff },
             ip_address: req.ip,
             user_agent: req.get('User-Agent')
         });
@@ -743,6 +744,9 @@ export const deleteCategory = async (req, res, next) => {
                 message: `Không thể xóa danh mục này vì đang có ${childrenCount} danh mục con. Vui lòng xóa danh mục con trước.`
             });
         }
+        // Snapshot before delete
+        const catToDelete = await prisma.categories.findUnique({ where: { id: categoryId } });
+        const snapshot = catToDelete ? createDeleteSnapshot(serialize(catToDelete)) : {};
         await prisma.categories.delete({
             where: { id: categoryId }
         });
@@ -751,6 +755,7 @@ export const deleteCategory = async (req, res, next) => {
             action: 'Xóa danh mục',
             entity_type: 'category',
             entity_id: String(id),
+            details: { deleted_data: snapshot },
             ip_address: req.ip,
             user_agent: req.get('User-Agent')
         });
@@ -899,6 +904,15 @@ export const createUser = async (req, res, next) => {
                 username: email.split('@')[0] + Math.floor(Math.random() * 1000)
             }
         });
+        await logActivity({
+            user_id: BigInt(req.user?.id || 0),
+            action: 'Tạo người dùng',
+            entity_type: 'user',
+            entity_id: String(user.id),
+            details: { email, full_name, role: role || 'customer' },
+            ip_address: req.ip,
+            user_agent: req.get('User-Agent')
+        });
         res.status(201).json({
             success: true,
             data: serialize(user)
@@ -934,6 +948,15 @@ export const updateUser = async (req, res, next) => {
             updateData.province = province;
         if (country !== undefined)
             updateData.country = country;
+        // Fetch old data for diff
+        const oldUser = await prisma.users.findUnique({
+            where: { id: BigInt(id) },
+            select: {
+                id: true, username: true, email: true, full_name: true, phone: true,
+                role: true, status: true, address_line1: true, address_line2: true,
+                city: true, province: true, country: true, created_at: true
+            }
+        });
         // ... inside updateUser ...
         const user = await prisma.users.update({
             where: { id: BigInt(id) },
@@ -953,6 +976,17 @@ export const updateUser = async (req, res, next) => {
                 country: true,
                 created_at: true
             }
+        });
+        // Log with old→new diff
+        const diff = oldUser ? deepDiff(serialize(oldUser), serialize(user)) : {};
+        await logActivity({
+            user_id: BigInt(req.user?.id || 0),
+            action: 'Cập nhật người dùng',
+            entity_type: 'user',
+            entity_id: String(id),
+            details: { diff },
+            ip_address: req.ip,
+            user_agent: req.get('User-Agent')
         });
         if (status === 'blocked') {
             try {
@@ -1042,6 +1076,10 @@ export const getAnalytics = async (req, res, next) => {
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
             return res.status(400).json({ success: false, error: { message: 'Invalid date format' } });
         }
+        // Previous Period calculation for Trends
+        const durationMs = end.getTime() - start.getTime();
+        const prevStart = new Date(start.getTime() - durationMs);
+        const prevEnd = new Date(start.getTime() - 1);
         // 1. Efficient Aggregations (No more findMany all orders)
         // Total Revenue & Orders (Strict "Realized" Logic: Paid + Completed)
         const revenueStats = await prisma.orders.aggregate({
@@ -1114,6 +1152,19 @@ export const getAnalytics = async (req, res, next) => {
                 created_at: { gte: start, lte: end }
             }
         });
+        // Previous Customer Stats
+        const prevNewCustomers = await prisma.users.count({
+            where: {
+                role: 'customer',
+                created_at: { gte: prevStart, lte: prevEnd }
+            }
+        });
+        const recentCustomers = await prisma.users.findMany({
+            where: { role: 'customer' },
+            orderBy: { created_at: 'desc' },
+            take: 5,
+            select: { id: true, full_name: true, status: true, avatar_url: true }
+        });
         // 6. Aggregated Category Stats
         // This is tricky without complex joins. We can approximate or use raw query.
         // For safety/speed, let's use raw query again.
@@ -1155,6 +1206,21 @@ export const getAnalytics = async (req, res, next) => {
         const totalRevenue = Number(revenueStats._sum.grand_total || 0);
         const realizedOrders = revenueStats._count.id || 0;
         const aov = realizedOrders > 0 ? totalRevenue / realizedOrders : 0;
+        // Calculate Trends
+        const prevRevenueStats = await prisma.orders.aggregate({
+            where: {
+                created_at: { gte: prevStart, lte: prevEnd },
+                status: { in: ['paid', 'completed'] }
+            },
+            _sum: { grand_total: true }
+        });
+        const prevTotalRevenue = Number(prevRevenueStats._sum.grand_total || 0);
+        const revenueTrend = prevTotalRevenue > 0 ? ((totalRevenue - prevTotalRevenue) / prevTotalRevenue) * 100 : (totalRevenue > 0 ? 100 : 0);
+        // Total Customers trend: (Current Total / Previous Total)
+        const prevTotalCustomers = totalCustomers - newCustomers;
+        const activeCustomersTrend = prevTotalCustomers > 0 ? ((totalCustomers - prevTotalCustomers) / prevTotalCustomers) * 100 : (totalCustomers > 0 ? 100 : 0);
+        // New Customers Trend
+        const newCustomersTrend = prevNewCustomers > 0 ? ((newCustomers - prevNewCustomers) / prevNewCustomers) * 100 : (newCustomers > 0 ? 100 : 0);
         res.json({
             success: true,
             data: serialize({
@@ -1164,7 +1230,12 @@ export const getAnalytics = async (req, res, next) => {
                     realizedOrders, // Only paid/completed (for internal tracking if needed)
                     aov,
                     totalCustomers,
-                    newCustomers
+                    newCustomers,
+                    trends: {
+                        revenue: parseFloat(revenueTrend.toFixed(1)),
+                        activeCustomers: parseFloat(activeCustomersTrend.toFixed(1)),
+                        newCustomers: parseFloat(newCustomersTrend.toFixed(1))
+                    }
                 },
                 charts: {
                     revenue: revenueOverTime.map(r => ({
@@ -1178,7 +1249,8 @@ export const getAnalytics = async (req, res, next) => {
                     })),
                     categories: categoryStats
                 },
-                topProducts
+                topProducts,
+                recentCustomers
             })
         });
     }
@@ -1249,6 +1321,12 @@ export const deleteUser = async (req, res, next) => {
                 message: `Người dùng đang có ${cartItemsCount} sản phẩm trong giỏ hàng. Không thể xóa.`
             });
         }
+        // Snapshot before delete
+        const userToDelete = await prisma.users.findUnique({
+            where: { id: userId },
+            select: { id: true, username: true, email: true, full_name: true, role: true, status: true, created_at: true }
+        });
+        const snapshot = userToDelete ? createDeleteSnapshot(serialize(userToDelete)) : {};
         await prisma.users.delete({
             where: { id: userId }
         });
@@ -1257,6 +1335,7 @@ export const deleteUser = async (req, res, next) => {
             action: 'Xóa người dùng',
             entity_type: 'user',
             entity_id: String(id),
+            details: { deleted_data: snapshot },
             ip_address: req.ip,
             user_agent: req.get('User-Agent')
         });

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
+import { logActivity } from '../services/logger.service.js';
 
 export const getCoupons = async (req: Request, res: Response) => {
     try {
@@ -71,22 +72,22 @@ export const createCoupon = async (req: Request, res: Response) => {
         const { code, type, value, min_subtotal, start_at, end_at, usage_limit, is_active } = req.body;
         
         if (!code) {
-            return res.status(400).json({ message: 'Coupon code is required' });
+            return res.status(400).json({ success: false, message: 'Coupon code is required' });
         }
         if (value === undefined || value === null) {
-            return res.status(400).json({ message: 'Coupon value is required' });
+            return res.status(400).json({ success: false, message: 'Coupon value is required' });
         }
         if (!type || !['percent', 'fixed'].includes(type)) {
-            return res.status(400).json({ message: 'Type must be "percent" or "fixed"' });
+            return res.status(400).json({ success: false, message: 'Type must be "percent" or "fixed"' });
         }
         if (Number(value) < 0) {
-            return res.status(400).json({ message: 'Value must be non-negative' });
+            return res.status(400).json({ success: false, message: 'Value must be non-negative' });
         }
         if (type === 'percent' && Number(value) > 100) {
-            return res.status(400).json({ message: 'Percent value cannot exceed 100' });
+            return res.status(400).json({ success: false, message: 'Percent value cannot exceed 100' });
         }
         if (start_at && end_at && new Date(end_at) <= new Date(start_at)) {
-            return res.status(400).json({ message: 'End date must be after start date' });
+            return res.status(400).json({ success: false, message: 'End date must be after start date' });
         }
 
         // Check if code exists
@@ -95,7 +96,7 @@ export const createCoupon = async (req: Request, res: Response) => {
         });
 
         if (existing) {
-            return res.status(400).json({ message: 'Coupon code already exists' });
+            return res.status(400).json({ success: false, message: `Mã giảm giá "${code}" đã tồn tại` });
         }
 
         const coupon = await prisma.coupons.create({
@@ -111,10 +112,20 @@ export const createCoupon = async (req: Request, res: Response) => {
             }
         });
 
-        res.status(201).json(coupon);
-    } catch (error) {
+        await logActivity({
+          user_id: BigInt((req as any).user?.id || 0),
+          action: 'Tạo mã giảm giá',
+          entity_type: 'coupon',
+          entity_id: String(coupon.id),
+          details: { code, type, value },
+          ip_address: req.ip,
+          user_agent: req.get('User-Agent')
+        });
+
+        res.status(201).json({ success: true, data: coupon });
+    } catch (error: any) {
         console.error('Create coupon error:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ success: false, message: error.message || 'Internal server error' });
     }
 };
 
@@ -167,6 +178,16 @@ export const updateCoupon = async (req: Request, res: Response) => {
             }
         });
 
+        await logActivity({
+          user_id: BigInt((req as any).user?.id || 0),
+          action: 'Cập nhật mã giảm giá',
+          entity_type: 'coupon',
+          entity_id: String(id),
+          details: { code: coupon.code },
+          ip_address: req.ip,
+          user_agent: req.get('User-Agent')
+        });
+
         res.json(coupon);
     } catch (error) {
         console.error('Update coupon error:', error);
@@ -194,6 +215,17 @@ export const deleteCoupon = async (req: Request, res: Response) => {
         await prisma.coupons.delete({
             where: { id: couponId }
         });
+
+        await logActivity({
+          user_id: BigInt((req as any).user?.id || 0),
+          action: 'Xóa mã giảm giá',
+          entity_type: 'coupon',
+          entity_id: String(id),
+          details: { },
+          ip_address: req.ip,
+          user_agent: req.get('User-Agent')
+        });
+
         res.json({ success: true, message: 'Xóa mã giảm giá thành công' });
     } catch (error) {
         res.status(500).json({ message: 'Internal server error' });

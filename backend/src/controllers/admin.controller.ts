@@ -336,7 +336,59 @@ export const updateProduct = async (
       }
     });
 
-    const diff = getDiff(serialize(existingProduct), data);
+    // Build a normalized old-data snapshot matching the frontend payload shape
+    const serialized = serialize(existingProduct) as any;
+    const oldSnapshot: Record<string, any> = {};
+    // Only include fields that exist in the update payload
+    for (const key of Object.keys(data)) {
+      if (key === 'variants') {
+        // Map product_variants → variants, normalizing field names
+        oldSnapshot.variants = (serialized.product_variants || []).map((v: any) => ({
+          id: v.id ? Number(v.id) : undefined,
+          sku: v.variant_sku,          // DB: variant_sku → Frontend: sku
+          variant_sku: v.variant_sku,
+          price: v.price ? Number(v.price) : 0,
+          stock_qty: v.stock_qty ?? 0,
+          is_active: v.is_active ?? true,
+        }));
+      } else if (key === 'images') {
+        // Map product_images → images, only compare url/is_primary/sort_order
+        oldSnapshot.images = (serialized.product_images || []).map((img: any) => ({
+          url: img.url,
+          is_primary: img.is_primary ?? false,
+          sort_order: img.sort_order ?? 0,
+        }));
+      } else if (key === 'attributes') {
+        // attributes don't exist in DB product row, skip to avoid null→value
+        continue;
+      } else if (key in serialized) {
+        oldSnapshot[key] = serialized[key];
+      }
+    }
+    
+    // Also normalize the new data variants to strip options for cleaner diff
+    const normalizedNewData: Record<string, any> = { ...data };
+    if (normalizedNewData.variants) {
+      normalizedNewData.variants = normalizedNewData.variants.map((v: any) => ({
+        id: v.id ? Number(v.id) : undefined,
+        sku: v.sku || v.variant_sku,
+        variant_sku: v.variant_sku || v.sku,
+        price: v.price ? Number(v.price) : 0,
+        stock_qty: v.stock_qty ?? 0,
+        is_active: v.is_active ?? true,
+      }));
+    }
+    if (normalizedNewData.images) {
+      normalizedNewData.images = normalizedNewData.images.map((img: any) => ({
+        url: img.url,
+        is_primary: img.is_primary ?? false,
+        sort_order: img.sort_order ?? 0,
+      }));
+    }
+    // Remove attributes from diff (no old data to compare)
+    delete normalizedNewData.attributes;
+    
+    const diff = getDiff(oldSnapshot, normalizedNewData);
     
     await logActivity({
       user_id: BigInt(req.user?.id || 0),

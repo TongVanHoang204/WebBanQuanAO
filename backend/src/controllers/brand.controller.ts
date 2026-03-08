@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
+import { logActivity } from '../services/logger.service.js';
 
 // Helper to serialize BigInt
 const serialize = (data: any) => {
@@ -145,6 +146,16 @@ export const createBrand = async (req: AuthRequest, res: Response, next: NextFun
       }
     });
 
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Tạo thương hiệu',
+      entity_type: 'brand',
+      entity_id: String(brand.id),
+      details: { name: brand.name, slug: brand.slug },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.status(201).json({
       success: true,
       data: serialize(brand)
@@ -198,6 +209,16 @@ export const updateBrand = async (req: AuthRequest, res: Response, next: NextFun
       }
     });
 
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Cập nhật thương hiệu',
+      entity_type: 'brand',
+      entity_id: String(id),
+      details: { name: brand.name, slug: brand.slug },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.json({
       success: true,
       data: serialize(brand)
@@ -236,6 +257,16 @@ export const deleteBrand = async (req: AuthRequest, res: Response, next: NextFun
 
     await prisma.brands.delete({
       where: { id: BigInt(id as string) }
+    });
+
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Xóa thương hiệu',
+      entity_type: 'brand',
+      entity_id: String(id),
+      details: { name: brand.name },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
     });
 
     res.json({

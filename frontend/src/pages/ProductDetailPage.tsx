@@ -26,6 +26,7 @@ import { formatPrice, getDiscountPercent } from '../hooks/useShop';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
+import { useRecentlyViewed } from '../hooks/useRecentlyViewed';
 
 
 export default function ProductDetailPage() {
@@ -39,6 +40,7 @@ export default function ProductDetailPage() {
   const [addedToCart, setAddedToCart] = useState(false);
   const { addToCart } = useCart();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const { addProduct: addToRecentlyViewed } = useRecentlyViewed();
   const { isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<'details' | 'specs' | 'shipping'>('details');
 
@@ -70,6 +72,9 @@ export default function ProductDetailPage() {
             console.error('Failed to track view:', e);
           }
         }
+
+        // Track for recently viewed (client-side, all users)
+        addToRecentlyViewed(productData);
       } catch (error) {
         console.error('Failed to load product:', error);
       } finally {

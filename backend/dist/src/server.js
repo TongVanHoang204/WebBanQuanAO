@@ -40,6 +40,7 @@ import placesRoutes from './routes/places.routes.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import morganMiddleware from './middlewares/morgan.middleware.js';
 import { globalLimiter, authLimiter } from './middlewares/rateLimiter.js';
+import { maintenanceMiddleware } from './middlewares/maintenance.middleware.js';
 import { logger } from './config/logger.js';
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -66,8 +67,9 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 // HTTP Logging
 app.use(morganMiddleware);
-// Global Rate Limiting
+// Global Rate Limiting & Maintenance Mode
 app.use('/api', globalLimiter);
+app.use('/api', maintenanceMiddleware);
 // Security Headers for Cross-Origin
 app.use((req, res, next) => {
     // Allow cross-origin window communication for OAuth and popups

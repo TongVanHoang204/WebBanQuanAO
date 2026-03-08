@@ -1,5 +1,5 @@
 import express from 'express';
-import { getLogs, getLogStats, exportLogs } from '../controllers/log.controller.js';
+import { getLogs, getLogStats, exportLogs, deleteLog, bulkDeleteLogs } from '../controllers/log.controller.js';
 import { verifyToken, authorize } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
@@ -24,6 +24,9 @@ router.use(authorize(['admin', 'manager']));
  *       - bearerAuth: []
  */
 router.get('/stats', getLogStats);
+
+router.delete('/:id', deleteLog);
+router.post('/bulk-delete', bulkDeleteLogs);
 
 /**
  * @swagger

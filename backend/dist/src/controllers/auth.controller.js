@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { prisma } from '../server.js';
 import { ApiError } from '../middlewares/error.middleware.js';
 import { registerSchema, loginSchema } from '../validators/auth.validator.js';
+import { logActivity } from '../services/logger.service.js';
 import { sendWelcomeEmail, sendResetPasswordEmail, sendOTP } from '../services/email.service.js';
 // Helper to serialize BigInt for JSON
 const serializeUser = (user) => ({
@@ -131,6 +132,15 @@ export const login = async (req, res, next) => {
                 token
             }
         });
+        // Audit: Log successful login
+        logActivity({
+            user_id: user.id,
+            action: 'Đăng nhập',
+            entity_type: 'auth',
+            details: { method: 'password', username: user.username, role: user.role },
+            ip_address: req.ip,
+            user_agent: req.get('User-Agent')
+        }).catch(() => { });
     }
     catch (error) {
         next(error);
@@ -311,6 +321,15 @@ export const googleLogin = async (req, res, next) => {
                 token
             }
         });
+        // Audit: Log Google login
+        logActivity({
+            user_id: user.id,
+            action: 'Đăng nhập',
+            entity_type: 'auth',
+            details: { method: 'google', email: user.email, role: user.role },
+            ip_address: req.ip,
+            user_agent: req.get('User-Agent')
+        }).catch(() => { });
     }
     catch (error) {
         next(error);

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../server.js';
+import { logActivity } from '../services/logger.service.js';
 
 // Helper to convert BigInt to string for JSON serialization
 const serializeCategory = (category: any): any => {
@@ -208,6 +209,16 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
       }
     });
 
+    await logActivity({
+      user_id: BigInt((req as any).user?.id || 0),
+      action: 'Tạo danh mục',
+      entity_type: 'category',
+      entity_id: String(category.id),
+      details: { name, slug },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.status(201).json({
       success: true,
       data: serializeCategory(category)
@@ -234,6 +245,16 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
         sort_order: sort_order ? parseInt(sort_order) : undefined,
         is_active: is_active
       }
+    });
+
+    await logActivity({
+      user_id: BigInt((req as any).user?.id || 0),
+      action: 'Cập nhật danh mục',
+      entity_type: 'category',
+      entity_id: String(id),
+      details: { name, slug },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
     });
 
     res.json({
@@ -280,6 +301,17 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
     await prisma.categories.delete({
       where: { id: categoryId }
     });
+
+    await logActivity({
+      user_id: BigInt((req as any).user?.id || 0),
+      action: 'Xóa danh mục',
+      entity_type: 'category',
+      entity_id: String(id),
+      details: { },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.json({ success: true, message: 'Xóa danh mục thành công' });
   } catch (error) {
     next(error);

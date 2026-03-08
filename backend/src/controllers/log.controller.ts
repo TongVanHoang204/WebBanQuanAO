@@ -196,3 +196,45 @@ export const exportLogs = async (req: AuthRequest, res: Response, next: NextFunc
     next(error);
   }
 };
+
+/**
+ * Delete a single log
+ * DELETE /api/admin/logs/:id
+ */
+export const deleteLog = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const logId = Array.isArray(id) ? id[0] : id;
+    await prisma.activity_logs.delete({
+      where: { id: BigInt(logId) }
+    });
+    
+    res.json({ success: true, message: 'Đã xóa nhật ký' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Delete multiple logs
+ * POST /api/admin/logs/bulk-delete
+ */
+export const bulkDeleteLogs = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { ids } = req.body;
+    
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'Không có ID nào được cung cấp' });
+    }
+
+    const { count } = await prisma.activity_logs.deleteMany({
+      where: {
+        id: { in: ids.map((id: string) => BigInt(id)) }
+      }
+    });
+
+    res.json({ success: true, message: `Đã xóa ${count} nhật ký` });
+  } catch (error) {
+    next(error);
+  }
+};

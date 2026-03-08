@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
+import { logActivity } from '../services/logger.service.js';
 
 const prisma = new PrismaClient();
 
@@ -215,6 +216,16 @@ export const createReview = async (req: Request, res: Response): Promise<void> =
       });
     }
 
+    await logActivity({
+      user_id: BigInt(userId),
+      action: 'Đánh giá sản phẩm',
+      entity_type: 'review',
+      entity_id: String(newReview.id),
+      details: { product_id: validatedData.product_id, rating: validatedData.rating },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.status(201).json({
       success: true,
       message: 'Gửi đánh giá thành công',
@@ -253,6 +264,16 @@ export const updateReviewStatus = async (req: Request, res: Response): Promise<v
       success: true,
       message: 'Cập nhật trạng thái đánh giá thành công',
       data: { id: review.id.toString(), status: review.status }
+    });
+
+    await logActivity({
+      user_id: BigInt((req as any).user?.id || 0),
+      action: 'Duyệt/Ẩn đánh giá',
+      entity_type: 'review',
+      entity_id: String(reviewId),
+      details: { status },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
     });
   } catch (error) {
     console.error('Lỗi khi cập nhật trạng thái đánh giá:', error);
@@ -365,6 +386,16 @@ export const bulkUpdateReviewStatus = async (req: Request, res: Response): Promi
       data: { status: status as any }
     });
 
+    await logActivity({
+      user_id: BigInt((req as any).user?.id || 0),
+      action: 'Duyệt/Ẩn hàng loạt đánh giá',
+      entity_type: 'review',
+      entity_id: 'bulk',
+      details: { count: result.count, status },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.json({ success: true, message: `Đã cập nhật ${result.count} đánh giá` });
   } catch (error) {
     console.error('Lỗi khi cập nhật trạng thái hàng loạt:', error);
@@ -386,6 +417,16 @@ export const bulkDeleteReviews = async (req: Request, res: Response): Promise<vo
       where: { id: { in: bigintIds } }
     });
 
+    await logActivity({
+      user_id: BigInt((req as any).user?.id || 0),
+      action: 'Xóa hàng loạt đánh giá',
+      entity_type: 'review',
+      entity_id: 'bulk',
+      details: { count: result.count },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.json({ success: true, message: `Đã xóa ${result.count} đánh giá` });
   } catch (error) {
     console.error('Lỗi khi xóa đánh giá hàng loạt:', error);
@@ -397,6 +438,17 @@ export const deleteReview = async (req: Request, res: Response): Promise<void> =
   try {
     const reviewId = BigInt(req.params.id as string);
     await prisma.product_reviews.delete({ where: { id: reviewId } });
+
+    await logActivity({
+      user_id: BigInt((req as any).user?.id || 0),
+      action: 'Xóa đánh giá',
+      entity_type: 'review',
+      entity_id: String(reviewId),
+      details: { },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.json({ success: true, message: 'Đã xóa đánh giá' });
   } catch (error) {
     console.error('Lỗi khi xóa đánh giá:', error);

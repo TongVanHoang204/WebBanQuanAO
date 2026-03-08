@@ -214,7 +214,26 @@ export function initializeSocket(httpServer) {
                     conversationId: convId,
                     status: conversation.status
                 });
-                console.log(`Support conversation started: ${convId}`);
+                // Send chat history if there are existing messages
+                const messages = await prisma.chat_messages.findMany({
+                    where: { conversation_id: conversation.id },
+                    orderBy: { created_at: 'asc' }
+                });
+                if (messages.length > 0) {
+                    socket.emit('conversation-messages', {
+                        conversationId: convId,
+                        messages: messages.map((m) => ({
+                            id: m.id.toString(),
+                            conversationId: convId,
+                            senderType: m.sender_type,
+                            senderId: m.sender_id?.toString() || null,
+                            senderName: m.sender_type === 'admin' ? 'Nhân viên hỗ trợ' : (socket.userName || 'Khách'),
+                            content: m.content,
+                            createdAt: m.created_at
+                        }))
+                    });
+                }
+                console.log(`Support conversation started: ${convId}, messages: ${messages.length}`);
             }
             catch (error) {
                 console.error('Error starting support:', error);
@@ -265,7 +284,13 @@ export function initializeSocket(httpServer) {
                     createdAt: message.created_at
                 };
                 // Broadcast to conversation room
-                io.to(`conversation-${conversationId}`).emit('new-message', messageData);
+                const roomName = `conversation-${conversationId}`;
+                const room = io.sockets.adapter.rooms.get(roomName);
+                console.log(`[Socket] Broadcasting new-message to ${roomName}, sockets in room: ${room ? room.size : 0}`);
+                if (room) {
+                    console.log(`[Socket] Room members: ${Array.from(room).join(', ')}`);
+                }
+                io.to(roomName).emit('new-message', messageData);
                 // Also notify admin room for new user messages
                 if (senderType === 'user') {
                     io.to('admin-room').emit('new-message', messageData);

@@ -3,17 +3,17 @@ import { wishlistAPI } from '../services/api';
 import { useAuth } from './AuthContext';
 import { toast } from 'react-hot-toast';
 
-interface WishlistItem {
-  id: string; // Wishlist item ID (not product ID)
-  product_id: string;
+// Matches the exact backend response shape from wishlist.controller.ts
+export interface WishlistItem {
+  id: string; // product_id from backend
+  wishlist_item_id: string;
   name: string;
   slug: string;
-  image: string;
-  price: number;
+  description: string | null;
+  base_price: number;
   compare_at_price: number | null;
-  variant_id?: string;
-  stock_qty: number;
-  description?: string | null;
+  product_images: { id: string; product_id: string; url: string; alt_text: string | null; is_primary: boolean; sort_order: number }[];
+  product_variants: { id: string; price: number; compare_at_price: number | null; stock_qty: number }[];
   added_at: string;
 }
 
@@ -75,7 +75,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         const res = await wishlistAPI.remove(productId);
         if (res.data.success) {
             toast.success('Đã xóa khỏi yêu thích');
-            setWishlist(prev => prev.filter(item => item.product_id !== productId));
+            setWishlist(prev => prev.filter(item => item.id !== productId));
         }
     } catch (error) {
         toast.error('Không thể xóa khỏi yêu thích');
@@ -83,7 +83,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   };
 
   const isInWishlist = (productId: string) => {
-    return wishlist.some(item => item.product_id === productId);
+    return wishlist.some(item => item.id === productId);
   };
 
   return (

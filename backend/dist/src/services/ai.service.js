@@ -1,5 +1,82 @@
 import { Ollama } from 'ollama';
-const ollama = new Ollama({ host: process.env.OLLAMA_URL || 'http://127.0.0.1:11434' });
+const DEFAULT_OLLAMA_HOST = 'http://127.0.0.1:11434';
+const normalizeOllamaHost = (rawHost) => {
+    const value = rawHost?.trim();
+    if (!value) {
+        return DEFAULT_OLLAMA_HOST;
+    }
+    const hostWithProtocol = /^https?:\/\//i.test(value) ? value : `http://${value}`;
+    try {
+        const parsed = new URL(hostWithProtocol);
+        const isPublicOllamaDomain = ['ollama.com', 'www.ollama.com'].includes(parsed.hostname.toLowerCase());
+        const allowPublicDomain = String(process.env.OLLAMA_ALLOW_PUBLIC_DOMAIN || '').toLowerCase() === 'true';
+        if (isPublicOllamaDomain && !allowPublicDomain) {
+            console.warn(`[AI] Ignoring OLLAMA_URL=${hostWithProtocol} because it points to ${parsed.hostname}. Falling back to ${DEFAULT_OLLAMA_HOST}. Set OLLAMA_ALLOW_PUBLIC_DOMAIN=true to allow this host.`);
+            return DEFAULT_OLLAMA_HOST;
+        }
+        parsed.hash = '';
+        parsed.search = '';
+        parsed.pathname = '';
+        return parsed.toString().replace(/\/$/, '');
+    }
+    catch {
+        console.warn(`[AI] Invalid OLLAMA_URL=${value}. Falling back to ${DEFAULT_OLLAMA_HOST}.`);
+        return DEFAULT_OLLAMA_HOST;
+    }
+};
+const ACTIVE_OLLAMA_HOST = normalizeOllamaHost(process.env.OLLAMA_URL);
+const ollama = new Ollama({ host: ACTIVE_OLLAMA_HOST });
+const localOllama = new Ollama({ host: DEFAULT_OLLAMA_HOST });
+const REMOTE_HOST_COOLDOWN_MS = Number(process.env.OLLAMA_REMOTE_COOLDOWN_MS || 5 * 60 * 1000);
+let remoteHostBlockedUntil = 0;
+const isRetryableOllamaNetworkError = (error) => {
+    const message = String(error?.message || error?.error || '').toLowerCase();
+    return (message.includes('tls handshake timeout') ||
+        message.includes('fetch failed') ||
+        message.includes('timeout') ||
+        message.includes('econnrefused') ||
+        message.includes('network'));
+};
+const shouldSkipRemoteHost = () => {
+    return ACTIVE_OLLAMA_HOST !== DEFAULT_OLLAMA_HOST && Date.now() < remoteHostBlockedUntil;
+};
+const markRemoteHostFailed = () => {
+    if (ACTIVE_OLLAMA_HOST !== DEFAULT_OLLAMA_HOST) {
+        remoteHostBlockedUntil = Date.now() + REMOTE_HOST_COOLDOWN_MS;
+    }
+};
+const chatWithFallback = async (payload) => {
+    if (shouldSkipRemoteHost()) {
+        return await localOllama.chat(payload);
+    }
+    try {
+        return await ollama.chat(payload);
+    }
+    catch (error) {
+        if (ACTIVE_OLLAMA_HOST !== DEFAULT_OLLAMA_HOST && isRetryableOllamaNetworkError(error)) {
+            markRemoteHostFailed();
+            console.warn(`[AI] Ollama chat failed on ${ACTIVE_OLLAMA_HOST}. Retrying with local host ${DEFAULT_OLLAMA_HOST}.`);
+            return await localOllama.chat(payload);
+        }
+        throw error;
+    }
+};
+const generateWithFallback = async (payload) => {
+    if (shouldSkipRemoteHost()) {
+        return await localOllama.generate(payload);
+    }
+    try {
+        return await ollama.generate(payload);
+    }
+    catch (error) {
+        if (ACTIVE_OLLAMA_HOST !== DEFAULT_OLLAMA_HOST && isRetryableOllamaNetworkError(error)) {
+            markRemoteHostFailed();
+            console.warn(`[AI] Ollama generate failed on ${ACTIVE_OLLAMA_HOST}. Retrying with local host ${DEFAULT_OLLAMA_HOST}.`);
+            return await localOllama.generate(payload);
+        }
+        throw error;
+    }
+};
 import { prisma } from '../lib/prisma.js';
 import fs from 'fs';
 import path from 'path';
@@ -293,7 +370,7 @@ KHI CẦN DÙNG CÔNG CỤ, trả về JSON như sau (không thêm text):
                 { role: 'user', content: `Hãy viết nội dung cho: "${prompt}"` }
             ];
             // Direct call to LLM, no tools needed for generation
-            const response = await ollama.chat({
+            const response = await chatWithFallback({
                 model: this.MODEL,
                 messages: messages
             });
@@ -326,7 +403,7 @@ Lưu ý:
 - product_type là trường QUAN TRỌNG NHẤT, phải chính xác
 - search_phrases nên có 2-5 cụm từ ghép có nghĩa (không phải từ đơn)
 - Tất cả bằng tiếng Việt, viết thường`;
-        const response = await ollama.generate({
+        const response = await generateWithFallback({
             model: visionModel,
             prompt,
             images: [base64Image]
@@ -355,7 +432,11 @@ Lưu ý:
         catch {
             // If JSON parsing fails, extract what we can from the raw text
             this.logDebug('Visual Search JSON parse failed, extracting from raw text');
-            const words = raw.toLowerCase().replace(/[.,;:!?"'()\[\]{}]/g, '').split(/\s+/).filter(w => w.length > 1);
+            const words = raw
+                .toLowerCase()
+                .replace(/[.,;:!?"'()\[\]{}]/g, '')
+                .split(/\s+/)
+                .filter((w) => w.length > 1);
             return {
                 product_type: words.slice(0, 2).join(' '),
                 color: '',
@@ -1306,7 +1387,7 @@ Lưu ý:
         if (hasCustomSystemPrompt) {
             // Direct LLM call — no tools, no retry loop
             try {
-                const response = await ollama.chat({
+                const response = await chatWithFallback({
                     model: this.MODEL,
                     messages: requestMessages,
                     stream: false,
@@ -1376,7 +1457,7 @@ Lưu ý:
         while (retries <= MAX_RETRIES) {
             try {
                 this.logDebug(`Requesting AI (Attempt ${retries + 1})`);
-                const response = await ollama.chat({
+                const response = await chatWithFallback({
                     model: this.MODEL,
                     messages: messages,
                     stream: false,
@@ -1407,7 +1488,7 @@ Lưu ý:
                         
 Hãy trả lời khách hàng dựa trên thông tin này. Nếu là danh sách sản phẩm, hãy tóm tắt ngắn gọn và mời khách xem chi tiết bên dưới.`
                         });
-                        const finalResponse = await ollama.chat({
+                        const finalResponse = await chatWithFallback({
                             model: this.MODEL,
                             messages: messages,
                             stream: false,

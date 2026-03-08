@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js';
+import { getIO } from '../socket.js';
 // Default settings
 const DEFAULT_SETTINGS = {
     store_name: 'Fashion Store',
@@ -65,6 +66,16 @@ export const updateSettings = async (req, res, next) => {
         `;
                 results[key] = value;
             }
+        }
+        // Broadcast real-time update to all connected clients
+        try {
+            const io = getIO();
+            if (io) {
+                io.emit('settings-updated', results);
+            }
+        }
+        catch (socketErr) {
+            console.error('Socket broadcast failed:', socketErr);
         }
         res.json({
             success: true,

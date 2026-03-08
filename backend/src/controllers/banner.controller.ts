@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
+import { logActivity } from '../services/logger.service.js';
 
 // Helper to serialize BigInt
 const serialize = (data: any) => {
@@ -149,6 +150,16 @@ export const createBanner = async (req: AuthRequest, res: Response, next: NextFu
       include: { banner_images: true }
     });
 
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Tạo banner',
+      entity_type: 'banner',
+      entity_id: String(banner.id),
+      details: { title: banner.title, position: banner.position },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.status(201).json({
       success: true,
       data: serialize(banner)
@@ -218,6 +229,16 @@ export const updateBanner = async (req: AuthRequest, res: Response, next: NextFu
       include: { banner_images: { orderBy: { sort_order: 'asc' } } }
     });
 
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Cập nhật banner',
+      entity_type: 'banner',
+      entity_id: String(id),
+      details: { title: banner.title },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.json({
       success: true,
       data: serialize(banner)
@@ -251,6 +272,16 @@ export const reorderBanners = async (req: AuthRequest, res: Response, next: Next
       )
     );
 
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Sắp xếp lại banner',
+      entity_type: 'banner',
+      entity_id: 'bulk',
+      details: { count: orders.length },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.json({
       success: true,
       message: 'Đã cập nhật thứ tự'
@@ -281,6 +312,16 @@ export const deleteBanner = async (req: AuthRequest, res: Response, next: NextFu
 
     await prisma.banners.delete({
       where: { id: BigInt(id as string) }
+    });
+
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Xóa banner',
+      entity_type: 'banner',
+      entity_id: String(id),
+      details: { title: banner.title },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
     });
 
     res.json({

@@ -273,6 +273,12 @@ const handleSubmit = async (e: React.FormEvent) => {
 
         const productData = {
             ...formData,
+            category_id: formData.category_id === '' ? undefined : formData.category_id,
+            brand_id: formData.brand_id === '' ? undefined : formData.brand_id,
+            weight: formData.weight === '' ? undefined : formData.weight,
+            length: formData.length === '' ? undefined : formData.length,
+            width: formData.width === '' ? undefined : formData.width,
+            height: formData.height === '' ? undefined : formData.height,
             variants: variants.map(v => ({
                 id: (v.id && !v.id.toString().startsWith('var-')) ? Number(v.id) : undefined, // Parse to Number
                 sku: v.sku, // Map back to SKU
@@ -286,7 +292,11 @@ const handleSubmit = async (e: React.FormEvent) => {
             images: combinedImages
         };
         
-        console.log('Updating Product:', productData);
+        console.log('--- DEBUG START ---');
+        console.log('Update Payload Raw:', productData);
+        console.log('Update Payload String:', JSON.stringify(productData, null, 2));
+        console.log('--- DEBUG END ---');
+
         await adminAPI.updateProduct(id!, productData);
         
         toast.success('Cập nhật sản phẩm thành công');

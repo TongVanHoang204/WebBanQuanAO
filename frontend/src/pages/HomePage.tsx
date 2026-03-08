@@ -118,36 +118,35 @@ export default function HomePage() {
         <CategoryGrid />
 
         {/* FLASH EVENT */}
-        <section className="bg-secondary-100 dark:bg-secondary-900 py-20 transition-colors duration-300"> 
+        <section className="bg-[#F9F8F4] dark:bg-secondary-900 py-24 transition-colors duration-300"> 
             <div className="container-custom">
-                <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
-                    <div>
-                        <h2 className="text-4xl font-bold text-secondary-900 dark:text-white mb-2">Sự Kiện Flash Sale</h2>
-                        <div className="flex items-center gap-4 text-secondary-600 dark:text-gray-300 font-mono text-sm">
-                             <span>Kết thúc trong:</span>
-                             <div className="flex gap-2">
-                                <span className="bg-white dark:bg-secondary-800 dark:text-white px-2 py-1 rounded min-w-[2.5rem] text-center shadow-sm">
-                                    {String(timeLeft.hours).padStart(2, '0')}
-                                </span> :
-                                <span className="bg-white dark:bg-secondary-800 dark:text-white px-2 py-1 rounded min-w-[2.5rem] text-center shadow-sm">
-                                    {String(timeLeft.minutes).padStart(2, '0')}
-                                </span> :
-                                <span className="bg-white dark:bg-secondary-800 dark:text-white px-2 py-1 rounded min-w-[2.5rem] text-center shadow-sm">
-                                    {String(timeLeft.seconds).padStart(2, '0')}
-                                </span>
-                             </div>
+                <div className="text-center mb-12">
+                    <h2 className="text-3xl md:text-5xl font-serif text-secondary-900 dark:text-white mb-6">Sự Kiện Flash Sale</h2>
+                    
+                    {/* Countdown */}
+                    <div className="flex items-center justify-center gap-4 text-2xl md:text-4xl font-serif text-[#8c734b] dark:text-[#d4af37]">
+                        <div className="flex flex-col items-center">
+                            <span>{String(timeLeft.hours).padStart(2, '0')}</span>
+                            <span className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">GIỜ</span>
+                        </div>
+                        <span className="pb-4">:</span>
+                        <div className="flex flex-col items-center">
+                            <span>{String(timeLeft.minutes).padStart(2, '0')}</span>
+                            <span className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">PHÚT</span>
+                        </div>
+                        <span className="pb-4">:</span>
+                        <div className="flex flex-col items-center">
+                            <span>{String(timeLeft.seconds).padStart(2, '0')}</span>
+                            <span className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">GIÂY</span>
                         </div>
                     </div>
-                    <Link to="/shop?sort=discount" className="text-xs uppercase tracking-widest border-b border-black dark:border-white pb-1 hover:text-secondary-600 dark:hover:text-gray-300 dark:text-white transition-colors">
-                        Xem Ưu Đãi
-                    </Link>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
                      {flashSale.slice(0, 4).map((product) => (
-                         <Link to={`/products/${product.slug}`} key={product.id} className="group">
-                             <div className="relative aspect-square bg-white dark:bg-secondary-800 mb-4 overflow-hidden rounded-lg">
-                                 <span className="absolute top-2 left-2 bg-black text-white text-[10px] uppercase font-bold px-2 py-1 z-10">
+                         <Link to={`/products/${product.slug}`} key={product.id} className="group bg-white dark:bg-secondary-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+                             <div className="relative aspect-[4/5] overflow-hidden">
+                                 <span className="absolute top-3 right-3 bg-white/90 text-black text-xs font-bold px-2 py-1 rounded shadow-sm z-10">
                                      -{Math.round(((Number(product.compare_at_price) - Number(product.base_price)) / Number(product.compare_at_price)) * 100)}%
                                  </span>
                                  <img 
@@ -156,21 +155,14 @@ export default function HomePage() {
                                     onError={(e) => {
                                         (e.target as HTMLImageElement).src = 'https://placehold.co/600x600/e2e8f0/1e293b?text=No+Image';
                                     }}
-                                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                                  />
-                                 {/* Hover Action */}
-                                 <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                                     <span className="w-full bg-white text-black py-3 text-xs uppercase font-bold hover:bg-black hover:text-white transition-colors block text-center shadow-lg rounded-full mx-4 mb-2">
-                                         Xem Chi Tiết
-                                     </span>
-                                 </div>
                              </div>
-                             <div className="text-center">
-                                 <p className="text-xs text-secondary-500 dark:text-gray-400 uppercase mb-1">{product.category?.name || 'Bộ sưu tập'}</p>
-                                 <h3 className="font-bold text-lg text-secondary-900 dark:text-white mb-1">{product.name}</h3>
-                                 <div className="flex justify-center gap-3 text-sm">
-                                     <span className="font-bold dark:text-white">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(product.base_price))}</span>
-                                     <span className="text-secondary-400 line-through">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(product.compare_at_price))}</span>
+                             <div className="p-4 md:p-5">
+                                 <h3 className="font-semibold text-sm md:text-base text-secondary-900 dark:text-white mb-2 line-clamp-2">{product.name}</h3>
+                                 <div className="flex items-center gap-2 text-sm">
+                                     <span className="font-bold text-black dark:text-white">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(product.base_price))}</span>
+                                     <span className="text-secondary-400 line-through text-xs rounded border border-gray-200 px-1">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(product.compare_at_price))}</span>
                                  </div>
                              </div>
                          </Link>
@@ -180,43 +172,40 @@ export default function HomePage() {
         </section>
 
         {/* BESTSELLERS */}
-        <section className="container-custom py-20 dark:bg-black transition-colors duration-300">
-             <div className="flex justify-between items-center mb-12">
+        <section className="container-custom py-24 dark:bg-black transition-colors duration-300">
+             <div className="flex justify-between items-end mb-12 border-b border-gray-200 dark:border-gray-800 pb-4">
                  <div>
-                    <span className="text-secondary-500 dark:text-gray-400 text-xs uppercase tracking-widest mb-1 block">Phải Có (Must Have)</span>
-                    <h2 className="text-4xl font-bold text-secondary-900 dark:text-white">Sản Phẩm Bán Chạy</h2>
+                    <span className="text-[#8c734b] dark:text-[#d4af37] text-xs font-bold uppercase tracking-widest mb-2 block">Premium Collection</span>
+                    <h2 className="text-3xl md:text-5xl font-serif text-secondary-900 dark:text-white">Sản Phẩm Bán Chạy</h2>
                  </div>
                  <div className="flex gap-2">
-                     <button className="w-10 h-10 border border-secondary-300 dark:border-secondary-700 flex items-center justify-center hover:bg-black dark:hover:bg-white dark:hover:text-black hover:text-white transition-colors hover:border-black dark:hover:border-white dark:text-white rounded-full">
-                         <ArrowRight className="w-4 h-4 rotate-180" />
+                     <button className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-full text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white">
+                         <ArrowRight className="w-5 h-5 rotate-180" />
                      </button>
-                     <button className="w-10 h-10 border border-secondary-300 dark:border-secondary-700 flex items-center justify-center hover:bg-black dark:hover:bg-white dark:hover:text-black hover:text-white transition-colors hover:border-black dark:hover:border-white dark:text-white rounded-full">
-                         <ArrowRight className="w-4 h-4" />
+                     <button className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-full text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white">
+                         <ArrowRight className="w-5 h-5" />
                      </button>
                  </div>
              </div>
 
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
                 {bestSellers.slice(0, 4).map((product) => (
                     <Link to={`/products/${product.slug}`} key={product.id} className="group cursor-pointer">
-                        <div className="bg-secondary-50 dark:bg-secondary-800 aspect-[4/5] mb-4 relative overflow-hidden rounded-lg">
+                        <div className="bg-[#f9f8f4] dark:bg-secondary-800 aspect-[4/5] mb-5 relative overflow-hidden rounded-xl">
                              <img 
                                 src={product.product_images?.[0]?.url || 'https://placehold.co/400x500/e2e8f0/1e293b?text=No+Image'} 
                                 alt={product.name}
                                 onError={(e) => {
                                     (e.target as HTMLImageElement).src = 'https://placehold.co/400x500/e2e8f0/1e293b?text=No+Image';
                                 }}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                              />
                         </div>
-                        <div className="flex justify-between items-start">
-                             <div>
-                                <h3 className="font-bold text-lg text-secondary-900 dark:text-white">{product.name}</h3>
-                                <p className="text-xs text-secondary-500 dark:text-gray-400 uppercase mt-1">Cao Cấp</p>
-                             </div>
-                             <span className="font-medium text-sm dark:text-white">
+                        <div className="flex flex-col items-center text-center">
+                            <h3 className="font-serif text-lg text-secondary-900 dark:text-white mb-2 line-clamp-1">{product.name}</h3>
+                            <span className="font-bold text-sm tracking-wide text-black dark:text-white">
                                 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(product.base_price))}
-                             </span>
+                            </span>
                         </div>
                     </Link>
                 ))}

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { getIO } from '../socket.js';
+import { logActivity } from '../services/logger.service.js';
 
 interface AuthRequest extends Request {
   user?: any;
@@ -96,6 +97,16 @@ export const updateSettings = async (
       console.error('Socket broadcast failed:', socketErr);
     }
 
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Cập nhật cài đặt hệ thống',
+      entity_type: 'settings',
+      entity_id: 'system',
+      details: { keys: Object.keys(results) },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.json({
       success: true,
       data: results,
@@ -128,6 +139,16 @@ export const uploadLogo = async (
       VALUES ('store_logo', ${logoUrl}, NOW()) 
       ON DUPLICATE KEY UPDATE value = ${logoUrl}, updated_at = NOW()
     `;
+
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Tải lên logo cửa hàng',
+      entity_type: 'settings',
+      entity_id: 'store_logo',
+      details: { url: logoUrl },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
 
     res.json({
       success: true,

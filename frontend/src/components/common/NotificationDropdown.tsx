@@ -227,12 +227,12 @@ export const NotificationDropdown: React.FC = () => {
             )}
           </div>
           
-          <p className="text-xs text-secondary-600 dark:text-secondary-400 mt-1 line-clamp-2">
+          <p className="text-[13px] text-secondary-600 dark:text-secondary-400 mt-1.5 leading-relaxed line-clamp-2">
             {notification.message}
           </p>
           
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-secondary-500 dark:text-secondary-500">
+          <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-transparent group-hover:border-secondary-100/50 dark:group-hover:border-secondary-700/50 transition-colors">
+            <span className="text-[11px] font-medium text-secondary-500 dark:text-secondary-500 bg-secondary-100/50 dark:bg-secondary-800/50 px-2 py-0.5 rounded-full">
               {getTimeDiff(notification.created_at)}
             </span>
             
@@ -244,18 +244,18 @@ export const NotificationDropdown: React.FC = () => {
                     e.stopPropagation();
                     handleMarkAsRead(notification.id);
                   }}
-                  className="p-1.5 hover:bg-white dark:hover:bg-secondary-600 rounded-full transition-colors text-primary-600 dark:text-primary-400"
+                  className="p-1.5 hover:bg-white dark:hover:bg-secondary-600 shadow-sm hover:shadow rounded-full transition-all text-primary-600 dark:text-primary-400"
                   title="Đánh dấu đã đọc"
                 >
-                  <Check className="w-4 h-4" />
+                  <Check className="w-3.5 h-3.5" />
                 </button>
               )}
               <button
                 onClick={(e) => handleDelete(notification.id, e)}
-                className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-colors text-red-500 dark:text-red-400 opacity-60 hover:opacity-100"
+                className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 hover:shadow-sm rounded-full transition-all text-red-500 dark:text-red-400 opacity-60 hover:opacity-100"
                 title="Xóa"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -309,9 +309,9 @@ export const NotificationDropdown: React.FC = () => {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-secondary-800 rounded-lg shadow-xl border border-secondary-100 dark:border-secondary-700 overflow-hidden animate-fade-in z-50">
+        <div className="absolute right-[-1rem] sm:right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-sm bg-white dark:bg-secondary-800 rounded-xl shadow-2xl border border-secondary-100 dark:border-secondary-700 overflow-hidden animate-fade-in z-50">
           {/* Header */}
-          <div className="px-4 py-3 border-b border-secondary-100 dark:border-secondary-700 flex items-center justify-between">
+          <div className="px-4 py-3 border-b border-secondary-100 dark:border-secondary-700 flex items-center justify-between bg-secondary-50 dark:bg-secondary-800/80">
             <h3 className="font-semibold text-secondary-900 dark:text-white">Thông báo</h3>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
@@ -353,13 +353,13 @@ export const NotificationDropdown: React.FC = () => {
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="px-4 py-3 border-t border-secondary-100 dark:border-secondary-700 text-center">
+            <div className="px-4 py-3 border-t border-secondary-100 dark:border-secondary-700 text-center bg-secondary-50 dark:bg-secondary-800/50">
               <Link
                 to="/profile"
-                className="text-sm text-primary-600 dark:text-primary-400 hover:underline font-medium"
+                className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium tracking-wide"
                 onClick={() => setIsOpen(false)}
               >
-                Xem tất cả trong Hồ sơ
+                Xem tất cả thông báo &rarr;
               </Link>
             </div>
           )}

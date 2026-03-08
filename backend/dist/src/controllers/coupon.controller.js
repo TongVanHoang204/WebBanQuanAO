@@ -14,12 +14,22 @@ export const getCoupons = async (req, res) => {
                 where: whereClause,
                 skip,
                 take: limit,
-                orderBy: { created_at: 'desc' }
+                orderBy: { created_at: 'desc' },
+                include: {
+                    _count: {
+                        select: { coupon_redemptions: true }
+                    }
+                }
             }),
             prisma.coupons.count({ where: whereClause })
         ]);
+        // Map data tạo field used_count
+        const data = coupons.map(c => ({
+            ...c,
+            used_count: c._count.coupon_redemptions
+        }));
         res.json({
-            data: coupons,
+            data,
             meta: {
                 total,
                 page,

@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { AuthRequest } from '../middlewares/auth.middleware.js';
+import { logActivity } from '../services/logger.service.js';
 
 // Helper to serialize BigInt
 const serialize = (data: any) => {
@@ -106,6 +107,16 @@ export const createShippingMethod = async (req: AuthRequest, res: Response, next
       }
     });
 
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Tạo phương thức vận chuyển',
+      entity_type: 'shipping_method',
+      entity_id: String(method.id),
+      details: { name: method.name, code: method.code },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.status(201).json({
       success: true,
       data: serialize(method)
@@ -164,6 +175,16 @@ export const updateShippingMethod = async (req: AuthRequest, res: Response, next
       }
     });
 
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Cập nhật phương thức vận chuyển',
+      entity_type: 'shipping_method',
+      entity_id: String(id),
+      details: { name: method.name, code: method.code },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.json({
       success: true,
       data: serialize(method)
@@ -207,6 +228,16 @@ export const deleteShippingMethod = async (req: AuthRequest, res: Response, next
 
     await prisma.shipping_methods.delete({
       where: { id: methodId }
+    });
+
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Xóa phương thức vận chuyển',
+      entity_type: 'shipping_method',
+      entity_id: String(id),
+      details: { name: method.name, code: method.code },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
     });
 
     res.json({

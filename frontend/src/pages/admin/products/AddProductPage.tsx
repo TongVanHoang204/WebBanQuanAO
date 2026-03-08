@@ -156,6 +156,12 @@ export default function AddProductPage() {
         // 2. Create Product Data with Images
         const productData = {
             ...formData,
+            category_id: formData.category_id === '' ? undefined : formData.category_id,
+            brand_id: formData.brand_id === '' ? undefined : formData.brand_id,
+            weight: formData.weight === '' ? undefined : formData.weight,
+            length: formData.length === '' ? undefined : formData.length,
+            width: formData.width === '' ? undefined : formData.width,
+            height: formData.height === '' ? undefined : formData.height,
             variants: variants.map(v => ({
                 sku: v.sku,
                 variant_sku: v.sku,

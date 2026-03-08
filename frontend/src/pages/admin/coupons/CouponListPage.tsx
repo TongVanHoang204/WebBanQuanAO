@@ -119,8 +119,10 @@ export default function CouponListPage() {
                try {
                   await couponService.createCoupon(payload);
                   successCount++;
-               } catch (err) {
-                  console.error("Failed to auto-create coupon:", payload, err);
+               } catch (err: any) {
+                  const errMsg = err.response?.data?.message || err.message || 'Unknown error';
+                  console.error(`Failed to create coupon ${payload.code}: ${errMsg}`, payload);
+                  toast.error(`Lỗi tạo mã ${payload.code}: ${errMsg}`);
                }
             }
             

@@ -87,20 +87,6 @@ export default function HeroSection({ banner }: HeroSectionProps) {
         </>
       )}
 
-      {/* Content */}
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-        <div className="mt-32 md:mt-0 pointer-events-auto"> 
-            {banner?.link_url && (
-                 <Link 
-                 to={banner.link_url}
-                 className="btn btn-secondary px-8 py-3 text-xs animate-slide-up inline-block"
-                 style={{ animationDelay: '0.2s' }}
-              >
-                 {banner.button_text || 'Khám Phá Ngay'}
-              </Link>
-            )}
-        </div>
-      </div>
     </section>
   );
 }
