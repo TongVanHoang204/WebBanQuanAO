@@ -8,16 +8,12 @@ import { useShop } from '../hooks/useShop';
 import { Category } from '../types';
 import { categoriesAPI } from '../services/api';
 
-import { bannersAPI } from '../services/api';
-import { Banner } from '../types';
-
 export default function SalePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { products, isLoading, pagination, fetchProducts } = useShop();
   const [categories, setCategories] = useState<Category[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [gridCols, setGridCols] = useState<3 | 4>(4);
-  const [banner, setBanner] = useState<Banner | null>(null);
 
   // Get current filters from URL
   const currentPage = parseInt(searchParams.get('page') || '1');
@@ -29,13 +25,6 @@ export default function SalePage() {
 
   useEffect(() => {
     categoriesAPI.getAll().then(res => setCategories(res.data.data));
-    
-    // Fetch Sale Banner
-    bannersAPI.getAll({ position: 'sale_hero' }).then(res => {
-        if (res.data.success && res.data.data.length > 0) {
-            setBanner(res.data.data[0]);
-        }
-    }).catch(err => console.error('Failed to fetch sale banner', err));
   }, []);
 
   useEffect(() => {
@@ -78,38 +67,24 @@ export default function SalePage() {
         <meta name="description" content="Khám phá các sản phẩm giảm giá cực sốc tại Fashion Store. Cơ hội sở hữu hàng hiệu với giá tốt nhất." />
       </Helmet>
 
-      {/* Sale Banner - Dynamic or Fallback */}
-      {banner ? (
-        <div className="mb-8 relative group">
-          <div className="aspect-[21/9] md:aspect-[3/1] w-full relative overflow-hidden">
-            <a href={banner.link_url || '#'}>
-                <img 
-                src={banner.image_url} 
-                alt={banner.title} 
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-            </a>
+      {/* Elegant Sale Header */}
+      <div className="bg-secondary-900 dark:bg-black text-white py-20 mb-12 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-30 bg-[url('https://images.unsplash.com/photo-1607083206968-13611e3d76db?q=80&w=2115&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay" />
+        <div className="absolute inset-0 bg-gradient-to-t from-secondary-900 dark:from-black via-transparent to-transparent" />
+        
+        <div className="container-custom text-center relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600/90 text-white text-sm font-bold uppercase tracking-widest rounded-full mb-6 backdrop-blur-sm">
+            <Tag className="w-4 h-4" />
+            Ưu đãi đặc quyền
           </div>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-black uppercase italic tracking-tighter mb-6 drop-shadow-lg">
+            Flash Sale
+          </h1>
+          <p className="text-secondary-200 text-lg md:text-xl max-w-2xl mx-auto font-medium">
+            Tận hưởng mức giá ưu đãi lên đến <span className="text-primary-500 font-bold">50%</span> cho những thiết kế được săn đón nhất mùa này.
+          </p>
         </div>
-      ) : (
-        <div className="bg-gradient-to-r from-red-600 to-red-700 text-white py-16 mb-8 relative overflow-hidden shadow-lg">
-            {/* Abstract Pattern Background */}
-            <div className="absolute inset-0 opacity-20">
-            <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full bg-white blur-3xl mix-blend-overlay"></div>
-            <div className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full bg-yellow-300 blur-3xl mix-blend-overlay animate-pulse"></div>
-            </div>
-            
-            <div className="container-custom text-center relative z-10">
-                <h1 className="text-4xl md:text-6xl font-bold mb-6 flex items-center justify-center gap-4 animate-fade-in-up">
-                    <Tag className="w-12 h-12 md:w-16 md:h-16 rotate-12" />
-                    <span className="drop-shadow-md">Săn Sale Giá Sốc</span>
-                </h1>
-                <p className="text-red-100 text-xl md:text-2xl max-w-2xl mx-auto drop-shadow-sm">
-                    Giảm giá lên đến <span className="font-bold text-yellow-300">50%</span> cho các sản phẩm hot nhất mùa này!
-                </p>
-            </div>
-        </div>
-      )}
+      </div>
 
       <div className="container-custom py-8">
         <div className="flex gap-8">

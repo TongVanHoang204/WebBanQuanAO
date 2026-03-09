@@ -652,7 +652,7 @@ export default function AIInsightPanel({
               <span className="text-sm font-extrabold bg-gradient-to-r from-indigo-600 via-violet-600 to-pink-600 dark:from-indigo-400 dark:via-violet-400 dark:to-pink-400 bg-clip-text text-transparent">
                 {title}
               </span>
-              <span className="text-[10px] text-indigo-400/70 dark:text-indigo-500/70 font-medium tracking-wide">Powered by QUANG PHÚC</span>
+              <span className="text-[10px] text-indigo-400/70 dark:text-indigo-500/70 font-medium tracking-wide">Powered by me</span>
             </div>
             <div className="ml-1 w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
               {collapsed ? <ChevronDown className="w-3 h-3 text-indigo-500" /> : <ChevronUp className="w-3 h-3 text-indigo-500" />}

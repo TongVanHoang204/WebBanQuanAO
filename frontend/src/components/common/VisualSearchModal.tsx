@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, Search, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Upload, X, Search, Image as ImageIcon, Loader2, Palette, Sparkles } from 'lucide-react';
 import { uploadAPI, aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import ProductCard from './ProductCard';
@@ -16,6 +16,7 @@ export default function VisualSearchModal({ isOpen, onClose }: VisualSearchModal
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<Product[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [aiPowered, setAiPowered] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -67,6 +68,7 @@ export default function VisualSearchModal({ isOpen, onClose }: VisualSearchModal
       
       if (searchRes.data.success) {
         setResults(searchRes.data.data);
+        setAiPowered(searchRes.data.ai_powered !== false);
       } else {
         toast.error('Không thể tìm kiếm bằng hình ảnh lúc này');
       }
@@ -84,6 +86,7 @@ export default function VisualSearchModal({ isOpen, onClose }: VisualSearchModal
     setPreviewUrl(null);
     setResults([]);
     setHasSearched(false);
+    setAiPowered(true);
     onClose();
   };
 
@@ -159,13 +162,28 @@ export default function VisualSearchModal({ isOpen, onClose }: VisualSearchModal
             ) : hasSearched ? (
               results.length > 0 ? (
                 <div>
+                  {!aiPowered && (
+                    <div className="mb-4 px-4 py-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-xl flex items-start gap-3">
+                      <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                          Kết quả được phân tích  
+                        </p>
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                          Hệ thống AI đang bảo trì. Kết quả được gợi ý dựa trên bố cục và màu sắc tương đương.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   <h3 className="font-bold text-lg mb-6 dark:text-white flex items-center gap-2">
                     <span className="w-2 h-6 bg-primary-600 dark:bg-primary-400 block"></span>
                     Tìm thấy {results.length} sản phẩm tương tự
                   </h3>
                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
                     {results.map((product) => (
-                      <ProductCard key={product.id} product={product} />
+                      <div key={product.id} onClick={handleClose}>
+                        <ProductCard product={product} />
+                      </div>
                     ))}
                   </div>
                 </div>

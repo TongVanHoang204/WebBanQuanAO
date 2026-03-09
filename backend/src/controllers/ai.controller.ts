@@ -115,11 +115,15 @@ export const visualSearch = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    const products = await AIService.visualSearch(imagePath);
+    const result = await AIService.visualSearch(imagePath);
+
+    // Handle both AI path (returns plain array) and algorithmic fallback (returns { products, ai_powered })
+    const isAlgorithmicFallback = result && !Array.isArray(result) && 'ai_powered' in result;
 
     res.json({
       success: true,
-      data: products
+      data: isAlgorithmicFallback ? result.products : result,
+      ai_powered: isAlgorithmicFallback ? false : true
     });
   } catch (error: any) {
     console.error('Visual Search Error:', error);
