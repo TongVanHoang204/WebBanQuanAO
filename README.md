@@ -7,7 +7,7 @@ Hệ thống thương mại điện tử thời trang với React, Node.js, Pris
 ### Yêu cầu
 - Node.js 18+
 - MySQL/MariaDB
-- (Optional) Ollama với model llama3 cho AI chatbot
+- (Optional) Ollama với model gemini-3-flash-preview:cloud cho AI chatbot và tích hợp tính năng
 
 ### Cài đặt
 
