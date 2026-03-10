@@ -23,7 +23,7 @@ import {
   UserCog,
   Activity,
   CreditCard,
-  Code2,
+
   Headphones,
   Command,
   X,
@@ -209,7 +209,7 @@ export default function AdminLayout() {
     { icon: UserCog, label: 'Nhân viên', path: '/admin/staff', roles: ['admin', 'manager'] },
     { icon: CreditCard, label: 'Giao dịch', path: '/admin/transactions', roles: ['admin', 'manager'] },
     { icon: Activity, label: 'Nhật ký hoạt động', path: '/admin/logs', roles: ['admin', 'manager'] },
-    { icon: Code2, label: 'API Tester', path: '/admin/api-test', roles: ['admin'] },
+
     { icon: Settings, label: 'Cài đặt', path: '/admin/settings', roles: ['admin'] },
   ];
 

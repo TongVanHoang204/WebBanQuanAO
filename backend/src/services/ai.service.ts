@@ -837,7 +837,7 @@ QUY TẮC BẮT BUỘC:
       const typeWords = allTypeTerms.flatMap(t => t.split(/\s+/).filter(w => w.length > 1));
       const uniqueTypeWords = [...new Set(typeWords)];
 
-      this.logDebug('Visual Search type terms:', allTypeTerms, 'type words:', uniqueTypeWords);
+      this.logDebug('Visual Search type terms and words:', { allTypeTerms, uniqueTypeWords });
 
       const productInclude = {
         product_images: { where: { is_primary: true }, take: 1 },

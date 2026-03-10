@@ -134,6 +134,20 @@ export default function ProductListPage() {
   const currentQueryString = searchParams.toString();
   const listQuery = currentQueryString ? `?${currentQueryString}` : '';
 
+  // Flatten categories into a list with level indicators for the dropdown
+  const flattenCategories = (cats: any[], level = 0): any[] => {
+    let result: any[] = [];
+    cats.forEach(cat => {
+      result.push({ ...cat, level });
+      if (cat.children && cat.children.length > 0) {
+        result = [...result, ...flattenCategories(cat.children, level + 1)];
+      }
+    });
+    return result;
+  };
+
+  const flattenedCategories = flattenCategories(categories);
+
   return (
     <div className="space-y-6 pb-20">
       {/* Header */}
@@ -204,16 +218,18 @@ export default function ProductListPage() {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <LayoutGrid className="h-4 w-4 text-secondary-400" />
                 </div>
-                <select 
-                   value={category}
-                   onChange={(e) => setCategory(e.target.value)}
-                   className="appearance-none block w-full pl-9 pr-10 py-2 bg-secondary-50 dark:bg-secondary-700/50 border border-transparent hover:bg-secondary-100 dark:hover:bg-secondary-700 rounded-xl text-secondary-700 dark:text-secondary-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white dark:focus:bg-secondary-800 transition-all cursor-pointer"
-                >
-                   <option value="">Tất cả danh mục</option>
-                   {categories.map((cat: any) => (
-                      <option key={cat.id} value={cat.slug}>{cat.name}</option>
-                   ))}
-                </select>
+                 <select 
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="appearance-none block w-full pl-9 pr-10 py-2 bg-secondary-50 dark:bg-secondary-700/50 border border-transparent hover:bg-secondary-100 dark:hover:bg-secondary-700 rounded-xl text-secondary-700 dark:text-secondary-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white dark:focus:bg-secondary-800 transition-all cursor-pointer"
+                 >
+                    <option value="">Tất cả danh mục</option>
+                    {flattenedCategories.map((cat: any) => (
+                       <option key={cat.id} value={cat.slug}>
+                         {Array.from({ length: cat.level }).map(() => '—').join(' ')} {cat.name}
+                       </option>
+                    ))}
+                 </select>
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                     <ChevronDown className="h-3.5 w-3.5 text-secondary-400" />
                 </div>

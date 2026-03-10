@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma.js';
-import { createNotification } from '../controllers/notificationController.js';
+import { createNotification } from '../controllers/admin/notificationController.js';
 
 interface LogData {
   user_id?: bigint;

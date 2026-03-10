@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AIInsightPanel from '../../../components/common/AIInsightPanel';
 import {
@@ -34,12 +34,14 @@ import {
   Eye,
   Copy,
   Check,
-  UserSearch
+  UserSearch,
+  X
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { resolveApiUrl } from '../../../services/api';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmModal from '../../../components/common/ConfirmModal';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 interface UserOption {
   id: string;
@@ -105,9 +107,13 @@ const DATE_PRESETS = [
   { label: 'Tùy chỉnh', value: 'custom' },
 ];
 
-// Parse user agent
+// Parse user agent with memoization cache
+const uaCache = new Map<string, { browser: string; os: string; icon: any }>();
+
 const parseUserAgent = (ua: string): { browser: string; os: string; icon: any } => {
   if (!ua) return { browser: 'Unknown', os: '', icon: Globe };
+  if (uaCache.has(ua)) return uaCache.get(ua)!;
+
   let browser = 'Trình duyệt';
   let os = '';
 
@@ -123,7 +129,9 @@ const parseUserAgent = (ua: string): { browser: string; os: string; icon: any } 
   else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
 
   const icon = (ua.includes('Mobile') || ua.includes('Android') || ua.includes('iPhone')) ? Smartphone : Monitor;
-  return { browser, os, icon };
+  const result = { browser, os, icon };
+  uaCache.set(ua, result);
+  return result;
 };
 
 export default function ActivityLogPage() {
@@ -170,6 +178,7 @@ export default function ActivityLogPage() {
   });
 
   const autoRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Calculate date range from preset
   const getDateRange = useCallback(() => {
@@ -196,6 +205,13 @@ export default function ActivityLogPage() {
   }, [datePreset, dateFrom, dateTo]);
 
   const fetchLogs = useCallback(async () => {
+    // Cancel previous request if still pending
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     try {
       setLoading(true);
       const params: Record<string, string> = {};
@@ -212,7 +228,8 @@ export default function ActivityLogPage() {
       if (endDate) params.end_date = endDate;
 
       const res = await fetch(resolveApiUrl(`/api/admin/logs?${new URLSearchParams(params)}`), {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        signal: abortController.signal
       });
 
       const data = await res.json();
@@ -223,10 +240,13 @@ export default function ActivityLogPage() {
           setTotalLogs(data.data.pagination.total || 0);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError') return; // Ignore cancelled requests
       toast.error('Không thể tải nhật ký');
     } finally {
-      setLoading(false);
+      if (abortControllerRef.current === abortController) {
+        setLoading(false);
+      }
     }
   }, [actionFilter, entityFilter, roleFilter, userFilter, searchQuery, page, getDateRange]);
 
@@ -513,12 +533,12 @@ export default function ActivityLogPage() {
   };
 
   // --- Group logs by date ---
-  const groupLogsByDate = (logs: Log[]) => {
+  const groupLogsByDate = useCallback((logsArray: Log[]) => {
     const groups: { date: string; label: string; logs: Log[] }[] = [];
     const today = new Date().toLocaleDateString('vi-VN');
     const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('vi-VN');
 
-    logs.forEach(log => {
+    logsArray.forEach(log => {
       const dateStr = new Date(log.created_at).toLocaleDateString('vi-VN');
       let label = dateStr;
       if (dateStr === today) label = 'Hôm nay';
@@ -533,7 +553,7 @@ export default function ActivityLogPage() {
     });
 
     return groups;
-  };
+  }, []);
 
   // --- Recursive Value Renderer for deep objects/arrays ---
   const renderValue = (val: any, depth: number = 0): JSX.Element => {
@@ -694,10 +714,39 @@ export default function ActivityLogPage() {
     }
   };
 
-  const logGroups = groupLogsByDate(logs);
+  const logGroups = useMemo(() => groupLogsByDate(logs), [logs, groupLogsByDate]);
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  // Flatten the groups for virtualization while keeping track of headers vs items
+  const flatItems = useMemo(() => {
+    const items: { type: 'header' | 'log', data: any, id: string }[] = [];
+    logGroups.forEach(group => {
+      items.push({ type: 'header', data: group, id: `header-${group.date}` });
+      group.logs.forEach(log => {
+        items.push({ type: 'log', data: log, id: `log-${log.id}` });
+      });
+    });
+    return items;
+  }, [logGroups]);
+
+  const virtualizer = useVirtualizer({
+    count: flatItems.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: useCallback((index: number) => {
+      const item = flatItems[index];
+      if (item.type === 'header') return 45; // specific header height
+      
+      const log = item.data;
+      if (expandedIds.has(log.id)) {
+        return 300; // estimated expanded height
+      }
+      return 100; // estimated collapsed height
+    }, [flatItems, expandedIds]),
+    overscan: 5,
+  });
 
   return (
-    <div className="space-y-6">
+    <>
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -742,269 +791,221 @@ export default function ActivityLogPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Today */}
-        <div className="bg-white dark:bg-secondary-800 rounded-xl border border-secondary-200 dark:border-secondary-700 p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Hôm nay</p>
-              <p className="text-2xl font-bold text-secondary-900 dark:text-white mt-1">
-                {statsLoading ? <span className="inline-block w-8 h-6 bg-secondary-200 dark:bg-secondary-700 rounded animate-pulse" /> : stats?.totalToday ?? 0}
-              </p>
+      {/* Grid Layout: Left Column (Stats & Filters) + Right Column (Logs) */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+        
+        {/* LEFT COLUMN: Controls & Stats */}
+        <div className="lg:col-span-1 space-y-4">
+          
+          {/* Filters Panel */}
+          <div className="bg-white dark:bg-secondary-800 rounded-xl shadow-sm border border-secondary-200 dark:border-secondary-700 overflow-hidden">
+            <div className="p-4 bg-secondary-50 dark:bg-secondary-900 border-b border-secondary-200 dark:border-secondary-700">
+              <h2 className="text-sm font-bold text-secondary-900 dark:text-white flex items-center gap-2">
+                <Filter className="w-4 h-4" />
+                Bộ lọc tìm kiếm
+              </h2>
             </div>
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-              <CalendarDays className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-        </div>
+            <div className="p-4 flex flex-col gap-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm ID, tên, mã..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full pl-10 pr-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white placeholder-secondary-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                />
+              </div>
 
-        {/* This Week */}
-        <div className="bg-white dark:bg-secondary-800 rounded-xl border border-secondary-200 dark:border-secondary-700 p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">7 ngày qua</p>
-              <p className="text-2xl font-bold text-secondary-900 dark:text-white mt-1">
-                {statsLoading ? <span className="inline-block w-8 h-6 bg-secondary-200 dark:bg-secondary-700 rounded animate-pulse" /> : stats?.totalWeek ?? 0}
-              </p>
-            </div>
-            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
-              <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-        </div>
+              {/* Date Preset */}
+              <div className="grid grid-cols-2 gap-2">
+                {DATE_PRESETS.map(preset => (
+                  <button
+                    key={preset.value}
+                    onClick={() => {
+                      setDatePreset(prev => prev === preset.value ? '' : preset.value);
+                      if (preset.value !== 'custom') {
+                        setDateFrom('');
+                        setDateTo('');
+                      }
+                      setPage(1);
+                    }}
+                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-all text-center border ${
+                      datePreset === preset.value
+                        ? 'bg-primary-50 border-primary-500 text-primary-700 dark:bg-primary-900/40 dark:border-primary-500 dark:text-primary-300'
+                        : 'bg-secondary-50 border-transparent text-secondary-600 dark:bg-secondary-800 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-700'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
 
-        {/* Total */}
-        <div className="bg-white dark:bg-secondary-800 rounded-xl border border-secondary-200 dark:border-secondary-700 p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Tổng cộng</p>
-              <p className="text-2xl font-bold text-secondary-900 dark:text-white mt-1">
-                {statsLoading ? <span className="inline-block w-8 h-6 bg-secondary-200 dark:bg-secondary-700 rounded animate-pulse" /> : stats?.totalAll?.toLocaleString('vi-VN') ?? 0}
-              </p>
-            </div>
-            <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
-              <Zap className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-            </div>
-          </div>
-        </div>
-
-        {/* Top User */}
-        <div className="bg-white dark:bg-secondary-800 rounded-xl border border-secondary-200 dark:border-secondary-700 p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">Hoạt động nhất</p>
-              {statsLoading ? (
-                <span className="inline-block w-24 h-6 bg-secondary-200 dark:bg-secondary-700 rounded animate-pulse mt-1" />
-              ) : stats?.topUsers?.[0] ? (
-                <div className="mt-1">
-                  <p className="text-sm font-bold text-secondary-900 dark:text-white truncate">{stats.topUsers[0].full_name || stats.topUsers[0].username}</p>
-                  <p className="text-xs text-secondary-500 dark:text-secondary-400">{stats.topUsers[0].count} lượt</p>
+              {/* Custom Date Range */}
+              {datePreset === 'custom' && (
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+                    className="w-full px-2 py-1.5 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-xs text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-colors"
+                  />
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+                    className="w-full px-2 py-1.5 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-xs text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-colors"
+                  />
                 </div>
-              ) : (
-                <p className="text-sm text-secondary-400 dark:text-secondary-500 mt-1">Chưa có dữ liệu</p>
+              )}
+
+              {/* Action Filter */}
+              <div className="relative">
+                <select
+                  value={actionFilter}
+                  onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
+                  className="w-full pl-3 pr-8 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500 appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="">Tất cả thao tác</option>
+                  <option value="Tạo">Tạo mới</option>
+                  <option value="Cập nhật">Cập nhật</option>
+                  <option value="Xóa">Xóa</option>
+                  <option value="export">Xuất báo cáo</option>
+                  <option value="login">Đăng nhập</option>
+                  <option value="logout">Đăng xuất</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
+              </div>
+
+              {/* Entity Filter */}
+              <div className="relative">
+                <select
+                  value={entityFilter}
+                  onChange={(e) => { setEntityFilter(e.target.value); setPage(1); }}
+                  className="w-full pl-3 pr-8 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500 appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="">Tất cả đối tượng</option>
+                  <option value="product">Sản phẩm</option>
+                  <option value="order">Đơn hàng</option>
+                  <option value="user">Người dùng</option>
+                  <option value="category">Danh mục</option>
+                  <option value="coupon">Mã giảm giá</option>
+                  <option value="banner">Banner</option>
+                  <option value="settings">Cài đặt</option>
+                  <option value="brand">Thương hiệu</option>
+                  <option value="review">Đánh giá</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
+              </div>
+
+              {/* Role Filter */}
+              <div className="relative">
+                <select
+                  value={roleFilter}
+                  onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
+                  className="w-full pl-3 pr-8 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500 appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="">Tất cả vai trò</option>
+                  <option value="admin">Admin</option>
+                  <option value="manager">Quản lý</option>
+                  <option value="staff">Nhân viên</option>
+                  <option value="customer">Khách hàng</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
+              </div>
+
+              {/* Active Filters Summary */}
+              {(actionFilter || entityFilter || roleFilter || userFilter || datePreset || searchQuery) && (
+                <div className="pt-3 border-t border-secondary-100 dark:border-secondary-800 flex flex-wrap gap-2">
+                  {actionFilter && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 text-xs font-medium border border-primary-200 dark:border-primary-800">
+                      {ACTION_MAP[actionFilter] || actionFilter}
+                      <button onClick={() => { setActionFilter(''); setPage(1); }} className="hover:text-primary-900 dark:hover:text-white"><X className="w-3 h-3"/></button>
+                    </span>
+                  )}
+                  {entityFilter && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-300 text-xs font-medium border border-secondary-200 dark:border-secondary-700">
+                      {ENTITY_MAP[entityFilter] || entityFilter}
+                      <button onClick={() => { setEntityFilter(''); setPage(1); }} className="hover:text-secondary-900 dark:hover:text-white"><X className="w-3 h-3"/></button>
+                    </span>
+                  )}
+                  {roleFilter && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-300 text-xs font-medium border border-secondary-200 dark:border-secondary-700">
+                      {roleFilter}
+                      <button onClick={() => { setRoleFilter(''); setPage(1); }} className="hover:text-secondary-900 dark:hover:text-white"><X className="w-3 h-3"/></button>
+                    </span>
+                  )}
+                  {datePreset && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-300 text-xs font-medium border border-secondary-200 dark:border-secondary-700">
+                      {DATE_PRESETS.find(p => p.value === datePreset)?.label || datePreset}
+                      <button onClick={() => { setDatePreset(''); setDateFrom(''); setDateTo(''); setPage(1); }} className="hover:text-secondary-900 dark:hover:text-white"><X className="w-3 h-3"/></button>
+                    </span>
+                  )}
+                  <button
+                    onClick={() => {
+                      setActionFilter('');
+                      setEntityFilter('');
+                      setRoleFilter('');
+                      setUserFilter('');
+                      setDatePreset('');
+                      setDateFrom('');
+                      setDateTo('');
+                      setSearchQuery('');
+                      setPage(1);
+                    }}
+                    className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-300 font-medium ml-1"
+                  >
+                    Xóa tất cả
+                  </button>
+                </div>
               )}
             </div>
-            <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
-              <Users className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white dark:bg-secondary-800 rounded-xl shadow-sm border border-secondary-200 dark:border-secondary-700 overflow-hidden">
-        <div className="p-4 flex flex-col lg:flex-row flex-wrap gap-3">
-          {/* Search */}
-          <div className="relative flex-1 min-w-[200px] lg:min-w-[250px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
-            <input
-              type="text"
-              placeholder="Tìm kiếm theo tên người dùng, mã..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(1);
-              }}
-              className="w-full pl-10 pr-4 py-2.5 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white placeholder-secondary-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-            />
           </div>
 
-          {/* Action Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
-            <select
-              value={actionFilter}
-              onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
-              className="pl-10 pr-8 py-2.5 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500 appearance-none cursor-pointer transition-colors min-w-[160px]"
-            >
-              <option value="">Tất cả hành động</option>
-              <option value="Tạo">Tạo mới</option>
-              <option value="Cập nhật">Cập nhật</option>
-              <option value="Xóa">Xóa</option>
-              <option value="export">Xuất báo cáo</option>
-              <option value="login">Đăng nhập</option>
-              <option value="logout">Đăng xuất</option>
-            </select>
+          {/* Quick Stats Column */}
+          <div className="bg-white dark:bg-secondary-800 rounded-xl shadow-sm border border-secondary-200 dark:border-secondary-700 overflow-hidden">
+             <div className="p-4 bg-secondary-50 dark:bg-secondary-900 border-b border-secondary-200 dark:border-secondary-700">
+               <h2 className="text-sm font-bold text-secondary-900 dark:text-white flex items-center gap-2">
+                 <TrendingUp className="w-4 h-4" />
+                 Thống kê nhanh
+               </h2>
+             </div>
+             <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-secondary-500 dark:text-secondary-400 text-sm">Hôm nay</span>
+                  <span className="text-secondary-900 dark:text-white font-bold">{statsLoading ? '...' : stats?.totalToday ?? 0}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-secondary-500 dark:text-secondary-400 text-sm">7 ngày qua</span>
+                  <span className="text-secondary-900 dark:text-white font-bold">{statsLoading ? '...' : stats?.totalWeek ?? 0}</span>
+                </div>
+                <div className="flex items-center justify-between pt-3 border-t border-secondary-100 dark:border-secondary-700">
+                  <span className="text-secondary-500 dark:text-secondary-400 text-sm">Tổng lưu trữ</span>
+                  <span className="text-primary-600 dark:text-primary-400 font-bold">{statsLoading ? '...' : stats?.totalAll?.toLocaleString('vi-VN') ?? 0}</span>
+                </div>
+                
+                {stats?.topUsers?.[0] && !statsLoading && (
+                  <div className="pt-3 border-t border-secondary-100 dark:border-secondary-700">
+                     <span className="text-secondary-500 dark:text-secondary-400 text-sm block mb-1">NV sôi nổi nhất</span>
+                     <div className="flex justify-between items-center text-sm">
+                       <span className="font-medium text-secondary-900 dark:text-white truncate max-w-[120px]" title={stats.topUsers[0].full_name || stats.topUsers[0].username}>
+                         {stats.topUsers[0].full_name || stats.topUsers[0].username}
+                       </span>
+                       <span className="text-secondary-400">{stats.topUsers[0].count} log</span>
+                     </div>
+                  </div>
+                )}
+             </div>
           </div>
 
-          {/* Entity Filter */}
-          <div className="relative">
-            <Settings className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
-            <select
-              value={entityFilter}
-              onChange={(e) => { setEntityFilter(e.target.value); setPage(1); }}
-              className="pl-10 pr-8 py-2.5 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500 appearance-none cursor-pointer transition-colors min-w-[160px]"
-            >
-              <option value="">Tất cả đối tượng</option>
-              <option value="product">Sản phẩm</option>
-              <option value="order">Đơn hàng</option>
-              <option value="user">Người dùng</option>
-              <option value="category">Danh mục</option>
-              <option value="coupon">Mã giảm giá</option>
-              <option value="banner">Banner</option>
-              <option value="settings">Cài đặt</option>
-              <option value="brand">Thương hiệu</option>
-              <option value="review">Đánh giá</option>
-            </select>
-          </div>
-
-          {/* Role Filter */}
-          <div className="relative">
-            <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
-            <select
-              value={roleFilter}
-              onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-              className="pl-10 pr-8 py-2.5 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500 appearance-none cursor-pointer transition-colors min-w-[140px]"
-            >
-              <option value="">Tất cả vai trò</option>
-              <option value="admin">Admin</option>
-              <option value="manager">Quản lý</option>
-              <option value="staff">Nhân viên</option>
-              <option value="customer">Khách hàng</option>
-            </select>
-          </div>
-
-          {/* User Filter */}
-          <div className="relative">
-            <UserSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
-            <select
-              value={userFilter}
-              onChange={(e) => { setUserFilter(e.target.value); setPage(1); }}
-              className="pl-10 pr-8 py-2.5 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500 appearance-none cursor-pointer transition-colors min-w-[160px] max-w-[200px]"
-            >
-              <option value="">Tất cả người dùng</option>
-              {usersList.map(u => (
-                <option key={u.id} value={u.id}>
-                  {u.full_name || u.username} ({u.role})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Date Preset */}
-          <div className="flex items-center gap-1 bg-secondary-50 dark:bg-secondary-900 rounded-lg p-1 border border-secondary-200 dark:border-secondary-700">
-            {DATE_PRESETS.map(preset => (
-              <button
-                key={preset.value}
-                onClick={() => {
-                  setDatePreset(prev => prev === preset.value ? '' : preset.value);
-                  if (preset.value !== 'custom') {
-                    setDateFrom('');
-                    setDateTo('');
-                  }
-                  setPage(1);
-                }}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  datePreset === preset.value
-                    ? 'bg-primary-600 text-white shadow-sm'
-                    : 'text-secondary-600 dark:text-secondary-400 hover:text-secondary-900 dark:hover:text-white hover:bg-white dark:hover:bg-secondary-800'
-                }`}
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Custom Date Range */}
-          {datePreset === 'custom' && (
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
-                className="px-3 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-colors"
-              />
-              <ChevronRight className="w-4 h-4 text-secondary-400 shrink-0" />
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
-                className="px-3 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-sm text-secondary-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-colors"
-              />
-            </div>
-          )}
         </div>
 
-        {/* Active Filters Summary */}
-        {(actionFilter || entityFilter || roleFilter || userFilter || datePreset || searchQuery) && (
-          <div className="px-4 pb-3 flex flex-wrap items-center gap-2">
-            <span className="text-xs text-secondary-500 dark:text-secondary-400">Đang lọc:</span>
-            {actionFilter && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 text-xs font-medium">
-                {ACTION_MAP[actionFilter] || actionFilter}
-                <button onClick={() => { setActionFilter(''); setPage(1); }} className="hover:text-primary-900 dark:hover:text-white">×</button>
-              </span>
-            )}
-            {entityFilter && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs font-medium">
-                {ENTITY_MAP[entityFilter] || entityFilter}
-                <button onClick={() => { setEntityFilter(''); setPage(1); }} className="hover:text-blue-900 dark:hover:text-white">×</button>
-              </span>
-            )}
-            {roleFilter && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 text-xs font-medium">
-                {roleFilter === 'admin' ? 'Admin' : roleFilter === 'manager' ? 'Quản lý' : roleFilter === 'staff' ? 'Nhân viên' : 'Khách hàng'}
-                <button onClick={() => { setRoleFilter(''); setPage(1); }} className="hover:text-purple-900 dark:hover:text-white">×</button>
-              </span>
-            )}
-            {userFilter && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 text-xs font-medium">
-                {usersList.find(u => u.id === userFilter)?.full_name || usersList.find(u => u.id === userFilter)?.username || 'User'}
-                <button onClick={() => { setUserFilter(''); setPage(1); }} className="hover:text-teal-900 dark:hover:text-white">×</button>
-              </span>
-            )}
-            {datePreset && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 text-xs font-medium">
-                {DATE_PRESETS.find(p => p.value === datePreset)?.label || datePreset}
-                <button onClick={() => { setDatePreset(''); setDateFrom(''); setDateTo(''); setPage(1); }} className="hover:text-secondary-900 dark:hover:text-white">×</button>
-              </span>
-            )}
-            {searchQuery && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 text-xs font-medium">
-                "{searchQuery}"
-                <button onClick={() => { setSearchQuery(''); setPage(1); }} className="hover:text-secondary-900 dark:hover:text-white">×</button>
-              </span>
-            )}
-            <button
-              onClick={() => {
-                setActionFilter('');
-                setEntityFilter('');
-                setRoleFilter('');
-                setUserFilter('');
-                setDatePreset('');
-                setDateFrom('');
-                setDateTo('');
-                setSearchQuery('');
-                setPage(1);
-              }}
-              className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-300 font-medium transition-colors"
-            >
-              Xóa tất cả
-            </button>
-          </div>
-        )}
-      </div>
+        {/* RIGHT COLUMN: Logs View */}
+        <div className="lg:col-span-3 space-y-4">
 
       {/* AI Insight */}
       <AIInsightPanel
@@ -1081,140 +1082,178 @@ export default function ActivityLogPage() {
               </div>
             </div>
 
-            {/* Grouped Timeline */}
-            <div>
-              {logGroups.map((group, groupIdx) => (
-                <div key={group.date}>
-                  {/* Date Header */}
-                  <div className="sticky top-0 z-10 px-4 py-2.5 bg-secondary-50/90 dark:bg-secondary-900/90 backdrop-blur-sm border-b border-secondary-100 dark:border-secondary-700/50">
-                    <div className="flex items-center gap-2">
-                      <CalendarDays className="w-3.5 h-3.5 text-primary-500" />
-                      <span className="text-xs font-bold text-secondary-700 dark:text-secondary-300 uppercase tracking-wider">{group.label}</span>
-                      <span className="text-[10px] text-secondary-400 dark:text-secondary-500 font-medium">{group.date !== group.label ? `· ${group.date}` : ''}</span>
-                      <span className="ml-auto text-[10px] bg-secondary-200 dark:bg-secondary-700 text-secondary-600 dark:text-secondary-400 px-2 py-0.5 rounded-full font-medium">
-                        {group.logs.length} hoạt động
-                      </span>
-                    </div>
-                  </div>
+            <div 
+              ref={parentRef}
+              className="overflow-auto pr-2 custom-scrollbar"
+              style={{ height: '70vh', minHeight: '600px' }}
+            >
+              <div
+                style={{
+                  height: `${virtualizer.getTotalSize()}px`,
+                  width: '100%',
+                  position: 'relative',
+                }}
+              >
+                {virtualizer.getVirtualItems().map((virtualItem) => {
+                  const item = flatItems[virtualItem.index];
 
-                  {/* Timeline Items */}
-                  <div className="relative">
-                    {/* Vertical line */}
-                    <div className="absolute left-[31px] top-0 bottom-0 w-px bg-secondary-200 dark:bg-secondary-700" />
-
-                    {group.logs.map((log, logIdx) => (
-                      <div key={log.id} className="relative p-4 pl-14 hover:bg-secondary-50/50 dark:hover:bg-secondary-900/30 transition-colors group">
-                        {/* Timeline dot */}
-                        <div className={`absolute left-[27px] top-6 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-secondary-800 ${getTimelineDotColor(log.action)} z-[1]`} />
-
-                        {/* Content */}
-                        <div className="min-w-0">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              {/* Action Title */}
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold ${getActionColor(log.action)}`}>
-                                  {getActionIcon(log.action)}
-                                  {formatAction(log.action)}
-                                </span>
-                                {log.entity_type && (
-                                  <span className="text-xs text-secondary-500 dark:text-secondary-400">
-                                    {formatEntity(log.entity_type)}
-                                  </span>
-                                )}
-                                {log.entity_id && (
-                                  <span className="text-[10px] font-mono text-secondary-400 dark:text-secondary-500 bg-secondary-100 dark:bg-secondary-700 px-1.5 py-0.5 rounded">
-                                    #{log.entity_id.length > 8 ? log.entity_id.slice(0, 8) : log.entity_id}
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* Meta Info */}
-                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
-                                <span className="flex items-center gap-1 text-xs text-secondary-600 dark:text-secondary-400 font-medium">
-                                  <User className="w-3 h-3" />
-                                  {log.user?.full_name || log.user?.username || 'System'}
-                                </span>
-                                {log.user?.role && getRoleBadge(log.user.role)}
-                                <span className="flex items-center gap-1 text-xs text-secondary-400 dark:text-secondary-500" title={new Date(log.created_at).toLocaleString('vi-VN')}>
-                                  <Clock className="w-3 h-3" />
-                                  {formatRelativeTime(log.created_at)}
-                                </span>
-                                {log.ip_address && (
-                                  <span className="flex items-center gap-1 text-[10px] bg-secondary-100 dark:bg-secondary-700 text-secondary-500 dark:text-secondary-400 px-1.5 py-0.5 rounded font-mono">
-                                    <Globe className="w-3 h-3" />
-                                    {log.ip_address}
-                                  </span>
-                                )}
-                                {log.user_agent && (() => {
-                                  const ua = parseUserAgent(log.user_agent);
-                                  const UAIcon = ua.icon;
-                                  return (
-                                    <span className="flex items-center gap-1 text-[10px] text-secondary-400 dark:text-secondary-500" title={log.user_agent}>
-                                      <UAIcon className="w-3 h-3" />
-                                      {ua.browser} {ua.os && `· ${ua.os}`}
-                                    </span>
-                                  );
-                                })()}
-                              </div>
-                            </div>
-
-                            {/* Copy + Timestamp + Checkbox (visible on hover on desktop) */}
-                            <div className="flex items-center gap-3 shrink-0">
-                               <input 
-                                 type="checkbox"
-                                 checked={selectedIds.has(log.id)}
-                                 onChange={() => toggleSelect(log.id)}
-                                 className="w-4 h-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
-                               />
-                              <button
-                                onClick={() => copyLog(log)}
-                                className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-secondary-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 dark:hover:text-primary-400 opacity-0 group-hover:opacity-100 transition-all"
-                                title="Sao chép nhật ký"
-                              >
-                                {copiedId === log.id ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
-                              </button>
-                              <button
-                                onClick={() => setDeleteModal({ isOpen: true, isBulk: false, idToDelete: log.id })}
-                                className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-secondary-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-                                title="Xóa nhật ký"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                              <span className="hidden lg:block text-[10px] text-secondary-400 dark:text-secondary-500 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity font-mono">
-                                {new Date(log.created_at).toLocaleTimeString('vi-VN')}
-                              </span>
-                            </div>
+                  if (item.type === 'header') {
+                    const group = item.data;
+                    return (
+                      <div
+                        key={virtualItem.key}
+                        data-index={virtualItem.index}
+                        ref={virtualizer.measureElement}
+                        className="absolute top-0 left-0 w-full"
+                        style={{
+                          transform: `translateY(${virtualItem.start}px)`,
+                        }}
+                      >
+                        <div className="sticky top-0 z-10 px-4 py-2.5 bg-secondary-50/95 dark:bg-secondary-900/95 backdrop-blur-md border-y border-secondary-200 dark:border-secondary-700">
+                          <div className="flex items-center gap-2">
+                            <CalendarDays className="w-4 h-4 text-primary-500" />
+                            <span className="text-xs font-bold text-secondary-700 dark:text-secondary-300 uppercase tracking-wider">{group.label}</span>
+                            <span className="text-[10px] text-secondary-400 dark:text-secondary-500 font-medium">{group.date !== group.label ? `· ${group.date}` : ''}</span>
+                            <span className="ml-auto text-[10px] bg-white dark:bg-secondary-800 text-secondary-600 dark:text-secondary-400 px-2 py-0.5 rounded-full font-medium shadow-sm border border-secondary-100 dark:border-secondary-700">
+                              {group.logs.length} hoạt động
+                            </span>
                           </div>
-
-                          {/* Details */}
-                          {renderDetails(log)}
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  }
+
+                  // Render Log Item
+                  const log = item.data;
+                  return (
+                      <div
+                        key={virtualItem.key}
+                        data-index={virtualItem.index}
+                        ref={virtualizer.measureElement}
+                        className="absolute top-0 left-0 w-full"
+                        style={{
+                          transform: `translateY(${virtualItem.start}px)`,
+                        }}
+                      >
+                         <div className="relative p-4 pl-12 hover:bg-secondary-50/50 dark:hover:bg-secondary-900/30 transition-colors group border-b border-secondary-100 dark:border-secondary-800/50">
+                            {/* Vertical line connecting dots */}
+                            <div className="absolute left-[24px] top-0 bottom-0 w-px bg-secondary-200 dark:bg-secondary-700" />
+                            {/* Timeline dot */}
+                            <div className={`absolute left-[20px] top-6 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-secondary-800 ${getTimelineDotColor(log.action)} z-[1]`} />
+                            
+                            <div className="min-w-0">
+                                <div className="flex items-start justify-between gap-4">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold shadow-sm border border-transparent dark:border-secondary-700/50 ${getActionColor(log.action)}`}>
+                                        {getActionIcon(log.action)}
+                                        {formatAction(log.action)}
+                                      </span>
+                                      {log.entity_type && (
+                                        <span className="text-sm font-medium text-secondary-900 dark:text-secondary-200">
+                                          {formatEntity(log.entity_type)}
+                                        </span>
+                                      )}
+                                      {log.entity_id && (
+                                        <span className="text-[10px] font-mono text-secondary-500 dark:text-secondary-400 bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded border border-secondary-200 dark:border-secondary-700">
+                                          #{log.entity_id.length > 8 ? log.entity_id.slice(0, 8) : log.entity_id}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                      <span className="flex items-center gap-1 text-xs text-secondary-600 dark:text-secondary-400 font-medium">
+                                        <User className="w-3.5 h-3.5" />
+                                        {log.user?.full_name || log.user?.username || 'System'}
+                                      </span>
+                                      {log.user?.role && getRoleBadge(log.user.role)}
+                                      <span className="flex items-center gap-1 text-xs text-secondary-400 dark:text-secondary-500" title={new Date(log.created_at).toLocaleString('vi-VN')}>
+                                        <Clock className="w-3.5 h-3.5" />
+                                        {formatRelativeTime(log.created_at)}
+                                      </span>
+                                      {log.user_agent && (() => {
+                                        const ua = parseUserAgent(log.user_agent);
+                                        const UAIcon = ua.icon;
+                                        return (
+                                          <span className="flex items-center gap-1 text-[10px] text-secondary-400 dark:text-secondary-500 bg-secondary-50 dark:bg-secondary-900/50 px-1.5 py-0.5 rounded" title={log.user_agent}>
+                                            <UAIcon className="w-3 h-3" />
+                                            {ua.browser} {ua.os && `· ${ua.os}`}
+                                          </span>
+                                        );
+                                      })()}
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-3 shrink-0">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedIds.has(log.id)}
+                                      onChange={() => toggleSelect(log.id)}
+                                      className="w-4 h-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                                    />
+                                    <button
+                                      onClick={() => copyLog(log)}
+                                      className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-secondary-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 dark:hover:text-primary-400 opacity-0 group-hover:opacity-100 transition-all"
+                                      title="Sao chép nhật ký"
+                                    >
+                                      {copiedId === log.id ? (
+                                        <Check className="w-3 h-3 text-green-500" />
+                                      ) : (
+                                        <Copy className="w-3 h-3" />
+                                      )}
+                                    </button>
+                                    <button
+                                      onClick={() =>
+                                        setDeleteModal({
+                                          isOpen: true,
+                                          isBulk: false,
+                                          idToDelete: log.id,
+                                        })
+                                      }
+                                      className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-secondary-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                                      title="Xóa nhật ký"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
+                                    <span className="hidden lg:block text-[10px] text-secondary-400 dark:text-secondary-500 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity font-mono">
+                                      {new Date(log.created_at).toLocaleTimeString(
+                                        "vi-VN",
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Details */}
+                                {renderDetails(log)}
+                              </div>
+                            </div>
+                        </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-          </>
-        )}
+              </div>
 
-        {/* Pagination */}
-        {!loading && totalPages > 1 && (
-          <div className="px-4 py-3 border-t border-secondary-200 dark:border-secondary-700 flex flex-col sm:flex-row items-center justify-between gap-4 sm:px-6 bg-white dark:bg-secondary-800 transition-colors">
-            <div className="text-sm text-secondary-500 dark:text-secondary-400">
-              Hiển thị trang <span className="font-medium text-secondary-900 dark:text-white">{page}</span> trên <span className="font-medium text-secondary-900 dark:text-white">{totalPages}</span>
-            </div>
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-            />
-          </div>
-        )}
+              {/* Pagination */}
+              {!loading && totalPages > 0 && (
+                <div className="px-4 py-3 border-t border-secondary-200 dark:border-secondary-700 flex flex-col sm:flex-row items-center justify-between gap-4 sm:px-6 bg-white dark:bg-secondary-800 transition-colors">
+                  <div className="text-sm text-secondary-500 dark:text-secondary-400">
+                    Hiển thị trang <span className="font-medium text-secondary-900 dark:text-white">{page}</span> trên <span className="font-medium text-secondary-900 dark:text-white">{totalPages}</span>
+                  </div>
+                  <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    onPageChange={setPage}
+                  />
+                </div>
+              )}
+
+            </>
+          )}
+        </div>
       </div>
+    </div>
 
-      <ConfirmModal
+    <ConfirmModal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, isBulk: false, idToDelete: null })}
         onConfirm={handleDelete}
@@ -1226,6 +1265,6 @@ export default function ActivityLogPage() {
         cancelText="Hủy"
         isDestructive={true}
       />
-    </div>
+    </>
   );
 }

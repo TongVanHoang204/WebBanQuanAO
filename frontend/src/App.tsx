@@ -54,7 +54,7 @@ const BannerListPage = React.lazy(() => import('./pages/admin/banners/BannerList
 const StaffListPage = React.lazy(() => import('./pages/admin/staff/StaffListPage'));
 const ActivityLogPage = React.lazy(() => import('./pages/admin/logs/ActivityLogPage'));
 const TransactionListPage = React.lazy(() => import('./pages/admin/transactions/TransactionListPage'));
-const ApiTestPage = React.lazy(() => import('./pages/admin/ApiTestPage'));
+
 const AdminChatPage = React.lazy(() => import('./pages/admin/chat/AdminChatPage'));
 const MaintenancePage = React.lazy(() => import('./pages/MaintenancePage'));
 
@@ -148,7 +148,7 @@ export default function App() {
             <Route path="banners" element={<BannerListPage />} />
             <Route path="staff" element={<StaffListPage />} />
             <Route path="transactions" element={<TransactionListPage />} />
-            <Route path="api-test" element={<ApiTestPage />} />
+
             <Route path="logs" element={<ActivityLogPage />} />
             <Route path="chat" element={<AdminChatPage />} />
           </Route>

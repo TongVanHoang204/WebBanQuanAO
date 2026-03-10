@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import { prisma } from '../server.js';
-import { createNotification } from '../controllers/notificationController.js';
+import { createNotification } from '../controllers/admin/notificationController.js';
 
 const PAYMENT_TIMEOUT_MINUTES = parseInt(process.env.PAYMENT_TIMEOUT_MINUTES || '30', 10); // Configurable via env, default 30 min
 
