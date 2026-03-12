@@ -77,6 +77,12 @@ export default function ProductCard({ product, showQuickAdd = true }: ProductCar
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             referrerPolicy="no-referrer"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              if (!target.src.includes('placehold.co')) {
+                target.src = 'https://placehold.co/400x400/f1f5f9/94a3b8?text=No+Image';
+              }
+            }}
           />
           
           {/* Discount Badge */}

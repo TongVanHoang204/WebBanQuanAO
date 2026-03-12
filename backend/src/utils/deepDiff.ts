@@ -33,18 +33,16 @@ export const deepDiff = (oldData: any, newData: any, prefix = ''): DiffResult =>
 
     const fullKey = prefix ? `${prefix}.${key}` : key;
 
-    // Both undefined/null → skip
-    if (oldVal === undefined && newVal === undefined) continue;
-    if (oldVal === null && newVal === null) continue;
+    // Treat null, undefined, "" as equivalent "empty" values
+    const isEmpty = (v: any) => v === undefined || v === null || v === '';
+    if (isEmpty(oldVal) && isEmpty(newVal)) continue;
 
-    // One side missing
-    if (oldVal === undefined || oldVal === null) {
-      if (newVal !== undefined && newVal !== null) {
-        diff[fullKey] = { from: null, to: newVal };
-      }
+    // One side empty
+    if (isEmpty(oldVal)) {
+      diff[fullKey] = { from: null, to: newVal };
       continue;
     }
-    if (newVal === undefined || newVal === null) {
+    if (isEmpty(newVal)) {
       diff[fullKey] = { from: oldVal, to: null };
       continue;
     }

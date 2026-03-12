@@ -731,6 +731,49 @@ export default function ActivityLogPage() {
         );
       }
 
+      if (parsed.deleted_data && typeof parsed.deleted_data === 'object' && Object.keys(parsed.deleted_data).length > 0) {
+        const deletedEntries = Object.entries(parsed.deleted_data);
+        return (
+          <div className="mt-3">
+            <button
+              onClick={() => toggleExpand(log.id)}
+              className="flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200 transition-colors"
+            >
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+              <Trash2 className="w-3 h-3" />
+              Dữ liệu đã xóa · {deletedEntries.length} trường
+            </button>
+            {isExpanded && (
+              <div className="mt-2 rounded-lg border border-red-200 dark:border-red-800 overflow-hidden animate-fadeIn">
+                <div className="px-3 py-2 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 text-[11px] text-red-700 dark:text-red-300 font-medium">
+                  Bản ghi đã bị xóa vĩnh viễn
+                </div>
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-secondary-50 dark:bg-secondary-900">
+                      <th className="px-3 py-2 text-left font-semibold text-secondary-500 dark:text-secondary-400 w-1/3">Trường</th>
+                      <th className="px-3 py-2 text-left font-semibold text-red-500 dark:text-red-400">Giá trị</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-secondary-100 dark:divide-secondary-700">
+                    {deletedEntries.map(([field, value]) => (
+                      <tr key={field} className="hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors">
+                        <td className="px-3 py-2 font-medium text-secondary-700 dark:text-secondary-300">{field}</td>
+                        <td className="px-3 py-2 break-all">
+                          <div className="bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded line-through text-red-700 dark:text-red-300">
+                            {renderValue(value)}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        );
+      }
+
       if (parsed.diff && Object.keys(parsed.diff).length > 0) {
         return (
           <div className="mt-3">

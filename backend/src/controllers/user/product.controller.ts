@@ -185,7 +185,7 @@ export const getProducts = async (
             select: { id: true, name: true, slug: true }
           },
           product_images: {
-            where: { is_primary: true },
+            orderBy: [{ is_primary: 'desc' }, { sort_order: 'asc' }],
             take: 1
           },
           product_variants: {
@@ -232,7 +232,7 @@ export const getProducts = async (
             select: { id: true, name: true, slug: true }
           },
           product_images: {
-            where: { is_primary: true },
+            orderBy: [{ is_primary: 'desc' }, { sort_order: 'asc' }],
             take: 1
           },
           product_variants: {
@@ -393,7 +393,7 @@ export const getNewArrivals = async (
           select: { id: true, name: true, slug: true }
         },
         product_images: {
-          where: { is_primary: true },
+          orderBy: [{ is_primary: 'desc' }, { sort_order: 'asc' }],
           take: 1
         },
         product_variants: {
@@ -447,7 +447,7 @@ export const searchProducts = async (
         slug: true,
         base_price: true,
         product_images: {
-          where: { is_primary: true },
+          orderBy: [{ is_primary: 'desc' }, { sort_order: 'asc' }],
           take: 1,
           select: { url: true }
         }
