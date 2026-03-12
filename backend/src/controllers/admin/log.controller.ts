@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { prisma } from '../../lib/prisma.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
+import { logActivity } from '../../services/logger.service.js';
 
 // Helper
 const serialize = (data: any) => {
@@ -47,7 +48,7 @@ export const getLogs = async (req: AuthRequest, res: Response, next: NextFunctio
       }
     }
 
-    const [logs, total] = await Promise.all([
+    const [logs, total, rollbackEntries] = await Promise.all([
       prisma.activity_logs.findMany({
         where,
         orderBy: { created_at: 'desc' },
@@ -59,13 +60,33 @@ export const getLogs = async (req: AuthRequest, res: Response, next: NextFunctio
           }
         }
       }),
-      prisma.activity_logs.count({ where })
+      prisma.activity_logs.count({ where }),
+      prisma.activity_logs.findMany({
+        where: { action: 'Khôi phục dữ liệu' },
+        select: { details: true }
+      })
     ]);
+
+    // Build a set of log IDs that have already been rolled back
+    const rolledBackIds = new Set<string>();
+    for (const entry of rollbackEntries) {
+      if (entry.details) {
+        try {
+          const d = JSON.parse(entry.details);
+          if (d.rolled_back_from_log_id) rolledBackIds.add(String(d.rolled_back_from_log_id));
+        } catch { /* ignore malformed */ }
+      }
+    }
+
+    const annotatedLogs = serialize(logs).map((l: any) => ({
+      ...l,
+      is_rolled_back: rolledBackIds.has(String(l.id))
+    }));
 
     res.json({
       success: true,
       data: {
-        logs: serialize(logs),
+        logs: annotatedLogs,
         pagination: {
           page: pageNum,
           limit: limitNum,
@@ -234,6 +255,204 @@ export const bulkDeleteLogs = async (req: AuthRequest, res: Response, next: Next
     });
 
     res.json({ success: true, message: `Đã xóa ${count} nhật ký` });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Rollback an entity to the state captured in a log entry
+ * POST /api/admin/logs/:id/rollback
+ */
+export const rollbackLog = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    // Only admins can perform rollbacks
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({ success: false, error: { message: 'Chỉ Admin mới có quyền khôi phục dữ liệu' } });
+    }
+
+    const { id } = req.params;
+    const logId = Array.isArray(id) ? id[0] : id;
+    const log = await prisma.activity_logs.findUnique({ where: { id: BigInt(logId) } });
+
+    if (!log) {
+      return res.status(404).json({ success: false, error: { message: 'Không tìm thấy nhật ký' } });
+    }
+
+    // Guard: prevent rolling back the same log twice
+    const alreadyRolledBack = await prisma.activity_logs.findFirst({
+      where: {
+        action: 'Khôi phục dữ liệu',
+        details: { contains: `"rolled_back_from_log_id":"${logId}"` }
+      },
+      select: { id: true }
+    });
+    if (alreadyRolledBack) {
+      return res.status(409).json({ success: false, error: { message: 'Nhật ký này đã được khôi phục trước đó' } });
+    }
+
+    if (!log.details) {
+      return res.status(400).json({ success: false, error: { message: 'Nhật ký này không có dữ liệu để khôi phục' } });
+    }
+
+    let details: any;
+    try {
+      details = JSON.parse(log.details);
+    } catch {
+      return res.status(400).json({ success: false, error: { message: 'Dữ liệu nhật ký không hợp lệ' } });
+    }
+
+    const entityType = log.entity_type;
+    const entityId = log.entity_id;
+    const isDelete = log.action?.includes('Xóa');
+
+    // Build restore data: prefer explicit `before`, fall back to diff reconstruction, then deleted_data
+    let restoreData: Record<string, any> = {};
+
+    if (details.before && typeof details.before === 'object') {
+      restoreData = { ...details.before };
+    } else if (details.diff && typeof details.diff === 'object' && Object.keys(details.diff).length > 0) {
+      // Reconstruct from diff — only changed fields but enough to invert the change
+      for (const [field, change] of Object.entries(details.diff)) {
+        restoreData[field] = (change as any).from;
+      }
+    } else if (details.deleted_data && typeof details.deleted_data === 'object') {
+      restoreData = { ...details.deleted_data };
+    } else {
+      return res.status(400).json({ success: false, error: { message: 'Không tìm thấy dữ liệu trước đó để khôi phục' } });
+    }
+
+    // Remove system-managed fields
+    const { id: _id, created_at, updated_at, password_hash, password, ...safeData } = restoreData as any;
+
+    let result: any = null;
+
+    switch (entityType) {
+      case 'brand': {
+        if (isDelete && details.deleted_data) {
+          const brandId = details.deleted_data.id ? BigInt(details.deleted_data.id) : undefined;
+          result = await prisma.brands.create({
+            data: {
+              ...(brandId ? { id: brandId } : {}),
+              name: safeData.name,
+              slug: safeData.slug,
+              logo: safeData.logo ?? null,
+              description: safeData.description ?? null,
+              is_active: safeData.is_active ?? true,
+            }
+          });
+        } else if (entityId) {
+          result = await prisma.brands.update({
+            where: { id: BigInt(entityId) },
+            data: {
+              ...(safeData.name !== undefined && { name: safeData.name }),
+              ...(safeData.slug !== undefined && { slug: safeData.slug }),
+              ...(safeData.logo !== undefined && { logo: safeData.logo }),
+              ...(safeData.description !== undefined && { description: safeData.description }),
+              ...(safeData.is_active !== undefined && { is_active: safeData.is_active }),
+            }
+          });
+        }
+        break;
+      }
+      case 'category': {
+        if (isDelete && details.deleted_data) {
+          const catId = details.deleted_data.id ? BigInt(details.deleted_data.id) : undefined;
+          result = await prisma.categories.create({
+            data: {
+              ...(catId ? { id: catId } : {}),
+              name: safeData.name,
+              slug: safeData.slug,
+              parent_id: safeData.parent_id ? BigInt(safeData.parent_id) : null,
+              is_active: safeData.is_active ?? true,
+              sort_order: safeData.sort_order ?? 0,
+            }
+          });
+        } else if (entityId) {
+          result = await prisma.categories.update({
+            where: { id: BigInt(entityId) },
+            data: {
+              ...(safeData.name !== undefined && { name: safeData.name }),
+              ...(safeData.slug !== undefined && { slug: safeData.slug }),
+              ...(safeData.parent_id !== undefined && { parent_id: safeData.parent_id ? BigInt(safeData.parent_id) : null }),
+              ...(safeData.is_active !== undefined && { is_active: safeData.is_active }),
+              ...(safeData.sort_order !== undefined && { sort_order: safeData.sort_order }),
+            }
+          });
+        }
+        break;
+      }
+      case 'product': {
+        if (entityId) {
+          const productUpdate: Record<string, any> = {};
+          const safeFields = ['name', 'description', 'is_active', 'sku'];
+          for (const f of safeFields) {
+            if (safeData[f] !== undefined) productUpdate[f] = safeData[f];
+          }
+          if (safeData.price !== undefined) productUpdate.price = Number(safeData.price);
+          if (safeData.sale_price !== undefined) productUpdate.sale_price = safeData.sale_price != null ? Number(safeData.sale_price) : null;
+          if (Object.keys(productUpdate).length > 0) {
+            result = await prisma.products.update({ where: { id: BigInt(entityId) }, data: productUpdate });
+          } else {
+            return res.status(400).json({ success: false, error: { message: 'Không tìm thấy trường dữ liệu để khôi phục cho sản phẩm' } });
+          }
+        }
+        break;
+      }
+      case 'user': {
+        if (entityId) {
+          const userUpdate: Record<string, any> = {};
+          const safeFields = ['full_name', 'phone', 'role', 'status', 'address_line1', 'address_line2', 'city', 'province', 'country'];
+          for (const f of safeFields) {
+            if (safeData[f] !== undefined) userUpdate[f] = safeData[f];
+          }
+          if (Object.keys(userUpdate).length > 0) {
+            result = await prisma.users.update({ where: { id: BigInt(entityId) }, data: userUpdate });
+          } else {
+            return res.status(400).json({ success: false, error: { message: 'Không tìm thấy trường dữ liệu để khôi phục cho người dùng' } });
+          }
+        }
+        break;
+      }
+      default:
+        return res.status(400).json({ success: false, error: { message: `Loại đối tượng "${entityType}" chưa hỗ trợ rollback` } });
+    }
+
+    if (!result) {
+      return res.status(500).json({ success: false, error: { message: 'Không thể thực hiện khôi phục' } });
+    }
+
+    // Build restored_values: only include fields that actually changed
+    // If the original log stored a diff, use only those keys (they are the changed fields)
+    // For deletions (no diff), include everything since the whole entity is being restored
+    const restoredValues: Record<string, any> = {};
+    if (details.diff && typeof details.diff === 'object' && Object.keys(details.diff).length > 0) {
+      for (const [field, change] of Object.entries(details.diff)) {
+        restoredValues[field] = (change as any).from;
+      }
+    } else {
+      for (const [k, v] of Object.entries(safeData)) {
+        restoredValues[k] = v;
+      }
+    }
+
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Khôi phục dữ liệu',
+      entity_type: entityType || undefined,
+      entity_id: entityId || undefined,
+      details: {
+        rolled_back_from_log_id: log.id.toString(),
+        original_action: log.action,
+        entity_type: entityType,
+        entity_id: entityId,
+        restored_values: restoredValues,
+      },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
+    res.json({ success: true, message: 'Khôi phục dữ liệu thành công' });
   } catch (error) {
     next(error);
   }

@@ -35,7 +35,8 @@ import {
   Copy,
   Check,
   UserSearch,
-  X
+  X,
+  RotateCcw
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { resolveApiUrl } from '../../../services/api';
@@ -60,6 +61,7 @@ interface Log {
   ip_address: string;
   user_agent: string;
   created_at: string;
+  is_rolled_back?: boolean;
   user?: {
     username: string;
     full_name: string;
@@ -176,6 +178,10 @@ export default function ActivityLogPage() {
     isBulk: false,
     idToDelete: null
   });
+
+  // Rollback state
+  const [rollbackModal, setRollbackModal] = useState<{ isOpen: boolean; logId: string | null; action: string }>({ isOpen: false, logId: null, action: '' });
+  const [rollbackingIds, setRollbackingIds] = useState<Set<string>>(new Set());
 
   const autoRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -594,9 +600,49 @@ export default function ActivityLogPage() {
     return <span>{String(val)}</span>;
   };
 
+  // --- Rollback Helpers ---
+  // Returns true if the log HAS rollback-able data (regardless of whether it was already rolled back)
+  const hasRollbackData = (log: Log): boolean => {
+    const isUpdateOrDelete = log.action.includes('Cập nhật') || log.action.includes('Xóa');
+    if (!isUpdateOrDelete) return false;
+    const supported = ['brand', 'category', 'product', 'user'];
+    if (!supported.includes(log.entity_type)) return false;
+    if (!log.details) return false;
+    try {
+      const parsed = JSON.parse(log.details);
+      return !!(parsed.before || (parsed.diff && Object.keys(parsed.diff).length > 0) || parsed.deleted_data);
+    } catch { return false; }
+  };
+
+  const canRollback = (log: Log): boolean => hasRollbackData(log) && !log.is_rolled_back;
+
+  const handleRollback = async () => {
+    const logId = rollbackModal.logId;
+    if (!logId) return;
+    setRollbackModal({ isOpen: false, logId: null, action: '' });
+    setRollbackingIds(prev => new Set([...prev, logId]));
+    try {
+      const res = await fetch(resolveApiUrl(`/api/admin/logs/${logId}/rollback`), {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Khôi phục dữ liệu thành công');
+        fetchLogs();
+        fetchStats();
+      } else {
+        toast.error(data.error?.message || 'Khôi phục thất bại');
+      }
+    } catch {
+      toast.error('Có lỗi xảy ra khi khôi phục');
+    } finally {
+      setRollbackingIds(prev => { const next = new Set(prev); next.delete(logId); return next; });
+    }
+  };
+
   // --- Copy Log to Clipboard ---
-  const copyLog = async (log: Log) => {
-    const lines: string[] = [
+  const copyLog = async (log: Log) => {    const lines: string[] = [
       `📝 Nhật ký #${log.id}`,
       `Hành động: ${formatAction(log.action)}`,
       `Đối tượng: ${formatEntity(log.entity_type)} ${log.entity_id ? '#' + log.entity_id : ''}`,
@@ -629,6 +675,61 @@ export default function ActivityLogPage() {
 
     try {
       const parsed = JSON.parse(log.details);
+
+      // --- Rollback detail view ---
+      if (parsed.restored_values && typeof parsed.restored_values === 'object') {
+        const restoredEntries = Object.entries(parsed.restored_values);
+        const entityLabel = ENTITY_MAP[parsed.entity_type] || parsed.entity_type || '';
+        return (
+          <div className="mt-3">
+            <button
+              onClick={() => toggleExpand(log.id)}
+              className="flex items-center gap-1.5 text-xs font-medium text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-200 transition-colors"
+            >
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+              <RotateCcw className="w-3 h-3" />
+              Xem chi tiết khôi phục · {restoredEntries.length} trường
+            </button>
+            {isExpanded && (
+              <div className="mt-2 rounded-lg border border-amber-200 dark:border-amber-800 overflow-hidden animate-fadeIn">
+                {/* Header metadata */}
+                <div className="px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-amber-700 dark:text-amber-300">
+                  {parsed.original_action && (
+                    <span>Hoàn tác: <strong>{parsed.original_action}</strong></span>
+                  )}
+                  {entityLabel && parsed.entity_id && (
+                    <span>{entityLabel} <strong>#{parsed.entity_id}</strong></span>
+                  )}
+                  {parsed.rolled_back_from_log_id && (
+                    <span className="font-mono opacity-70">Log #{parsed.rolled_back_from_log_id}</span>
+                  )}
+                </div>
+                {/* Restored values table */}
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-secondary-50 dark:bg-secondary-900">
+                      <th className="px-3 py-2 text-left font-semibold text-secondary-500 dark:text-secondary-400 w-1/3">Trường</th>
+                      <th className="px-3 py-2 text-left font-semibold text-amber-600 dark:text-amber-400">Giá trị được khôi phục</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-secondary-100 dark:divide-secondary-700">
+                    {restoredEntries.map(([field, value]) => (
+                      <tr key={field} className="hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors">
+                        <td className="px-3 py-2 font-medium text-secondary-700 dark:text-secondary-300">{field}</td>
+                        <td className="px-3 py-2 break-all">
+                          <div className="bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded font-medium text-amber-800 dark:text-amber-200">
+                            {renderValue(value)}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        );
+      }
 
       if (parsed.diff && Object.keys(parsed.diff).length > 0) {
         return (
@@ -875,8 +976,8 @@ export default function ActivityLogPage() {
                   <option value="Cập nhật">Cập nhật</option>
                   <option value="Xóa">Xóa</option>
                   <option value="export">Xuất báo cáo</option>
-                  <option value="login">Đăng nhập</option>
-                  <option value="logout">Đăng xuất</option>
+                  <option value="Đăng nhập">Đăng nhập</option>
+                  <option value="Đăng xuất">Đăng xuất</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
               </div>
@@ -1181,6 +1282,12 @@ export default function ActivityLogPage() {
                                           </span>
                                         );
                                       })()}
+                                      {log.ip_address && (
+                                        <span className="flex items-center gap-1 text-[10px] text-secondary-400 dark:text-secondary-500 bg-secondary-50 dark:bg-secondary-900/50 px-1.5 py-0.5 rounded font-mono" title="Địa chỉ IP">
+                                          <Globe className="w-3 h-3 shrink-0" />
+                                          {log.ip_address}
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
 
@@ -1191,6 +1298,25 @@ export default function ActivityLogPage() {
                                       onChange={() => toggleSelect(log.id)}
                                       className="w-4 h-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
                                     />
+                                    {hasRollbackData(log) && (
+                                      log.is_rolled_back ? (
+                                        <span
+                                          className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-secondary-300 dark:text-secondary-600 opacity-0 group-hover:opacity-100 cursor-not-allowed"
+                                          title="Đã khôi phục trước đó"
+                                        >
+                                          <RotateCcw className="w-3 h-3" />
+                                        </span>
+                                      ) : (
+                                        <button
+                                          onClick={() => setRollbackModal({ isOpen: true, logId: log.id, action: log.action })}
+                                          disabled={rollbackingIds.has(log.id)}
+                                          className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-secondary-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 dark:hover:text-amber-400 opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
+                                          title="Khôi phục về trạng thái trước"
+                                        >
+                                          {rollbackingIds.has(log.id) ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3" />}
+                                        </button>
+                                      )
+                                    )}
                                     <button
                                       onClick={() => copyLog(log)}
                                       className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-secondary-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 dark:hover:text-primary-400 opacity-0 group-hover:opacity-100 transition-all"
@@ -1264,6 +1390,16 @@ export default function ActivityLogPage() {
         confirmText="Xóa nhật ký"
         cancelText="Hủy"
         isDestructive={true}
+      />
+    <ConfirmModal
+        isOpen={rollbackModal.isOpen}
+        onClose={() => setRollbackModal({ isOpen: false, logId: null, action: '' })}
+        onConfirm={handleRollback}
+        title="Xác nhận khôi phục dữ liệu"
+        message={`Bạn sắp khôi phục đối tượng về trạng thái trước hành động "${rollbackModal.action}". Thao tác này sẽ ghi đè dữ liệu hiện tại. Tiếp tục?`}
+        confirmText="Khôi phục"
+        cancelText="Hủy"
+        isDestructive={false}
       />
     </>
   );

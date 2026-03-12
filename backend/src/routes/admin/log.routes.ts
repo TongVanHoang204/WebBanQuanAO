@@ -1,5 +1,5 @@
 import express from 'express';
-import { getLogs, getLogStats, exportLogs, deleteLog, bulkDeleteLogs } from '../../controllers/admin/log.controller.js';
+import { getLogs, getLogStats, exportLogs, deleteLog, bulkDeleteLogs, rollbackLog } from '../../controllers/admin/log.controller.js';
 import { verifyToken, authorize } from '../../middlewares/auth.middleware.js';
 
 const router = express.Router();
@@ -27,6 +27,7 @@ router.get('/stats', getLogStats);
 
 router.delete('/:id', deleteLog);
 router.post('/bulk-delete', bulkDeleteLogs);
+router.post('/:id/rollback', rollbackLog);
 
 /**
  * @swagger

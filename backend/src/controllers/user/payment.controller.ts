@@ -98,6 +98,17 @@ export const createPaymentUrl = async (req: AuthRequest, res: Response, next: Ne
         vnp_Params['vnp_SecureHash'] = signed;
         const vnpUrl = vnp_Url + '?' + querystring.stringify(vnp_Params, { encode: false });
 
+        // Audit: Log payment URL creation
+        logActivity({
+            user_id: req.user?.id ? BigInt(req.user.id) : undefined,
+            action: 'T\u1ea1o URL thanh to\u00e1n VNPay',
+            entity_type: 'order',
+            entity_id: String(order_id),
+            details: { order_code: order.order_code, amount: Number(order.grand_total) },
+            ip_address: req.ip,
+            user_agent: req.get('User-Agent')
+        }).catch(() => {});
+
         res.json({
             success: true,
             data: { url: vnpUrl }

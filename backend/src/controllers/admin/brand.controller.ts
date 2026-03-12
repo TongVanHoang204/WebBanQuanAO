@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../../lib/prisma.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
 import { logActivity } from '../../services/logger.service.js';
+import { deepDiff } from '../../utils/deepDiff.js';
 
 // Helper to serialize BigInt
 const serialize = (data: any) => {
@@ -209,12 +210,14 @@ export const updateBrand = async (req: AuthRequest, res: Response, next: NextFun
       }
     });
 
+    const brandBefore = serialize({ name: existing.name, slug: existing.slug, logo: existing.logo, description: existing.description, is_active: existing.is_active });
+    const brandAfter = serialize({ name: brand.name, slug: brand.slug, logo: brand.logo, description: brand.description, is_active: brand.is_active });
     await logActivity({
       user_id: BigInt(req.user?.id || 0),
       action: 'Cập nhật thương hiệu',
       entity_type: 'brand',
       entity_id: String(id),
-      details: { name: brand.name, slug: brand.slug },
+      details: { before: brandBefore, after: brandAfter, diff: deepDiff(brandBefore, brandAfter) },
       ip_address: req.ip,
       user_agent: req.get('User-Agent')
     });
@@ -264,7 +267,7 @@ export const deleteBrand = async (req: AuthRequest, res: Response, next: NextFun
       action: 'Xóa thương hiệu',
       entity_type: 'brand',
       entity_id: String(id),
-      details: { name: brand.name },
+      details: { deleted_data: serialize({ id: String(brand.id), name: brand.name, slug: brand.slug, logo: brand.logo, description: brand.description, is_active: brand.is_active }) },
       ip_address: req.ip,
       user_agent: req.get('User-Agent')
     });

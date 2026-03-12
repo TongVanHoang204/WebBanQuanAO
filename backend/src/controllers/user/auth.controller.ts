@@ -79,6 +79,17 @@ export const register = async (
     // Send welcome email
     sendWelcomeEmail(user.email, user.full_name || user.username).catch(console.error);
 
+    // Audit: Log new registration
+    logActivity({
+      user_id: user.id,
+      action: 'Đăng ký tài khoản',
+      entity_type: 'auth',
+      entity_id: user.id.toString(),
+      details: { username: user.username, email: user.email },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    }).catch(() => {});
+
     res.status(201).json({
       success: true,
       data: {
@@ -238,6 +249,16 @@ export const verify2FA = async (
       { expiresIn: '7d' as const }
     );
 
+    // Audit: Log 2FA success
+    logActivity({
+      user_id: user.id,
+      action: 'Xác thực 2FA thành công',
+      entity_type: 'auth',
+      details: { email: user.email },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    }).catch(() => {});
+
     res.json({
       success: true,
       data: {
@@ -265,6 +286,16 @@ export const toggle2FA = async (
       where: { id: req.user.id },
       data: { two_factor_enabled: Boolean(enabled) } as any
     });
+
+    // Audit: Log 2FA toggle
+    logActivity({
+      user_id: req.user.id,
+      action: enabled ? 'Bật xác thực 2 bước' : 'Tắt xác thực 2 bước',
+      entity_type: 'auth',
+      details: { enabled: Boolean(enabled) },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    }).catch(() => {});
 
     res.json({
       success: true,
@@ -488,6 +519,17 @@ export const updateProfile = async (
       }
     });
 
+    // Audit: Log profile update
+    logActivity({
+      user_id: req.user.id,
+      action: 'Cập nhật hồ sơ',
+      entity_type: 'user',
+      entity_id: req.user.id.toString(),
+      details: { full_name, phone, city, province },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    }).catch(() => {});
+
     res.json({
       success: true,
       data: serializeUser(user)
@@ -575,6 +617,16 @@ export const changePassword = async (
       data: { password_hash }
     });
 
+    // Audit: Log password change
+    logActivity({
+      user_id: req.user.id,
+      action: 'Đổi mật khẩu',
+      entity_type: 'auth',
+      details: { username: user.username },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    }).catch(() => {});
+
     res.json({
       success: true,
       message: 'Password updated successfully'
@@ -623,6 +675,16 @@ export const forgotPassword = async (
 
     // Send real email with reset link
     sendResetPasswordEmail(email, resetToken).catch(console.error);
+
+    // Audit: Log password reset request (security event)
+    logActivity({
+      user_id: user.id,
+      action: 'Yêu cầu đặt lại mật khẩu',
+      entity_type: 'auth',
+      details: { email },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    }).catch(() => {});
     
     res.json({
       success: true,
@@ -681,6 +743,16 @@ export const resetPassword = async (
         two_factor_expires: null
       } as any
     });
+
+    // Audit: Log successful password reset (security event)
+    logActivity({
+      user_id: user.id,
+      action: 'Đặt lại mật khẩu thành công',
+      entity_type: 'auth',
+      details: { email },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    }).catch(() => {});
 
     res.json({
       success: true,
@@ -762,6 +834,17 @@ export const addAddress = async (
       success: true,
       data: { ...address, id: address.id.toString(), user_id: address.user_id.toString() }
     });
+
+    // Audit: Log address added
+    logActivity({
+      user_id: req.user!.id,
+      action: 'Thêm địa chỉ',
+      entity_type: 'address',
+      entity_id: address.id.toString(),
+      details: { city, province, type: type || 'Nhà riêng' },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    }).catch(() => {});
   } catch (error) {
     next(error);
   }
@@ -819,6 +902,17 @@ export const updateAddress = async (
       success: true,
       data: { ...updated, id: updated.id.toString(), user_id: updated.user_id.toString() }
     });
+
+    // Audit: Log address updated
+    logActivity({
+      user_id: req.user!.id,
+      action: 'Cập nhật địa chỉ',
+      entity_type: 'address',
+      entity_id: String(id),
+      details: { city, province },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    }).catch(() => {});
   } catch (error) {
     next(error);
   }
@@ -844,6 +938,17 @@ export const deleteAddress = async (
     await prisma.shipping_addresses.delete({
       where: { id: BigInt(id as string) }
     });
+
+    // Audit: Log address deleted
+    logActivity({
+      user_id: req.user!.id,
+      action: 'Xóa địa chỉ',
+      entity_type: 'address',
+      entity_id: String(id),
+      details: {},
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    }).catch(() => {});
 
     res.json({ success: true, message: 'Address deleted' });
   } catch (error) {
@@ -889,6 +994,17 @@ export const setDefaultAddress = async (
           }
        })
     ]);
+
+    // Audit: Log default address changed
+    logActivity({
+      user_id: req.user!.id,
+      action: 'Đổi địa chỉ mặc định',
+      entity_type: 'address',
+      entity_id: String(id),
+      details: { city: existing.city, province: existing.province },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    }).catch(() => {});
 
     res.json({ success: true, message: 'Default address updated' });
   } catch (error) {

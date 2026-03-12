@@ -4,6 +4,7 @@ import { AuthRequest } from '../../middlewares/auth.middleware.js';
 import bcrypt from 'bcryptjs';
 import { logActivity } from '../../services/logger.service.js';
 import { getIO } from '../../socket.js';
+import { deepDiff } from '../../utils/deepDiff.js';
 
 // Helper to serialize BigInt
 const serialize = (data: any) => {
@@ -313,6 +314,18 @@ export const updateStaff = async (req: AuthRequest, res: Response, next: NextFun
       }
     }
 
+    const staffBefore = serialize({ full_name: existing.full_name, phone: existing.phone, role: existing.role, status: existing.status });
+    const staffAfter = serialize({ full_name: staff.full_name, phone: staff.phone, role: staff.role, status: staff.status });
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Cập nhật nhân viên',
+      entity_type: 'user',
+      entity_id: String(id),
+      details: { before: staffBefore, after: staffAfter, diff: deepDiff(staffBefore, staffAfter) },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.json({
       success: true,
       data: serialize(staff)
@@ -461,6 +474,16 @@ export const createRole = async (req: AuthRequest, res: Response, next: NextFunc
       }
     });
 
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Tạo vai trò',
+      entity_type: 'permission',
+      entity_id: String(role.id),
+      details: { name: role.name, description: role.description },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.status(201).json({
       success: true,
       data: serialize(role)
@@ -482,6 +505,16 @@ export const updateRole = async (req: AuthRequest, res: Response, next: NextFunc
     const role = await prisma.permissions.update({
       where: { id: parseInt(id as string) },
       data: { description }
+    });
+
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Cập nhật vai trò',
+      entity_type: 'permission',
+      entity_id: String(id),
+      details: { description },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
     });
 
     res.json({
@@ -531,6 +564,16 @@ export const deleteRole = async (req: AuthRequest, res: Response, next: NextFunc
 
     await prisma.permissions.delete({
       where: { id: parseInt(id as string) }
+    });
+
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Xóa vai trò',
+      entity_type: 'permission',
+      entity_id: String(id),
+      details: { name: role.name },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
     });
 
     res.json({

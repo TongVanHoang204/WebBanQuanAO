@@ -34,6 +34,16 @@ export const getBanners = async (req: AuthRequest, res: Response, next: NextFunc
       include: { banner_images: { orderBy: { sort_order: 'asc' } } }
     });
 
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Xem danh sách banner',
+      entity_type: 'banner',
+      entity_id: 'list',
+      details: { position: position || 'all', include_inactive: include_inactive === 'true' },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.json({
       success: true,
       data: serialize(banners)
@@ -100,6 +110,16 @@ export const getBannerById = async (req: AuthRequest, res: Response, next: NextF
         error: { message: 'Không tìm thấy banner' }
       });
     }
+
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Xem chi tiết banner',
+      entity_type: 'banner',
+      entity_id: String(id),
+      details: { title: banner.title },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
 
     res.json({
       success: true,

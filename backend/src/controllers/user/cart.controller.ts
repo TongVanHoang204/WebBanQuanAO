@@ -3,6 +3,7 @@ import { prisma } from '../../server.js';
 import { ApiError } from '../../middlewares/error.middleware.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
 import { addToCartSchema, updateCartItemSchema } from '../../validators/cart.validator.js';
+import { logActivity } from '../../services/logger.service.js';
 
 // Helper to convert BigInt to string for JSON serialization
 const serializeCart = (cart: any) => {
@@ -205,6 +206,19 @@ export const addToCart = async (
       success: true,
       message: 'Item added to cart'
     });
+
+    // Audit: Log add to cart (fire-and-forget)
+    if (userId) {
+      logActivity({
+        user_id: userId,
+        action: 'Thêm vào giỏ hàng',
+        entity_type: 'cart',
+        entity_id: String(validatedData.variant_id),
+        details: { variant_id: validatedData.variant_id, quantity: validatedData.quantity },
+        ip_address: req.ip,
+        user_agent: req.get('User-Agent')
+      }).catch(() => {});
+    }
   } catch (error) {
     next(error);
   }
@@ -305,6 +319,19 @@ export const removeCartItem = async (
       where: { id: BigInt(itemId as string) }
     });
 
+    // Audit: Log item removed
+    if (userId) {
+      logActivity({
+        user_id: userId,
+        action: 'Xóa sản phẩm khỏi giỏ hàng',
+        entity_type: 'cart',
+        entity_id: String(itemId),
+        details: {},
+        ip_address: req.ip,
+        user_agent: req.get('User-Agent')
+      }).catch(() => {});
+    }
+
     res.json({
       success: true,
       message: 'Item removed from cart'
@@ -335,6 +362,18 @@ export const clearCart = async (
       await prisma.cart_items.deleteMany({
         where: { cart_id: cart.id }
       });
+    }
+
+    // Audit: Log cart cleared
+    if (userId) {
+      logActivity({
+        user_id: userId,
+        action: 'Xóa toàn bộ giỏ hàng',
+        entity_type: 'cart',
+        details: {},
+        ip_address: req.ip,
+        user_agent: req.get('User-Agent')
+      }).catch(() => {});
     }
 
     res.json({
