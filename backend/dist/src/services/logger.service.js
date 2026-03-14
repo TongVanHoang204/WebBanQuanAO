@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma.js';
-import { createNotification } from '../controllers/notificationController.js';
+import { createNotification } from '../controllers/admin/notificationController.js';
 // Critical actions that trigger admin notifications
 const CRITICAL_ACTIONS = ['Xóa', 'delete'];
 const ENTITY_LABELS = {

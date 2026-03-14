@@ -80,6 +80,7 @@ const generateWithFallback = async (payload) => {
 import { prisma } from '../lib/prisma.js';
 import fs from 'fs';
 import path from 'path';
+import sharp from 'sharp';
 import { logActivity } from './logger.service.js';
 export class AIService {
     static MODEL = process.env.OLLAMA_MODEL || 'gemini-3-flash-preview:cloud';
@@ -383,26 +384,29 @@ KHI CẦN DÙNG CÔNG CỤ, trả về JSON như sau (không thêm text):
     // --- VISUAL SEARCH (Structured AI Analysis + Relevance Scoring) ---
     /**
      * Phân tích ảnh bằng AI và trả về JSON cấu trúc:
-     * { product_type, color, material, style, gender, search_phrases }
+     * { product_type, product_type_aliases, color, material, style, gender, search_phrases }
      */
     static async analyzeImageStructured(base64Image) {
         const visionModel = process.env.OLLAMA_VISION_MODEL || this.MODEL;
-        const prompt = `Bạn là chuyên gia thời trang. Phân tích hình ảnh này và trả về JSON mô tả món đồ thời trang CHÍNH trong ảnh.
+        const prompt = `Bạn là chuyên gia thời trang Việt Nam. Phân tích hình ảnh này và xác định món đồ thời trang CHÍNH NHẤT (CHỈ MỘT MÓN) trong ảnh.
 
 CHỈ trả về JSON hợp lệ, KHÔNG giải thích, KHÔNG markdown:
 {
-  "product_type": "loại sản phẩm chính, ví dụ: áo thun, quần short, quần jean, váy, áo khoác, áo hoodie, thắt lưng, túi xách, giày",
-  "color": "màu sắc chính, ví dụ: trắng, đen, xanh, hồng, be, nâu",
-  "material": "chất liệu nếu nhận biết được, ví dụ: jean, thun, da, kaki, vải, nỉ. Để trống nếu không rõ",
-  "style": "kiểu dáng, ví dụ: form rộng, slimfit, oversize, cổ tròn, tay ngắn, zip kéo. Để trống nếu không rõ",
-  "gender": "nam hoặc nữ hoặc unisex, dựa vào kiểu dáng/người mặc trong ảnh",
-  "search_phrases": ["cụm từ tìm kiếm 2-4 từ", "ví dụ: quần short nữ", "áo thun nam cổ tròn"]
+  "product_type": "loại sản phẩm chính xác nhất, ví dụ: áo thun, quần short, quần jean, váy, áo khoác, áo hoodie, túi xách, mũ, giày",
+  "product_type_aliases": ["các từ đồng nghĩa hoặc tên gọi khác của loại sản phẩm, ví dụ nếu product_type là quần short thì aliases là: quần đùi, quần ngắn, short"],
+  "color": "màu sắc chủ đạo, ví dụ: trắng, đen, xanh, hồng, be, nâu",
+  "material": "chất liệu nếu nhận biết được: jean, thun, da, kaki, vải, nỉ, cotton. Để trống nếu không rõ",
+  "style": "kiểu dáng: form rộng, slimfit, oversize, cổ tròn, tay ngắn. Để trống nếu không rõ",
+  "gender": "nam hoặc nữ hoặc unisex",
+  "search_phrases": ["cụm từ 2-4 từ dùng để tìm kiếm sản phẩm này trên website thời trang"]
 }
 
-Lưu ý:
-- product_type là trường QUAN TRỌNG NHẤT, phải chính xác
-- search_phrases nên có 2-5 cụm từ ghép có nghĩa (không phải từ đơn)
-- Tất cả bằng tiếng Việt, viết thường`;
+QUY TẮC BẮT BUỘC:
+- product_type PHẢI là tên gọi CHÍNH XÁC NHẤT của loại sản phẩm (áo thun, quần short, v.v.), KHÔNG ghi chung chung như "quần" hay "áo"
+- product_type_aliases PHẢI có ít nhất 2 từ đồng nghĩa/biến thể
+- search_phrases nên có 3-5 cụm từ ghép có nghĩa, BAO GỒM cả product_type kết hợp với color/gender
+- Tất cả bằng tiếng Việt, viết thường
+- Nếu ảnh có nhiều sản phẩm, CHỈ mô tả sản phẩm nổi bật nhất / ở trung tâm`;
         const response = await generateWithFallback({
             model: visionModel,
             prompt,
@@ -410,7 +414,6 @@ Lưu ý:
         });
         const raw = response.response.trim();
         this.logDebug('Visual Search AI raw response:', raw);
-        // Extract JSON from response (handle cases where AI wraps in ```json ... ```)
         let jsonStr = raw;
         const jsonMatch = raw.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
@@ -418,8 +421,13 @@ Lưu ý:
         }
         try {
             const parsed = JSON.parse(jsonStr);
+            const productType = (parsed.product_type || '').toLowerCase().trim();
+            const aliases = Array.isArray(parsed.product_type_aliases)
+                ? parsed.product_type_aliases.map((s) => s.toLowerCase().trim()).filter(Boolean)
+                : [];
             return {
-                product_type: (parsed.product_type || '').toLowerCase().trim(),
+                product_type: productType,
+                product_type_aliases: aliases,
                 color: (parsed.color || '').toLowerCase().trim(),
                 material: (parsed.material || '').toLowerCase().trim(),
                 style: (parsed.style || '').toLowerCase().trim(),
@@ -430,7 +438,6 @@ Lưu ý:
             };
         }
         catch {
-            // If JSON parsing fails, extract what we can from the raw text
             this.logDebug('Visual Search JSON parse failed, extracting from raw text');
             const words = raw
                 .toLowerCase()
@@ -439,6 +446,7 @@ Lưu ý:
                 .filter((w) => w.length > 1);
             return {
                 product_type: words.slice(0, 2).join(' '),
+                product_type_aliases: [],
                 color: '',
                 material: '',
                 style: '',
@@ -448,8 +456,28 @@ Lưu ý:
         }
     }
     /**
+     * Check if a product text matches any of the given type terms.
+     * Returns true if the product name or tags contain the product_type or any alias.
+     */
+    static matchesProductType(nameLC, descLC, tagsLC, typeTerms) {
+        for (const term of typeTerms) {
+            if (!term)
+                continue;
+            if (nameLC.includes(term))
+                return true;
+            if (tagsLC.includes(term))
+                return true;
+            // For multi-word types, also check each word in name (e.g. "short" in "quần short nữ")
+            const words = term.split(/\s+/).filter(w => w.length > 2);
+            if (words.length > 0 && words.every(w => nameLC.includes(w)))
+                return true;
+        }
+        return false;
+    }
+    /**
      * Tính điểm tương đồng giữa sản phẩm và mô tả AI.
      * Điểm càng cao = sản phẩm càng phù hợp.
+     * Hard filter: products that don't match the product_type get score = -100.
      */
     static scoreProduct(product, analysis) {
         let score = 0;
@@ -457,34 +485,30 @@ Lưu ý:
         const descLC = (product.description || '').toLowerCase();
         const catLC = (product.category?.name || '').toLowerCase();
         const tagsLC = (product.tags || '').toLowerCase();
-        const searchText = `${nameLC} ${descLC} ${catLC} ${tagsLC}`;
-        // --- Product type matching (HIGHEST weight: 50 points) ---
-        if (analysis.product_type) {
-            // Exact product type in name (most valuable)
+        // --- HARD FILTER: Product type MUST match ---
+        const allTypeTerms = [analysis.product_type, ...analysis.product_type_aliases].filter(Boolean);
+        if (allTypeTerms.length > 0) {
+            const typeMatches = this.matchesProductType(nameLC, descLC, tagsLC, allTypeTerms);
+            if (!typeMatches) {
+                // Product type doesn't match at all → effectively exclude
+                return -100;
+            }
+            // Bonus for exact full product_type match in name
             if (nameLC.includes(analysis.product_type)) {
                 score += 50;
             }
-            else if (catLC.includes(analysis.product_type)) {
-                score += 40;
-            }
-            else if (descLC.includes(analysis.product_type)) {
-                score += 25;
-            }
-            // Also check individual words of product_type for partial matches
-            const typeWords = analysis.product_type.split(/\s+/).filter(w => w.length > 1);
-            for (const w of typeWords) {
-                if (nameLC.includes(w))
-                    score += 8;
+            else {
+                score += 30; // Matched via alias
             }
         }
-        // --- Color matching (20 points) ---
+        // --- Color matching (25 points) ---
         if (analysis.color) {
             if (nameLC.includes(analysis.color))
-                score += 20;
+                score += 25;
+            else if (tagsLC.includes(analysis.color))
+                score += 15;
             else if (descLC.includes(analysis.color))
                 score += 10;
-            else if (tagsLC.includes(analysis.color))
-                score += 8;
         }
         // --- Material matching (15 points) ---
         if (analysis.material) {
@@ -497,35 +521,207 @@ Lưu ý:
         if (analysis.style) {
             const styleWords = analysis.style.split(/\s+/).filter(w => w.length > 1);
             for (const w of styleWords) {
-                if (searchText.includes(w))
+                if (nameLC.includes(w))
                     score += 5;
+                else if (descLC.includes(w))
+                    score += 2;
             }
         }
         // --- Gender matching (10 points / penalty) ---
         if (analysis.gender && analysis.gender !== 'unisex') {
-            if (searchText.includes(analysis.gender))
+            if (nameLC.includes(analysis.gender) || catLC.includes(analysis.gender)) {
                 score += 10;
-            // Penalty for wrong gender
+            }
             const oppositeGender = analysis.gender === 'nam' ? 'nữ' : 'nam';
             if (nameLC.includes(oppositeGender) && !nameLC.includes(analysis.gender)) {
-                score -= 15;
+                score -= 20;
             }
         }
-        // --- Search phrases bonus (5 points each) ---
+        // --- Search phrases bonus (multi-word match in name is highly valuable) ---
         for (const phrase of analysis.search_phrases) {
             if (nameLC.includes(phrase))
-                score += 10;
+                score += 12;
             else if (descLC.includes(phrase))
-                score += 5;
+                score += 4;
         }
         return score;
+    }
+    // --- ALGORITHMIC VISION FALLBACK (pHash + Color Histogram) ---
+    /**
+     * Calculate Perceptual Hash (pHash) for structural similarity.
+     * Resizes to 8x8, converts to grayscale, compares pixels to mean.
+     * Returns a 64-character binary string.
+     */
+    static async calculatePHash(imageBuffer) {
+        try {
+            const { data } = await sharp(imageBuffer)
+                .resize(8, 8, { fit: 'fill' })
+                .grayscale()
+                .raw()
+                .toBuffer({ resolveWithObject: true });
+            let sum = 0;
+            for (let i = 0; i < 64; i++)
+                sum += data[i];
+            const mean = sum / 64;
+            let hash = '';
+            for (let i = 0; i < 64; i++) {
+                hash += data[i] >= mean ? '1' : '0';
+            }
+            return hash;
+        }
+        catch (e) {
+            console.error('pHash calculation failed:', e);
+            return '0'.repeat(64);
+        }
+    }
+    /**
+     * Calculate Hamming Distance between two 64-bit binary strings.
+     * Lower is more similar. Max is 64.
+     */
+    static hammingDistance(hash1, hash2) {
+        let dist = 0;
+        for (let i = 0; i < 64; i++) {
+            if (hash1[i] !== hash2[i])
+                dist++;
+        }
+        return dist;
+    }
+    /**
+     * Calculate Color Histogram for color distribution similarity.
+     * Resizes to 64x64, quantizes RGB into 64 bins (4 bins per channel).
+     * Returns an array of normalized frequencies.
+     */
+    static async calculateColorHistogram(imageBuffer) {
+        try {
+            const { data } = await sharp(imageBuffer)
+                .resize(64, 64, { fit: 'fill' })
+                .ensureAlpha() // Ensure 4 channels (RGBA) so indices are consistent (r, g, b, a)
+                .raw()
+                .toBuffer({ resolveWithObject: true });
+            const bins = new Array(64).fill(0);
+            const pixelCount = 64 * 64;
+            for (let i = 0; i < data.length; i += 4) {
+                const r = Math.floor(data[i] / 64); // 0-3
+                const g = Math.floor(data[i + 1] / 64); // 0-3
+                const b = Math.floor(data[i + 2] / 64); // 0-3
+                const binIndex = (r << 4) | (g << 2) | b; // 0-63
+                bins[binIndex]++;
+            }
+            // Normalize
+            return bins.map(count => count / pixelCount);
+        }
+        catch (e) {
+            console.error('Histogram calculation failed:', e);
+            return new Array(64).fill(0);
+        }
+    }
+    /**
+     * Calculate Euclidean Distance between two normalized histograms.
+     * Lower is more similar.
+     */
+    static histogramDistance(hist1, hist2) {
+        let sumSq = 0;
+        for (let i = 0; i < 64; i++) {
+            sumSq += (hist1[i] - hist2[i]) ** 2;
+        }
+        return Math.sqrt(sumSq);
+    }
+    /**
+     * Advanced Non-AI fallback: Extract pHash and Color Histogram from the uploaded image,
+     * compute the same for top 50 recent products, and score by combined structural and color similarity.
+     */
+    static async algorithmicSearch(imagePath) {
+        this.logDebug('Starting algorithmic pHash + Histogram search fallback');
+        const imageBuffer = fs.readFileSync(imagePath);
+        // 1. Calculate features for target image
+        const [targetPHash, targetHist] = await Promise.all([
+            this.calculatePHash(imageBuffer),
+            this.calculateColorHistogram(imageBuffer)
+        ]);
+        // 2. Fetch candidates (top active recent products with images)
+        // Expanded candidate pool to 200 to give the fallback more options to find matches
+        const candidates = await this.prisma.products.findMany({
+            where: {
+                is_active: true,
+                product_images: { some: { is_primary: true } }
+            },
+            take: 200,
+            orderBy: { created_at: 'desc' },
+            include: {
+                product_images: { where: { is_primary: true }, take: 1 },
+                product_variants: { take: 1 },
+                category: true
+            }
+        });
+        const scoredCandidates = [];
+        const publicDir = path.join(process.cwd(), 'public');
+        // 3. Process candidates in small batches (to avoid choking CPU/memory and network)
+        const batchSize = 10;
+        for (let i = 0; i < candidates.length; i += batchSize) {
+            const batch = candidates.slice(i, i + batchSize);
+            await Promise.allSettled(batch.map(async (p) => {
+                const imageUrl = p.product_images?.[0]?.url;
+                if (!imageUrl)
+                    return;
+                let candidateBuffer;
+                try {
+                    if (imageUrl.startsWith('http')) {
+                        // External URL (e.g. from shopee or unsplash)
+                        const response = await fetch(imageUrl);
+                        if (!response.ok)
+                            return;
+                        const arrayBuffer = await response.arrayBuffer();
+                        candidateBuffer = Buffer.from(arrayBuffer);
+                    }
+                    else {
+                        // Local file
+                        const fileName = imageUrl.split('/').pop() || '';
+                        const localImagePath = path.join(publicDir, 'uploads', fileName);
+                        if (!fs.existsSync(localImagePath))
+                            return;
+                        candidateBuffer = fs.readFileSync(localImagePath);
+                    }
+                    const [candPHash, candHist] = await Promise.all([
+                        this.calculatePHash(candidateBuffer),
+                        this.calculateColorHistogram(candidateBuffer)
+                    ]);
+                    // Calculate distances
+                    const pHashDist = this.hammingDistance(targetPHash, candPHash);
+                    const histDist = this.histogramDistance(targetHist, candHist);
+                    // Max pHash dist is 64. Max hist dist is ~1.41.
+                    // Convert to similarity scores (100 is perfect match)
+                    const pHashSim = Math.max(0, 100 - (pHashDist / 64) * 100);
+                    const histSim = Math.max(0, 100 - (histDist / Math.sqrt(2)) * 100);
+                    // Combined score (70% structural, 30% color palette)
+                    const combinedScore = (pHashSim * 0.7) + (histSim * 0.3);
+                    // Only keep reasonably decent matches to avoid returning garbage (average random match is ~45-55)
+                    if (combinedScore > 50) {
+                        scoredCandidates.push({ product: p, score: combinedScore });
+                    }
+                }
+                catch (e) {
+                    // Skip if image processing fails for a candidate
+                }
+            }));
+        }
+        // 4. Sort by score descending and take top 12
+        scoredCandidates.sort((a, b) => b.score - a.score);
+        const topResults = scoredCandidates.slice(0, 12);
+        this.logDebug('Algorithmic Search top scores:', topResults.map(r => ({
+            name: r.product.name,
+            score: r.score
+        })));
+        const products = topResults.map(r => {
+            const { category, ...rest } = r.product;
+            return JSON.parse(JSON.stringify(rest, (key, value) => typeof value === 'bigint' ? value.toString() : value));
+        });
+        return { products, ai_powered: false };
     }
     static async visualSearch(imagePath) {
         try {
             if (!fs.existsSync(imagePath)) {
                 throw new Error('Image file not found');
             }
-            // Convert image to base64
             const imageBuffer = fs.readFileSync(imagePath);
             const base64Image = imageBuffer.toString('base64');
             // Step 1: Structured AI analysis
@@ -535,67 +731,82 @@ Lưu ý:
                 this.logDebug('Visual Search structured analysis:', analysis);
             }
             catch (ollamaError) {
-                console.warn(`Visual Search AI analysis failed: ${ollamaError.message}`);
-                // Fallback: return popular active products
-                const fallbackProducts = await this.prisma.products.findMany({
-                    where: { is_active: true },
-                    take: 12,
-                    orderBy: { created_at: 'desc' },
-                    include: {
-                        product_images: { where: { is_primary: true }, take: 1 },
-                        product_variants: { take: 1 },
-                        category: true
-                    }
-                });
-                return fallbackProducts.map(p => JSON.parse(JSON.stringify(p, (key, value) => typeof value === 'bigint' ? value.toString() : value)));
-            }
-            // Step 2: Build search terms from analysis (compound phrases + individual important terms)
-            const searchTerms = [];
-            // Add product type as the PRIMARY search term
-            if (analysis.product_type)
-                searchTerms.push(analysis.product_type);
-            // Add AI-generated search phrases
-            searchTerms.push(...analysis.search_phrases);
-            // Add individual important attributes
-            if (analysis.color)
-                searchTerms.push(analysis.color);
-            if (analysis.material)
-                searchTerms.push(analysis.material);
-            // Build product_type word parts for broader matching
-            const typeWords = analysis.product_type
-                ? analysis.product_type.split(/\s+/).filter(w => w.length > 1)
-                : [];
-            // De-duplicate search terms
-            const uniqueTerms = [...new Set(searchTerms)].filter(Boolean);
-            this.logDebug('Visual Search unique terms:', uniqueTerms);
-            if (uniqueTerms.length === 0)
-                return [];
-            // Step 3: Fetch candidate products using broad OR search
-            // We fetch more candidates than needed, then rank them
-            const searchConditions = uniqueTerms.flatMap(term => [
-                { name: { contains: term } },
-                { description: { contains: term } }
-            ]);
-            // Also add individual type words for broader candidate pool
-            for (const w of typeWords) {
-                searchConditions.push({ name: { contains: w } });
-            }
-            let candidates = await this.prisma.products.findMany({
-                where: {
-                    is_active: true,
-                    OR: searchConditions
-                },
-                take: 50, // Fetch more candidates for scoring
-                include: {
-                    product_images: { where: { is_primary: true }, take: 1 },
-                    product_variants: { take: 1 },
-                    category: true
+                console.warn(`Visual Search AI analysis failed: ${ollamaError.message}. Falling back to algorithmic search.`);
+                try {
+                    const algorithmicResult = await this.algorithmicSearch(imagePath);
+                    return algorithmicResult;
                 }
-            });
-            this.logDebug(`Visual Search found ${candidates.length} candidates`);
-            // Step 4: If no candidates found, try category-based fallback
+                catch (algoError) {
+                    console.error('Algorithmic fallback also failed:', algoError.message);
+                    return { products: [], ai_powered: false };
+                }
+            }
+            // Step 2: Build type terms (product_type + aliases) for strict matching
+            const allTypeTerms = [analysis.product_type, ...analysis.product_type_aliases].filter(Boolean);
+            const typeWords = allTypeTerms.flatMap(t => t.split(/\s+/).filter(w => w.length > 1));
+            const uniqueTypeWords = [...new Set(typeWords)];
+            this.logDebug('Visual Search type terms and words:', { allTypeTerms, uniqueTypeWords });
+            const productInclude = {
+                product_images: { where: { is_primary: true }, take: 1 },
+                product_variants: { take: 1 },
+                category: true
+            };
+            let candidates = [];
+            // --- PHASE 1 (STRICT): Fetch candidates whose name matches the product type ---
+            if (allTypeTerms.length > 0) {
+                // Build strict conditions: name must contain at least one type term
+                const strictNameConditions = allTypeTerms.map(term => ({ name: { contains: term } }));
+                // Also try individual type words if multi-word (e.g., "quần short" → "short")
+                for (const w of uniqueTypeWords) {
+                    if (w.length > 2) {
+                        strictNameConditions.push({ name: { contains: w } });
+                    }
+                }
+                candidates = await this.prisma.products.findMany({
+                    where: {
+                        is_active: true,
+                        OR: strictNameConditions
+                    },
+                    take: 60,
+                    include: productInclude
+                });
+                this.logDebug(`Visual Search PHASE 1 (strict type match) found ${candidates.length} candidates`);
+            }
+            // --- PHASE 2 (RELAXED): Only if Phase 1 returned fewer than 4 results ---
+            if (candidates.length < 4) {
+                const broadTerms = [];
+                broadTerms.push(...analysis.search_phrases);
+                if (analysis.color)
+                    broadTerms.push(analysis.color);
+                if (analysis.material)
+                    broadTerms.push(analysis.material);
+                const uniqueBroadTerms = [...new Set(broadTerms)].filter(Boolean);
+                if (uniqueBroadTerms.length > 0) {
+                    const broadConditions = uniqueBroadTerms.flatMap(term => [
+                        { name: { contains: term } },
+                        { description: { contains: term } }
+                    ]);
+                    const broadCandidates = await this.prisma.products.findMany({
+                        where: {
+                            is_active: true,
+                            OR: broadConditions
+                        },
+                        take: 40,
+                        include: productInclude
+                    });
+                    // Merge, avoiding duplicates by product id
+                    const existingIds = new Set(candidates.map((c) => c.id.toString()));
+                    for (const bc of broadCandidates) {
+                        if (!existingIds.has(bc.id.toString())) {
+                            candidates.push(bc);
+                            existingIds.add(bc.id.toString());
+                        }
+                    }
+                    this.logDebug(`Visual Search PHASE 2 (broad) total candidates: ${candidates.length}`);
+                }
+            }
+            // --- PHASE 3 (category fallback): If still empty ---
             if (candidates.length === 0 && analysis.product_type) {
-                // Try matching by category name
                 const matchingCategories = await this.prisma.categories.findMany({
                     where: {
                         is_active: true,
@@ -610,55 +821,27 @@ Lưu ý:
                             category_id: { in: matchingCategories.map(c => c.id) }
                         },
                         take: 50,
-                        include: {
-                            product_images: { where: { is_primary: true }, take: 1 },
-                            product_variants: { take: 1 },
-                            category: true
-                        }
+                        include: productInclude
                     });
-                    this.logDebug(`Visual Search category fallback found ${candidates.length} candidates`);
-                }
-            }
-            // Step 5: If still nothing, try word-by-word with the most specific first
-            if (candidates.length === 0) {
-                for (const term of uniqueTerms) {
-                    candidates = await this.prisma.products.findMany({
-                        where: {
-                            is_active: true,
-                            OR: [
-                                { name: { contains: term } },
-                                { description: { contains: term } }
-                            ]
-                        },
-                        take: 30,
-                        include: {
-                            product_images: { where: { is_primary: true }, take: 1 },
-                            product_variants: { take: 1 },
-                            category: true
-                        }
-                    });
-                    if (candidates.length > 0)
-                        break;
+                    this.logDebug(`Visual Search PHASE 3 (category fallback) found ${candidates.length} candidates`);
                 }
             }
             if (candidates.length === 0)
                 return [];
-            // Step 6: Score and rank all candidates
-            const scored = candidates.map(p => ({
+            // Step 3: Score and rank all candidates with the improved scorer
+            const scored = candidates.map((p) => ({
                 product: p,
                 score: this.scoreProduct({ name: p.name, description: p.description, category: p.category, tags: p.tags }, analysis)
             }));
-            // Sort by score descending, filter out very low scores
             scored.sort((a, b) => b.score - a.score);
-            // Only keep products with positive relevance score
+            // Only keep products with positive relevance score (type-matched)
             const relevant = scored.filter(s => s.score > 0);
-            // Take top 12 results (or all relevant if fewer)
-            const topResults = (relevant.length > 0 ? relevant : scored).slice(0, 12);
+            // Take top 12 results; prefer relevant, fall back to best of what we have
+            const topResults = (relevant.length > 0 ? relevant : scored.filter(s => s.score > -50)).slice(0, 12);
             this.logDebug('Visual Search top scores:', topResults.map(r => ({
                 name: r.product.name,
                 score: r.score
             })));
-            // Return full product objects (without the score, and without the category relation to keep backward compat)
             return topResults.map(r => {
                 const { category, ...productWithoutCategory } = r.product;
                 return JSON.parse(JSON.stringify(productWithoutCategory, (key, value) => typeof value === 'bigint' ? value.toString() : value));
