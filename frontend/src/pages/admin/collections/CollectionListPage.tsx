@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collectionsAPI } from '../../../services/api';
 import { Edit, Trash, Plus, FolderHeart } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 export default function CollectionListPage() {
   const [collections, setCollections] = useState<any[]>([]);
@@ -78,6 +79,13 @@ export default function CollectionListPage() {
           <Plus className="w-4 h-4" /> Thêm mới
         </button>
       </div>
+
+      <AIInsightPanel 
+        title="Phân tích Bộ sưu tập"
+        style="strategic"
+        prompt="Dựa trên danh sách các bộ sưu tập hiện tại, hãy đánh giá sự phân bổ sản phẩm, xu hướng nhóm hàng và gợi ý cách tối ưu doanh thu hoặc tạo mới bộ sưu tập sắp tới."
+        dataContext={JSON.stringify(collections.map(c => ({ name: c.name, product_count: c.product_count, is_active: c.is_active })))}
+      />
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700">
         <table className="w-full text-left text-sm whitespace-nowrap">

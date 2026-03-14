@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Package, Plus, Search, AlertCircle, ArrowDownCircle, ArrowUpCircle, Edit3, X } from 'lucide-react';
 import { inventoryAPI } from '../../../services/api';
 import { toast } from 'react-hot-toast';
+import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 export default function InventoryPage() {
   const [activeTab, setActiveTab] = useState<'stock' | 'movements'>('stock');
@@ -110,6 +111,17 @@ export default function InventoryPage() {
           <p className="text-gray-500">Giám sát tồn kho và lịch sử nhập/xuất tĩnh</p>
         </div>
       </div>
+      
+      <AIInsightPanel 
+        title="Phân tích Kho hàng"
+        style="focus"
+        prompt="Dựa vào dữ liệu tồn kho hiện tại, hãy phân tích mặt hàng nào sắp hết, những sản phẩm còn tồn nhiều và có khuyến nghị nhập/xuất thế nào cho phù hợp."
+        dataContext={JSON.stringify({ 
+          total_items: stock.length, 
+          low_stock_items: stock.filter(item => item.stock_qty < 10).map(i => ({ sku: i.variant_sku, name: i.product?.name, stock: i.stock_qty })),
+          high_stock_items: stock.filter(item => item.stock_qty > 50).map(i => ({ sku: i.variant_sku, name: i.product?.name, stock: i.stock_qty }))
+        })}
+      />
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200 dark:border-gray-800">
