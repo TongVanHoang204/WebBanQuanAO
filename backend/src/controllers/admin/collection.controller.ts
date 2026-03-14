@@ -23,11 +23,10 @@ export const getCollections = async (req: Request, res: Response) => {
 
     const formatted = collections.map(c => ({
       ...c,
-      id: c.id.toString(),
       product_count: c._count.product_collections
     }));
 
-    res.json({
+    const responseData = {
       success: true,
       data: {
         collections: formatted,
@@ -38,7 +37,8 @@ export const getCollections = async (req: Request, res: Response) => {
           totalPages: Math.ceil(total / limit)
         }
       }
-    });
+    };
+    res.json(JSON.parse(JSON.stringify(responseData, (key, value) => typeof value === 'bigint' ? value.toString() : value)));
   } catch (error) {
     console.error('getCollections error:', error);
     res.status(500).json({ success: false, message: 'Lỗi server' });
@@ -63,17 +63,14 @@ export const getCollectionById = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy bộ sưu tập' });
     }
 
-    res.json({
+    const responseData = {
       success: true,
       data: {
         ...collection,
-        id: collection.id.toString(),
-        products: collection.product_collections.map(pc => ({
-          ...pc.product,
-          id: pc.product.id.toString()
-        }))
+        products: collection.product_collections.map(pc => pc.product)
       }
-    });
+    };
+    res.json(JSON.parse(JSON.stringify(responseData, (key, value) => typeof value === 'bigint' ? value.toString() : value)));
   } catch (error) {
     res.status(500).json({ success: false, message: 'Lỗi server' });
   }
@@ -101,7 +98,8 @@ export const createCollection = async (req: Request, res: Response) => {
       }
     });
 
-    res.status(201).json({ success: true, data: { ...collection, id: collection.id.toString() } });
+    const responseData = { success: true, data: collection };
+    res.status(201).json(JSON.parse(JSON.stringify(responseData, (key, value) => typeof value === 'bigint' ? value.toString() : value)));
   } catch (error) {
     res.status(500).json({ success: false, message: 'Lỗi server' });
   }
@@ -134,7 +132,8 @@ export const updateCollection = async (req: Request, res: Response) => {
       }
     }
 
-    res.json({ success: true, data: { ...collection, id: collection.id.toString() } });
+    const responseData = { success: true, data: collection };
+    res.json(JSON.parse(JSON.stringify(responseData, (key, value) => typeof value === 'bigint' ? value.toString() : value)));
   } catch (error) {
     res.status(500).json({ success: false, message: 'Lỗi server' });
   }

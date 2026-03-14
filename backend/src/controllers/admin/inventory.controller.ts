@@ -52,13 +52,10 @@ export const getInventory = async (req: Request, res: Response) => {
       return {
         ...v,
         attributes,
-        // Convert BigInt for JSON serialization
-        id: v.id.toString(),
-        product_id: v.product_id.toString(),
       };
     });
 
-    res.json({
+    const responseData = {
       success: true,
       data: {
         inventory: formattedVariants,
@@ -69,7 +66,9 @@ export const getInventory = async (req: Request, res: Response) => {
           totalPages: Math.ceil(total / limit)
         }
       }
-    });
+    };
+
+    res.json(JSON.parse(JSON.stringify(responseData, (key, value) => typeof value === 'bigint' ? value.toString() : value)));
 
   } catch (error) {
     console.error('getInventory error:', error);
@@ -110,8 +109,6 @@ export const getMovements = async (req: Request, res: Response) => {
 
       return {
         ...m,
-        id: m.id.toString(),
-        variant_id: m.variant_id.toString(),
         product_name: m.variant.product.name,
         variant_sku: m.variant.variant_sku,
         attributes,
@@ -119,7 +116,7 @@ export const getMovements = async (req: Request, res: Response) => {
       };
     });
 
-    res.json({
+    const responseData = {
       success: true,
       data: {
         movements: formatted,
@@ -130,7 +127,9 @@ export const getMovements = async (req: Request, res: Response) => {
           totalPages: Math.ceil(total / limit)
         }
       }
-    });
+    };
+
+    res.json(JSON.parse(JSON.stringify(responseData, (key, value) => typeof value === 'bigint' ? value.toString() : value)));
 
   } catch (error) {
     console.error('getMovements error:', error);
