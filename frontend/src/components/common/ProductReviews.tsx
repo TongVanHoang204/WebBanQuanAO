@@ -32,6 +32,16 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
   const [showOnlyWithImages, setShowOnlyWithImages] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'highest' | 'lowest' | 'helpful'>('newest');
 
+  // Load liked reviews from local storage once on mount
+  const [likedReviews, setLikedReviews] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem('liked_reviews');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
   // Form state
   const [showForm, setShowForm] = useState(false);
   const [rating, setRating] = useState(5);
@@ -76,18 +86,30 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
   }, [page, productId, selectedRatingFilter, showOnlyWithImages, sortBy]);
 
   const handleHelpful = async (reviewId: string) => {
+    if (likedReviews[reviewId]) {
+      toast.error('Bạn đã đánh giá hữu ích cho bình luận này rồi');
+      return;
+    }
+    
     try {
       const response = await reviewsAPI.markHelpful(reviewId);
       const helpfulCount = response.data?.data?.helpful_count;
+
+      // Update state and local storage to prevent duplicate clicks
+      setLikedReviews(prev => {
+        const next = { ...prev, [reviewId]: true };
+        localStorage.setItem('liked_reviews', JSON.stringify(next));
+        return next;
+      });
 
       setReviews(prev => prev.map(review => (
         review.id === reviewId
           ? { ...review, helpful_count: typeof helpfulCount === 'number' ? helpfulCount : review.helpful_count + 1 }
           : review
       )));
-      toast.success('Cam on ban da danh gia huu ich');
+      toast.success('Cảm ơn bạn đã đánh giá hữu ích');
     } catch (error) {
-      toast.error('Khong the cap nhat danh gia huu ich');
+      toast.error('Không thể cập nhật đánh giá hữu ích');
     }
   };
 
@@ -204,7 +226,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
           onChange={(e) => setSelectedRatingFilter(e.target.value ? Number(e.target.value) : null)}
           className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
         >
-          <option value="">Tat ca so sao</option>
+          <option value="">Tất cả số sao</option>
           <option value="5">5 sao</option>
           <option value="4">4 sao</option>
           <option value="3">3 sao</option>
@@ -217,10 +239,10 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
           onChange={(e) => setSortBy(e.target.value as 'newest' | 'highest' | 'lowest' | 'helpful')}
           className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
         >
-          <option value="newest">Moi nhat</option>
-          <option value="highest">Diem cao nhat</option>
-          <option value="lowest">Diem thap nhat</option>
-          <option value="helpful">Huu ich nhat</option>
+          <option value="newest">Mới nhất</option>
+          <option value="highest">Điểm cao nhất</option>
+          <option value="lowest">Điểm thấp nhất</option>
+          <option value="helpful">Hữu ích nhất</option>
         </select>
 
         <button
@@ -231,7 +253,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
               : 'border-gray-200 bg-white text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300'
           }`}
         >
-          Chi hien danh gia co anh
+          Chỉ hiện đánh giá có ảnh
         </button>
       </div>
 
@@ -395,7 +417,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
             className="btn btn-secondary"
             disabled={loading}
           >
-            {loading ? 'Dang tai...' : 'Xem them danh gia'}
+            {loading ? 'Đang tải...' : 'Xem thêm đánh giá'}
           </button>
         </div>
       )}
