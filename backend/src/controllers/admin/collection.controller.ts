@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../lib/prisma.js';
+import { AuthRequest } from '../../middlewares/auth.middleware.js';
+import { logActivity } from '../../services/logger.service.js';
+import { deepDiff } from '../../utils/deepDiff.js';
 
 export const getCollections = async (req: Request, res: Response) => {
   try {
@@ -91,10 +94,10 @@ export const getCollectionById = async (req: Request, res: Response) => {
   }
 };
 
-export const createCollection = async (req: Request, res: Response) => {
+export const createCollection = async (req: AuthRequest, res: Response) => {
   try {
     const { name, slug, description, image, is_active } = req.body;
-    
+
     // Auto-generate slug if not provided, very basic version
     const finalSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
@@ -113,6 +116,16 @@ export const createCollection = async (req: Request, res: Response) => {
       }
     });
 
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Tạo bộ sưu tập',
+      entity_type: 'collection',
+      entity_id: String(collection.id),
+      details: { name: collection.name, slug: collection.slug },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     const responseData = { success: true, data: collection };
     res.status(201).json(JSON.parse(JSON.stringify(responseData, (key, value) => typeof value === 'bigint' ? value.toString() : value)));
   } catch (error) {
@@ -120,10 +133,18 @@ export const createCollection = async (req: Request, res: Response) => {
   }
 };
 
-export const updateCollection = async (req: Request, res: Response) => {
+export const updateCollection = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { name, slug, description, image, is_active, product_ids } = req.body;
+
+    const existing = await prisma.collections.findUnique({
+      where: { id: BigInt(id as string) }
+    });
+
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy bộ sưu tập' });
+    }
 
     const collection = await prisma.collections.update({
       where: { id: BigInt(id as string) },
@@ -147,6 +168,19 @@ export const updateCollection = async (req: Request, res: Response) => {
       }
     }
 
+    const beforeStats = { name: existing.name, slug: existing.slug, description: existing.description, is_active: existing.is_active };
+    const afterStats = { name: collection.name, slug: collection.slug, description: collection.description, is_active: collection.is_active };
+    
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Cập nhật bộ sưu tập',
+      entity_type: 'collection',
+      entity_id: String(id),
+      details: { before: beforeStats, after: afterStats, diff: deepDiff(beforeStats, afterStats) },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     const responseData = { success: true, data: collection };
     res.json(JSON.parse(JSON.stringify(responseData, (key, value) => typeof value === 'bigint' ? value.toString() : value)));
   } catch (error) {
@@ -154,12 +188,32 @@ export const updateCollection = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteCollection = async (req: Request, res: Response) => {
+export const deleteCollection = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    
+    const existing = await prisma.collections.findUnique({
+      where: { id: BigInt(id as string) }
+    });
+
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy bộ sưu tập' });
+    }
+    
     await prisma.collections.delete({
       where: { id: BigInt(id as string) }
     });
+
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'Xóa bộ sưu tập',
+      entity_type: 'collection',
+      entity_id: String(id),
+      details: { deleted_data: { id: String(existing.id), name: existing.name, slug: existing.slug } },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
+
     res.json({ success: true, message: 'Xóa thành công' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Lỗi server' });

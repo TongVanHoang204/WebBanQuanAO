@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../lib/prisma.js';
+import { AuthRequest } from '../../middlewares/auth.middleware.js';
+import { logActivity } from '../../services/logger.service.js';
 
 // Get current stock (Variants)
 export const getInventory = async (req: Request, res: Response) => {
@@ -153,10 +155,10 @@ export const getMovements = async (req: Request, res: Response) => {
 };
 
 // Create a new movement (Adjust, In, Out)
-export const createMovement = async (req: Request, res: Response) => {
+export const createMovement = async (req: AuthRequest, res: Response) => {
   try {
     const { variant_id, type, qty, note } = req.body;
-    
+
     if (!variant_id || !type || !qty) {
       return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc' });
     }
@@ -169,7 +171,8 @@ export const createMovement = async (req: Request, res: Response) => {
     }
 
     const variant = await prisma.product_variants.findUnique({
-      where: { id: variantIdBigInt }
+      where: { id: variantIdBigInt },
+      include: { product: true }
     });
 
     if (!variant) {
@@ -210,6 +213,24 @@ export const createMovement = async (req: Request, res: Response) => {
         data: { stock_qty: newStock }
       })
     ]);
+    
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: type === 'in' ? 'Nhập kho' : type === 'out' ? 'Xuất kho' : 'Điều chỉnh kho',
+      entity_type: 'inventory',
+      entity_id: String(variantIdBigInt),
+      details: { 
+        product_name: variant.product.name,
+        variant_sku: variant.variant_sku,
+        old_stock: variant.stock_qty,
+        new_stock: newStock,
+        movement_qty: Math.abs(actualMovementQty),
+        type,
+        note: note || ''
+      },
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent')
+    });
 
     res.json({ success: true, message: 'Cập nhật kho thành công' });
 
