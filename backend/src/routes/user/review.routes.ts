@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { bulkDeleteReviews, bulkUpdateReviewStatus, createReview, deleteReview, getAdminReviews, getProductReviews, updateReviewStatus } from '../../controllers/user/review.controller.js';
+import { bulkDeleteReviews, bulkUpdateReviewStatus, createReview, deleteReview, getAdminReviews, getProductReviews, markReviewHelpful, updateReviewStatus } from '../../controllers/user/review.controller.js';
 import { verifyToken, requireAdmin, optionalAuth } from '../../middlewares/auth.middleware.js';
 
 const router = Router();
@@ -9,6 +9,7 @@ router.get('/product/:id', optionalAuth, getProductReviews);
 
 // Protected routes (Customer)
 router.post('/', verifyToken, createReview);
+router.patch('/:id/helpful', optionalAuth, markReviewHelpful);
 
 // Admin routes
 router.get('/', verifyToken, requireAdmin, getAdminReviews);

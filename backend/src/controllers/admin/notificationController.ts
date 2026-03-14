@@ -22,6 +22,7 @@ interface NotificationData {
 export const getNotifications = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
+    const isAdmin = req.user?.role === 'admin';
     
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -40,27 +41,53 @@ export const getNotifications = async (req: AuthRequest, res: Response) => {
     let total: number;
     
     if (unread_only === 'true') {
-      notifications = await prisma.$queryRaw<NotificationData[]>`
-        SELECT * FROM notifications 
-        WHERE (user_id = ${userId} OR user_id IS NULL) AND is_read = false
-        ORDER BY created_at DESC 
-        LIMIT ${Number(limit)} OFFSET ${skip}
-      `;
-      const countResult = await prisma.$queryRaw<{count: bigint}[]>`
-        SELECT COUNT(*) as count FROM notifications WHERE (user_id = ${userId} OR user_id IS NULL) AND is_read = false
-      `;
-      total = Number(countResult[0]?.count || 0);
+      if (isAdmin) {
+        notifications = await prisma.$queryRaw<NotificationData[]>`
+          SELECT * FROM notifications 
+          WHERE (user_id = ${userId} OR user_id IS NULL) AND is_read = false
+          ORDER BY created_at DESC 
+          LIMIT ${Number(limit)} OFFSET ${skip}
+        `;
+        const countResult = await prisma.$queryRaw<{count: bigint}[]>`
+          SELECT COUNT(*) as count FROM notifications WHERE (user_id = ${userId} OR user_id IS NULL) AND is_read = false
+        `;
+        total = Number(countResult[0]?.count || 0);
+      } else {
+        notifications = await prisma.$queryRaw<NotificationData[]>`
+          SELECT * FROM notifications 
+          WHERE user_id = ${userId} AND is_read = false
+          ORDER BY created_at DESC 
+          LIMIT ${Number(limit)} OFFSET ${skip}
+        `;
+        const countResult = await prisma.$queryRaw<{count: bigint}[]>`
+          SELECT COUNT(*) as count FROM notifications WHERE user_id = ${userId} AND is_read = false
+        `;
+        total = Number(countResult[0]?.count || 0);
+      }
     } else {
-      notifications = await prisma.$queryRaw<NotificationData[]>`
-        SELECT * FROM notifications 
-        WHERE (user_id = ${userId} OR user_id IS NULL)
-        ORDER BY created_at DESC 
-        LIMIT ${Number(limit)} OFFSET ${skip}
-      `;
-      const countResult = await prisma.$queryRaw<{count: bigint}[]>`
-        SELECT COUNT(*) as count FROM notifications WHERE (user_id = ${userId} OR user_id IS NULL)
-      `;
-      total = Number(countResult[0]?.count || 0);
+      if (isAdmin) {
+        notifications = await prisma.$queryRaw<NotificationData[]>`
+          SELECT * FROM notifications 
+          WHERE (user_id = ${userId} OR user_id IS NULL)
+          ORDER BY created_at DESC 
+          LIMIT ${Number(limit)} OFFSET ${skip}
+        `;
+        const countResult = await prisma.$queryRaw<{count: bigint}[]>`
+          SELECT COUNT(*) as count FROM notifications WHERE (user_id = ${userId} OR user_id IS NULL)
+        `;
+        total = Number(countResult[0]?.count || 0);
+      } else {
+        notifications = await prisma.$queryRaw<NotificationData[]>`
+          SELECT * FROM notifications 
+          WHERE user_id = ${userId}
+          ORDER BY created_at DESC 
+          LIMIT ${Number(limit)} OFFSET ${skip}
+        `;
+        const countResult = await prisma.$queryRaw<{count: bigint}[]>`
+          SELECT COUNT(*) as count FROM notifications WHERE user_id = ${userId}
+        `;
+        total = Number(countResult[0]?.count || 0);
+      }
     }
 
     // Convert BigInt to string for JSON serialization
@@ -94,15 +121,24 @@ export const getNotifications = async (req: AuthRequest, res: Response) => {
 export const getUnreadCount = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
+    const isAdmin = req.user?.role === 'admin';
     
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const result = await prisma.$queryRaw<{count: bigint}[]>`
-      SELECT COUNT(*) as count FROM notifications 
-      WHERE (user_id = ${userId} OR user_id IS NULL) AND is_read = false
-    `;
+    let result;
+    if (isAdmin) {
+      result = await prisma.$queryRaw<{count: bigint}[]>`
+        SELECT COUNT(*) as count FROM notifications 
+        WHERE (user_id = ${userId} OR user_id IS NULL) AND is_read = false
+      `;
+    } else {
+      result = await prisma.$queryRaw<{count: bigint}[]>`
+        SELECT COUNT(*) as count FROM notifications 
+        WHERE user_id = ${userId} AND is_read = false
+      `;
+    }
     const count = Number(result[0]?.count || 0);
 
     res.json({ success: true, data: { count } });
@@ -120,6 +156,7 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
+    const isAdmin = req.user?.role === 'admin';
 
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -128,9 +165,16 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
     const notificationId = BigInt(id as string);
 
     // Check ownership
-    const existing = await prisma.$queryRaw<NotificationData[]>`
-      SELECT * FROM notifications WHERE id = ${notificationId} AND user_id = ${userId}
-    `;
+    let existing;
+    if (isAdmin) {
+      existing = await prisma.$queryRaw<NotificationData[]>`
+        SELECT * FROM notifications WHERE id = ${notificationId} AND (user_id = ${userId} OR user_id IS NULL)
+      `;
+    } else {
+      existing = await prisma.$queryRaw<NotificationData[]>`
+        SELECT * FROM notifications WHERE id = ${notificationId} AND user_id = ${userId}
+      `;
+    }
 
     if (!existing.length) {
       return res.status(404).json({ success: false, message: 'Notification not found' });
@@ -163,15 +207,23 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
 export const markAllAsRead = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
+    const isAdmin = req.user?.role === 'admin';
 
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    await prisma.$executeRaw`
-      UPDATE notifications SET is_read = true 
-      WHERE (user_id = ${userId} OR user_id IS NULL) AND is_read = false
-    `;
+    if (isAdmin) {
+      await prisma.$executeRaw`
+        UPDATE notifications SET is_read = true 
+        WHERE (user_id = ${userId} OR user_id IS NULL) AND is_read = false
+      `;
+    } else {
+      await prisma.$executeRaw`
+        UPDATE notifications SET is_read = true 
+        WHERE user_id = ${userId} AND is_read = false
+      `;
+    }
 
     res.json({ success: true, message: 'All notifications marked as read' });
   } catch (error) {
@@ -188,6 +240,7 @@ export const deleteNotification = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
+    const isAdmin = req.user?.role === 'admin';
 
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -196,9 +249,16 @@ export const deleteNotification = async (req: AuthRequest, res: Response) => {
     const notificationId = BigInt(id as string);
 
     // Check ownership
-    const existing = await prisma.$queryRaw<NotificationData[]>`
-      SELECT * FROM notifications WHERE id = ${notificationId} AND user_id = ${userId}
-    `;
+    let existing;
+    if (isAdmin) {
+      existing = await prisma.$queryRaw<NotificationData[]>`
+        SELECT * FROM notifications WHERE id = ${notificationId} AND (user_id = ${userId} OR user_id IS NULL)
+      `;
+    } else {
+      existing = await prisma.$queryRaw<NotificationData[]>`
+        SELECT * FROM notifications WHERE id = ${notificationId} AND user_id = ${userId}
+      `;
+    }
 
     if (!existing.length) {
       return res.status(404).json({ success: false, message: 'Notification not found' });

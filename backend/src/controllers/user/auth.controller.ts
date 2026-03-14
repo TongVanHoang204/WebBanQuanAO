@@ -475,8 +475,12 @@ export const getMe = async (
         email: true,
         full_name: true,
         phone: true,
+        address_line1: true,
+        city: true,
+        province: true,
         role: true,
         status: true,
+        avatar_url: true,
         created_at: true,
         two_factor_enabled: true
       }

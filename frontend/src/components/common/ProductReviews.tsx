@@ -28,6 +28,9 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
   const [stats, setStats] = useState({ average_rating: 0, total_reviews: 0 });
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedRatingFilter, setSelectedRatingFilter] = useState<number | null>(null);
+  const [showOnlyWithImages, setShowOnlyWithImages] = useState(false);
+  const [sortBy, setSortBy] = useState<'newest' | 'highest' | 'lowest' | 'helpful'>('newest');
 
   // Form state
   const [showForm, setShowForm] = useState(false);
@@ -42,7 +45,13 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
   const fetchReviews = async (pageNumber = 1) => {
     setLoading(true);
     try {
-      const response = await reviewsAPI.getByProduct(productId, { page: pageNumber, limit: 5 });
+      const response = await reviewsAPI.getByProduct(productId, {
+        page: pageNumber,
+        limit: 5,
+        rating: selectedRatingFilter || undefined,
+        has_images: showOnlyWithImages ? 'true' : undefined,
+        sort: sortBy
+      });
       if (response.data.success) {
         setReviews((prev) =>
           pageNumber === 1 ? response.data.data.reviews : [...prev, ...response.data.data.reviews]
@@ -60,11 +69,27 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
   useEffect(() => {
     setPage(1);
     setReviews([]);
-  }, [productId]);
+  }, [productId, selectedRatingFilter, showOnlyWithImages, sortBy]);
 
   useEffect(() => {
     fetchReviews(page);
-  }, [page, productId]);
+  }, [page, productId, selectedRatingFilter, showOnlyWithImages, sortBy]);
+
+  const handleHelpful = async (reviewId: string) => {
+    try {
+      const response = await reviewsAPI.markHelpful(reviewId);
+      const helpfulCount = response.data?.data?.helpful_count;
+
+      setReviews(prev => prev.map(review => (
+        review.id === reviewId
+          ? { ...review, helpful_count: typeof helpfulCount === 'number' ? helpfulCount : review.helpful_count + 1 }
+          : review
+      )));
+      toast.success('Cam on ban da danh gia huu ich');
+    } catch (error) {
+      toast.error('Khong the cap nhat danh gia huu ich');
+    }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -171,6 +196,43 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
         ) : (
           <p className="text-sm text-gray-500">Đăng nhập để viết đánh giá.</p>
         )}
+      </div>
+
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <select
+          value={selectedRatingFilter ?? ''}
+          onChange={(e) => setSelectedRatingFilter(e.target.value ? Number(e.target.value) : null)}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+        >
+          <option value="">Tat ca so sao</option>
+          <option value="5">5 sao</option>
+          <option value="4">4 sao</option>
+          <option value="3">3 sao</option>
+          <option value="2">2 sao</option>
+          <option value="1">1 sao</option>
+        </select>
+
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as 'newest' | 'highest' | 'lowest' | 'helpful')}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+        >
+          <option value="newest">Moi nhat</option>
+          <option value="highest">Diem cao nhat</option>
+          <option value="lowest">Diem thap nhat</option>
+          <option value="helpful">Huu ich nhat</option>
+        </select>
+
+        <button
+          onClick={() => setShowOnlyWithImages(v => !v)}
+          className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+            showOnlyWithImages
+              ? 'border-primary-600 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
+              : 'border-gray-200 bg-white text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300'
+          }`}
+        >
+          Chi hien danh gia co anh
+        </button>
       </div>
 
       {showForm && (
@@ -313,7 +375,10 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
               )}
               
               <div className="mt-4 flex flex-wrap gap-4 items-center">
-                <button className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
+                <button
+                  onClick={() => handleHelpful(review.id)}
+                  className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
                   <ThumbsUp className="w-4 h-4" />
                   Hữu ích ({review.helpful_count})
                 </button>
@@ -322,17 +387,19 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
           ))
         )}
       </div>
-      
+
       {page < totalPages && (
-        <div className="mt-8 text-center">
-          <button 
-            onClick={() => setPage(p => p + 1)} 
-            className="btn border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => setPage((prev) => prev + 1)}
+            className="btn btn-secondary"
+            disabled={loading}
           >
-            Xem thêm đánh giá
+            {loading ? 'Dang tai...' : 'Xem them danh gia'}
           </button>
         </div>
       )}
+      
     </div>
   );
 };

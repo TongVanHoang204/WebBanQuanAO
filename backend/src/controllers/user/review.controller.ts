@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
 import { logActivity } from '../../services/logger.service.js';
@@ -20,6 +20,9 @@ export const getProductReviews = async (req: AuthRequest, res: Response): Promis
     const productId = BigInt(req.params.id as string);
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    const rating = req.query.rating ? Number(req.query.rating) : undefined;
+    const hasImages = req.query.has_images === 'true';
+    const sort = String(req.query.sort || 'newest');
     const skip = (page - 1) * limit;
     const currentUserId = req.user?.id;
 
@@ -27,6 +30,16 @@ export const getProductReviews = async (req: AuthRequest, res: Response): Promis
       product_id: productId,
       status: 'approved'
     };
+
+    if (rating && !Number.isNaN(rating) && rating >= 1 && rating <= 5) {
+      reviewWhere.rating = rating;
+    }
+
+    if (hasImages) {
+      reviewWhere.review_images = {
+        some: {}
+      };
+    }
 
     if (currentUserId) {
       reviewWhere.OR = [
@@ -39,6 +52,15 @@ export const getProductReviews = async (req: AuthRequest, res: Response): Promis
     let reviews: any[] = [];
     let total = 0;
 
+    const orderBy: Prisma.product_reviewsOrderByWithRelationInput[] =
+      sort === 'highest'
+        ? [{ rating: 'desc' }, { created_at: 'desc' }]
+        : sort === 'lowest'
+          ? [{ rating: 'asc' }, { created_at: 'desc' }]
+          : sort === 'helpful'
+            ? [{ helpful_count: 'desc' }, { created_at: 'desc' }]
+            : [{ created_at: 'desc' }];
+
     try {
       [reviews, total] = await Promise.all([
         prisma.product_reviews.findMany({
@@ -47,7 +69,7 @@ export const getProductReviews = async (req: AuthRequest, res: Response): Promis
             user: { select: { full_name: true, avatar_url: true } },
             review_images: { select: { image_url: true } }
           },
-          orderBy: { created_at: 'desc' },
+          orderBy,
           skip,
           take: limit,
         }),
@@ -60,17 +82,20 @@ export const getProductReviews = async (req: AuthRequest, res: Response): Promis
         throw queryError;
       }
 
+      const fallbackWhere = { ...reviewWhere } as any;
+      delete fallbackWhere.review_images;
+
       [reviews, total] = await Promise.all([
         prisma.product_reviews.findMany({
-          where: reviewWhere,
+          where: fallbackWhere,
           include: {
             user: { select: { full_name: true, avatar_url: true } }
           },
-          orderBy: { created_at: 'desc' },
+          orderBy,
           skip,
           take: limit,
         }),
-        prisma.product_reviews.count({ where: reviewWhere })
+        prisma.product_reviews.count({ where: fallbackWhere })
       ]);
     }
 
@@ -241,6 +266,39 @@ export const createReview = async (req: Request, res: Response): Promise<void> =
       return;
     }
     console.error('Lỗi khi tạo đánh giá:', error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ' });
+  }
+};
+
+export const markReviewHelpful = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const reviewId = BigInt(req.params.id as string);
+
+    const existing = await prisma.product_reviews.findUnique({
+      where: { id: reviewId },
+      select: { id: true, helpful_count: true, status: true }
+    });
+
+    if (!existing || existing.status !== 'approved') {
+      res.status(404).json({ success: false, message: 'Không tìm thấy đánh giá' });
+      return;
+    }
+
+    const updated = await prisma.product_reviews.update({
+      where: { id: reviewId },
+      data: { helpful_count: { increment: 1 } },
+      select: { id: true, helpful_count: true }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        id: updated.id.toString(),
+        helpful_count: updated.helpful_count
+      }
+    });
+  } catch (error) {
+    console.error('Lỗi khi đánh dấu hữu ích:', error);
     res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ' });
   }
 };

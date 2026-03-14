@@ -280,6 +280,9 @@ export const getProductBySlug = async (
         category: {
           select: { id: true, name: true, slug: true, parent_id: true }
         },
+        brand: {
+          select: { id: true, name: true, slug: true }
+        },
         product_images: {
           orderBy: { sort_order: 'asc' }
         },
@@ -340,6 +343,9 @@ export const getProductById = async (
       where: { id: BigInt(id) },
       include: {
         category: true,
+        brand: {
+          select: { id: true, name: true, slug: true }
+        },
         product_images: {
           orderBy: { sort_order: 'asc' }
         },

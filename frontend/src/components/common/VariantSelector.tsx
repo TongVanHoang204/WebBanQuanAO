@@ -19,6 +19,7 @@ export default function VariantSelector({
   selectedVariant 
 }: VariantSelectorProps) {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
   // Extract unique option groups from variants
   const optionGroups: OptionGroup[] = (() => {
@@ -122,7 +123,13 @@ export default function VariantSelector({
               {group.code === 'color' ? 'Màu sắc' : group.name}: <span className="font-normal text-secondary-500 normal-case ml-1">{selectedOptions[group.code]}</span>
             </label>
             {group.code !== 'color' && (
-              <button className="text-xs font-semibold text-secondary-600 hover:text-secondary-900 hover:underline">Hướng dẫn chọn size</button>
+              <button
+                type="button"
+                onClick={() => setIsSizeGuideOpen(true)}
+                className="text-xs font-semibold text-secondary-600 hover:text-secondary-900 hover:underline"
+              >
+                Hướng dẫn chọn size
+              </button>
             )}
           </div>
           
@@ -188,6 +195,59 @@ export default function VariantSelector({
           </div>
         </div>
       ))}
+
+      {isSizeGuideOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-secondary-900">Bảng hướng dẫn chọn size</h3>
+              <button
+                type="button"
+                onClick={() => setIsSizeGuideOpen(false)}
+                className="rounded-full px-3 py-1 text-sm font-semibold text-secondary-500 hover:bg-secondary-100"
+              >
+                Dong
+              </button>
+            </div>
+            <p className="mb-4 text-sm text-secondary-600">
+              Do form đồ có thể khác nhau theo từng dòng sản phẩm, bạn có thể dựa theo bảng dưới để chọn nhanh size phù hợp.
+            </p>
+            <div className="overflow-x-auto rounded-xl border border-secondary-100">
+              <table className="w-full text-sm">
+                <thead className="bg-secondary-50 text-secondary-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left">Size</th>
+                    <th className="px-4 py-3 text-left">Can nang (kg)</th>
+                    <th className="px-4 py-3 text-left">Chieu cao (cm)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-secondary-100 text-secondary-600">
+                  <tr>
+                    <td className="px-4 py-3 font-semibold">S</td>
+                    <td className="px-4 py-3">45 - 52</td>
+                    <td className="px-4 py-3">150 - 160</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-semibold">M</td>
+                    <td className="px-4 py-3">53 - 60</td>
+                    <td className="px-4 py-3">158 - 166</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-semibold">L</td>
+                    <td className="px-4 py-3">61 - 68</td>
+                    <td className="px-4 py-3">165 - 173</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-semibold">XL</td>
+                    <td className="px-4 py-3">69 - 76</td>
+                    <td className="px-4 py-3">170 - 178</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

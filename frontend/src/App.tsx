@@ -21,6 +21,7 @@ const ForgotPasswordPage = React.lazy(() => import('./pages/ForgotPasswordPage')
 const ResetPasswordPage = React.lazy(() => import('./pages/ResetPasswordPage'));
 const OrderHistoryPage = React.lazy(() => import('./pages/OrderHistoryPage'));
 const OrderDetailPage = React.lazy(() => import('./pages/OrderDetailPage'));
+const OrderTrackingPage = React.lazy(() => import('./pages/OrderTrackingPage'));
 const PaymentReturnPage = React.lazy(() => import('./pages/PaymentReturnPage'));
 const AboutPage = React.lazy(() => import('./pages/AboutPage'));
 const ContactPage = React.lazy(() => import('./pages/ContactPage'));
@@ -191,6 +192,7 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="order-tracking" element={<OrderTrackingPage />} />
             <Route
               path="profile"
               element={

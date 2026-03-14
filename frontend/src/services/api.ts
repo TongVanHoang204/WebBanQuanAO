@@ -255,7 +255,7 @@ export const ordersAPI = {
   
   getById: (id: string) => api.get(`/orders/${id}`),
   
-  getByCode: (code: string) => api.get(`/orders/code/${code}`),
+  getByCode: (code: string, phone?: string) => api.get(`/orders/code/${code}`, { params: phone ? { phone } : undefined }),
   
   cancel: (id: string) => api.post(`/orders/${id}/cancel`)
 };
@@ -386,7 +386,8 @@ export const couponsAPI = {
 export const reviewsAPI = {
   getByProduct: (productId: string, params?: any) => 
     api.get(`/reviews/product/${productId}`, { params }),
-  create: (data: any) => api.post('/reviews', data)
+  create: (data: any) => api.post('/reviews', data),
+  markHelpful: (reviewId: string) => api.patch(`/reviews/${reviewId}/helpful`)
 };
 
 // Public Settings API

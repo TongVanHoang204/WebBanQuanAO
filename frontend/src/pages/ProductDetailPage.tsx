@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import DOMPurify from 'dompurify';
 import { 
   Minus, 
   Plus, 
@@ -21,7 +22,7 @@ import { ProductReviews } from '../components/common/ProductReviews';
 import VariantSelector from '../components/common/VariantSelector';
 import ProductCard from '../components/common/ProductCard';
 import { Product, ProductVariant } from '../types';
-import { productsAPI, personalizationAPI } from '../services/api';
+import { productsAPI, personalizationAPI, reviewsAPI } from '../services/api';
 import { formatPrice, getDiscountPercent } from '../hooks/useShop';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
@@ -31,13 +32,17 @@ import { useRecentlyViewed } from '../hooks/useRecentlyViewed';
 
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isBuyingNow, setIsBuyingNow] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [reviewStats, setReviewStats] = useState({ average_rating: 0, total_reviews: 0 });
+  const [shippingProvince, setShippingProvince] = useState('TP. Ho Chi Minh');
   const { addToCart } = useCart();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { addProduct: addToRecentlyViewed } = useRecentlyViewed();
@@ -62,6 +67,15 @@ export default function ProductDetailPage() {
           setRelatedProducts(
             relatedRes.data.data.products.filter((p: Product) => p.id !== productData.id)
           );
+        }
+
+        try {
+          const reviewRes = await reviewsAPI.getByProduct(productData.id.toString(), { page: 1, limit: 1 });
+          if (reviewRes.data?.success) {
+            setReviewStats(reviewRes.data.data.stats || { average_rating: 0, total_reviews: 0 });
+          }
+        } catch (reviewError) {
+          console.error('Failed to load review stats:', reviewError);
         }
 
         // Track view for personalization if authenticated
@@ -99,6 +113,21 @@ export default function ProductDetailPage() {
       toast.error(msg);
     } finally {
       setIsAddingToCart(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!selectedVariant) return;
+
+    setIsBuyingNow(true);
+    try {
+      await addToCart(Number(selectedVariant.id), quantity);
+      navigate('/checkout');
+    } catch (error: any) {
+      const msg = error.response?.data?.error?.message || 'Khong the mua ngay';
+      toast.error(msg);
+    } finally {
+      setIsBuyingNow(false);
     }
   };
 
@@ -178,6 +207,18 @@ export default function ProductDetailPage() {
   const isOutOfStock = selectedVariant 
     ? selectedVariant.stock_qty <= 0 
     : product.product_variants?.every(v => v.stock_qty <= 0);
+  const plainDescription = product.description?.replace(/<[^>]*>/g, '').trim() || '';
+  const safeDescriptionHtml = DOMPurify.sanitize(product.description || '');
+
+  const shippingEstimates: Record<string, { days: string; fee: number }> = {
+    'TP. Ho Chi Minh': { days: '1-2 ngay', fee: 25000 },
+    HaNoi: { days: '2-3 ngay', fee: 30000 },
+    DaNang: { days: '2-4 ngay', fee: 30000 },
+    CanTho: { days: '2-4 ngay', fee: 32000 },
+    HaiPhong: { days: '3-5 ngay', fee: 35000 },
+    Khac: { days: '3-6 ngay', fee: 35000 }
+  };
+  const shippingEstimate = shippingEstimates[shippingProvince] || shippingEstimates.Khac;
 
   return (
     <>
@@ -226,10 +267,15 @@ export default function ProductDetailPage() {
               <div className="flex items-center gap-2">
                 <div className="flex text-yellow-400">
                    {[1, 2, 3, 4, 5].map((s) => (
-                     <Star key={s} className="w-4 h-4 fill-current" />
+                     <Star
+                       key={s}
+                       className={`w-4 h-4 ${s <= Math.round(reviewStats.average_rating) ? 'fill-current' : ''}`}
+                     />
                    ))}
                 </div>
-                <span className="text-sm font-medium text-secondary-600">4.8 (120 đánh giá)</span>
+                <span className="text-sm font-medium text-secondary-600">
+                  {reviewStats.average_rating.toFixed(1)} ({reviewStats.total_reviews} danh gia)
+                </span>
               </div>
 
               {/* Title */}
@@ -256,7 +302,7 @@ export default function ProductDetailPage() {
 
               {/* Short Description */}
               <p className="text-secondary-600 dark:text-secondary-400 leading-relaxed">
-                {product.description?.replace(/<[^>]*>/g, '').slice(0, 200)}...
+                {plainDescription ? `${plainDescription.slice(0, 200)}${plainDescription.length > 200 ? '...' : ''}` : 'San pham dang duoc cap nhat mo ta chi tiet.'}
               </p>
             </div>
 
@@ -323,6 +369,14 @@ export default function ProductDetailPage() {
                     Thêm vào giỏ hàng
                   </>
                 )}
+              </button>
+
+              <button
+                onClick={handleBuyNow}
+                disabled={!selectedVariant || isOutOfStock || isBuyingNow}
+                className="min-h-[48px] rounded-full border border-secondary-300 px-6 font-bold text-secondary-800 transition-colors hover:bg-secondary-100 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isBuyingNow ? 'Dang xu ly...' : 'Mua ngay'}
               </button>
             </div>
 
@@ -401,7 +455,7 @@ export default function ProductDetailPage() {
                 <div className="animate-fade-in space-y-6">
                   <div 
                     className="prose prose-secondary dark:prose-invert max-w-none text-secondary-600 dark:text-secondary-400 leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: product.description || '' }}
+                    dangerouslySetInnerHTML={{ __html: safeDescriptionHtml }}
                   />
                 </div>
              )}
@@ -415,7 +469,7 @@ export default function ProductDetailPage() {
                       </tr>
                       <tr>
                         <th className="py-3 font-semibold text-secondary-900 dark:text-white">Thương hiệu</th>
-                        <td className="py-3 text-secondary-600 dark:text-secondary-400">Fashion Store</td>
+                        <td className="py-3 text-secondary-600 dark:text-secondary-400">{product.brand?.name || 'Dang cap nhat'}</td>
                       </tr>
                       <tr>
                         <th className="py-3 font-semibold text-secondary-900 dark:text-white">Danh mục</th>
@@ -428,6 +482,31 @@ export default function ProductDetailPage() {
              {activeTab === 'shipping' && (
                 <div className="animate-fade-in text-secondary-600 dark:text-secondary-400 space-y-4 leading-relaxed text-sm">
                   <p>Chúng tôi cung cấp dịch vụ giao hàng toàn quốc nhanh chóng và tin cậy.</p>
+                  <div className="rounded-xl border border-secondary-100 p-4">
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-secondary-500">Tinh/Thanh pho</label>
+                    <select
+                      value={shippingProvince}
+                      onChange={(e) => setShippingProvince(e.target.value)}
+                      className="w-full rounded-lg border border-secondary-200 px-3 py-2 text-sm"
+                    >
+                      <option value="TP. Ho Chi Minh">TP. Ho Chi Minh</option>
+                      <option value="HaNoi">Ha Noi</option>
+                      <option value="DaNang">Da Nang</option>
+                      <option value="CanTho">Can Tho</option>
+                      <option value="HaiPhong">Hai Phong</option>
+                      <option value="Khac">Khu vuc khac</option>
+                    </select>
+                    <div className="mt-3 grid grid-cols-2 gap-3">
+                      <div className="rounded-lg bg-secondary-50 p-3">
+                        <p className="text-xs text-secondary-500">Thoi gian du kien</p>
+                        <p className="mt-1 font-semibold text-secondary-900">{shippingEstimate.days}</p>
+                      </div>
+                      <div className="rounded-lg bg-secondary-50 p-3">
+                        <p className="text-xs text-secondary-500">Phi van chuyen</p>
+                        <p className="mt-1 font-semibold text-secondary-900">{formatPrice(shippingEstimate.fee)}</p>
+                      </div>
+                    </div>
+                  </div>
                   <ul className="list-disc pl-5 space-y-2">
                     <li>Miễn phí vận chuyển cho đơn hàng trên 500,000đ.</li>
                     <li>Thời gian giao hàng: 2-3 ngày làm việc trong nội thành, 3-5 ngày khu vực khác.</li>
