@@ -26,7 +26,15 @@ export const getInventory = async (req: Request, res: Response) => {
         where,
         include: {
           product: {
-            select: { id: true, name: true, cover_image: true }
+            select: { 
+              id: true, 
+              name: true, 
+              product_images: {
+                where: { is_primary: true },
+                take: 1,
+                select: { url: true }
+              }
+            }
           },
           variant_option_values: {
             include: {
@@ -49,9 +57,16 @@ export const getInventory = async (req: Request, res: Response) => {
         `${vov.option_value.option.name}: ${vov.option_value.value}`
       ).join(', ');
 
+      const productCover = v.product.product_images?.[0]?.url || '';
+
       return {
         ...v,
         attributes,
+        product: {
+          ...v.product,
+          cover_image: productCover,
+          product_images: undefined // hide from response
+        }
       };
     });
 

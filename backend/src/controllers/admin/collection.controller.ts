@@ -49,11 +49,22 @@ export const getCollectionById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const collection = await prisma.collections.findUnique({
-      where: { id: BigInt(id) },
+      where: { id: BigInt(id as string) },
       include: {
         product_collections: {
           include: {
-            product: { select: { id: true, name: true, cover_image: true, is_active: true } }
+            product: { 
+              select: { 
+                id: true, 
+                name: true, 
+                is_active: true,
+                product_images: {
+                  where: { is_primary: true },
+                  take: 1,
+                  select: { url: true }
+                }
+              } 
+            }
           }
         }
       }
@@ -67,7 +78,11 @@ export const getCollectionById = async (req: Request, res: Response) => {
       success: true,
       data: {
         ...collection,
-        products: collection.product_collections.map(pc => pc.product)
+        products: collection.product_collections.map(pc => ({
+          ...pc.product,
+          cover_image: pc.product.product_images?.[0]?.url || '',
+          product_images: undefined
+        }))
       }
     };
     res.json(JSON.parse(JSON.stringify(responseData, (key, value) => typeof value === 'bigint' ? value.toString() : value)));
@@ -111,7 +126,7 @@ export const updateCollection = async (req: Request, res: Response) => {
     const { name, slug, description, image, is_active, product_ids } = req.body;
 
     const collection = await prisma.collections.update({
-      where: { id: BigInt(id) },
+      where: { id: BigInt(id as string) },
       data: {
         name, slug, description, image, is_active
       }
@@ -120,12 +135,12 @@ export const updateCollection = async (req: Request, res: Response) => {
     // If product_ids were passed, sync them
     if (Array.isArray(product_ids)) {
       await prisma.product_collections.deleteMany({
-        where: { collection_id: BigInt(id) }
+        where: { collection_id: BigInt(id as string) }
       });
       if (product_ids.length > 0) {
         await prisma.product_collections.createMany({
           data: product_ids.map((pid: string) => ({
-            collection_id: BigInt(id),
+            collection_id: BigInt(id as string),
             product_id: BigInt(pid)
           }))
         });
@@ -143,7 +158,7 @@ export const deleteCollection = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.collections.delete({
-      where: { id: BigInt(id) }
+      where: { id: BigInt(id as string) }
     });
     res.json({ success: true, message: 'Xóa thành công' });
   } catch (error) {
