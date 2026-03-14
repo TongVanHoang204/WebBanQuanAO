@@ -34,6 +34,8 @@ import exportRoutes from './routes/admin/export.routes.js';
 import importRoutes from './routes/admin/import.routes.js';
 import staffRoutes from './routes/admin/staff.routes.js';
 import logRoutes from './routes/admin/log.routes.js';
+import inventoryRoutes from './routes/admin/inventory.routes.js';
+import collectionRoutes from './routes/admin/collection.routes.js';
 import paymentRoutes from './routes/user/payment.routes.js';
 import wishlistRoutes from './routes/user/wishlist.routes.js';
 import placesRoutes from './routes/user/places.routes.js';
@@ -132,6 +134,8 @@ app.use('/api/v1/admin/export', exportRoutes);
 app.use('/api/v1/admin/import', importRoutes);
 app.use('/api/v1/admin/staff', staffRoutes);
 app.use('/api/v1/admin/logs', logRoutes);
+app.use('/api/v1/admin/inventory', inventoryRoutes);
+app.use('/api/v1/admin/collections', collectionRoutes);
 
 // Generic Admin Routes (Dashboard, Users, etc.)
 app.use('/api/v1/admin', adminRoutes);

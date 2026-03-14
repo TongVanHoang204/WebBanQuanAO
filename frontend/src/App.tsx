@@ -35,6 +35,8 @@ const OrderPaymentPage = React.lazy(() => import('./pages/OrderPaymentPage'));
 const DashboardPage = React.lazy(() => import('./pages/admin/DashboardPage'));
 const ProductListPage = React.lazy(() => import('./pages/admin/products/ProductListPage'));
 const ProductImportPage = React.lazy(() => import('./pages/admin/products/ProductImportPage'));
+const InventoryPage = React.lazy(() => import('./pages/admin/inventory/InventoryPage'));
+const CollectionListPage = React.lazy(() => import('./pages/admin/collections/CollectionListPage'));
 const CategoryPage = React.lazy(() => import('./pages/admin/categories/CategoryPage'));
 const AddProductPage = React.lazy(() => import('./pages/admin/products/AddProductPage'));
 const EditProductPage = React.lazy(() => import('./pages/admin/products/EditProductPage'));
@@ -131,8 +133,10 @@ export default function App() {
             <Route path="products" element={<ProductListPage />} />
             <Route path="products/new" element={<AddProductPage />} />
             <Route path="products/import" element={<ProductImportPage />} />
-            <Route path="products/:id" element={<EditProductPage />} />
-            <Route path="orders" element={<OrderListPage />} />
+            <Route path="products/:id" element={<EditProductPage />} />              
+              {/* Inventory Management */}
+              <Route path="inventory" element={<InventoryPage />} />
+              <Route path="collections" element={<CollectionListPage />} />            <Route path="orders" element={<OrderListPage />} />
             <Route path="orders/:id" element={<AdminOrderDetailPage />} />
             <Route path="customers" element={<CustomerListPage />} />
             <Route path="customers/:id" element={<CustomerDetailPage />} />

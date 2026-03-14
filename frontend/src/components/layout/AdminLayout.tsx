@@ -30,7 +30,9 @@ import {
   Hash,
   User,
   ArrowRight,
-  Clock
+  Clock,
+  Archive,
+  FolderHeart
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -195,7 +197,9 @@ export default function AdminLayout() {
   const navItems = [
     { icon: LayoutDashboard, label: 'Tổng quan', path: '/admin/dashboard', roles: ['admin', 'manager'] },
     { icon: Package, label: 'Sản phẩm', path: '/admin/products', roles: ['admin', 'manager', 'staff'] },
+    { icon: Archive, label: 'Kho hàng', path: '/admin/inventory', roles: ['admin', 'manager', 'staff'] },
     { icon: Plus, label: 'Danh mục', path: '/admin/categories', roles: ['admin', 'manager', 'staff'] },
+    { icon: FolderHeart, label: 'Bộ sưu tập', path: '/admin/collections', roles: ['admin', 'manager', 'staff'] },
     { icon: Tag, label: 'Thương hiệu', path: '/admin/brands', roles: ['admin', 'manager', 'staff'] },
     { icon: ShoppingCart, label: 'Đơn hàng', path: '/admin/orders', roles: ['admin', 'manager', 'staff'] },
     { icon: Users, label: 'Khách hàng', path: '/admin/customers', roles: ['admin', 'manager', 'staff'] },

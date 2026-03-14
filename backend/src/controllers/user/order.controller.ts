@@ -514,21 +514,22 @@ export const updateOrderStatus = async (
       throw new ApiError(400, `Không thể chuyển trạng thái từ "${currentOrder.status}" sang "${validatedData.status}"`);
     }
 
-    // If cancelling from admin, restore stock
-    if (validatedData.status === 'cancelled' && ['pending', 'confirmed', 'paid', 'processing'].includes(currentOrder.status)) {
-      await prisma.$transaction(async (tx) => {
-        for (const item of currentOrder.order_items) {
-          if (item.variant_id) {
-            await tx.product_variants.update({
-              where: { id: item.variant_id },
-              data: { stock_qty: { increment: item.qty } }
-            });
-            await tx.inventory_movements.create({
-              data: {
-                variant_id: item.variant_id,
-                type: 'in',
-                qty: item.qty,
-                note: `Admin cancelled order ${currentOrder.order_code}`
+// If cancelling or refunding from admin, restore stock
+      if ((validatedData.status === 'cancelled' && ['pending', 'confirmed', 'paid', 'processing'].includes(currentOrder.status)) ||
+          (validatedData.status === 'refunded' && ['shipped', 'completed', 'paid'].includes(currentOrder.status))) {
+        await prisma.$transaction(async (tx) => {
+          for (const item of currentOrder.order_items) {
+            if (item.variant_id) {
+              await tx.product_variants.update({
+                where: { id: item.variant_id },
+                data: { stock_qty: { increment: item.qty } }
+              });
+              await tx.inventory_movements.create({
+                data: {
+                  variant_id: item.variant_id,
+                  type: 'in',
+                  qty: item.qty,
+                  note: `Admin ${validatedData.status} order ${currentOrder.order_code}`
               }
             });
           }

@@ -297,6 +297,23 @@ export const paymentAPI = {
 };
 
 // Admin API
+export const inventoryAPI = {
+  getInventory: (params?: { page?: number; limit?: number; search?: string; lowStock?: boolean }) => 
+    api.get('/admin/inventory', { params }),
+  getMovements: (params?: { page?: number; limit?: number }) => 
+    api.get('/admin/inventory/movements', { params }),
+  createMovement: (data: { variant_id: string; type: 'in' | 'out' | 'adjust'; qty: number; note?: string }) => 
+    api.post('/admin/inventory/movements', data)
+};
+
+export const collectionsAPI = {
+  getCollections: (params?: { page?: number; limit?: number }) => api.get('/admin/collections', { params }),
+  getCollectionById: (id: string) => api.get(`/admin/collections/${id}`),
+  createCollection: (data: any) => api.post('/admin/collections', data),
+  updateCollection: (id: string, data: any) => api.put(`/admin/collections/${id}`, data),
+  deleteCollection: (id: string) => api.delete(`/admin/collections/${id}`)
+};
+
 export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
   
