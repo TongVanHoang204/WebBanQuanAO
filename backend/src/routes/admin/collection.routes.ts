@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { getCollections, getCollectionById, createCollection, updateCollection, deleteCollection } from '../../controllers/admin/collection.controller.js';
-import { authorize } from '../../middlewares/auth.middleware.js';
+import { verifyToken, authorize } from '../../middlewares/auth.middleware.js';
 
 const router = Router();
+
+router.use(verifyToken);
 
 router.get('/', authorize(['admin', 'manager', 'staff']), getCollections);
 router.get('/:id', authorize(['admin', 'manager', 'staff']), getCollectionById);

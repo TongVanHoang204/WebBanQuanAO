@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import { getInventory, getMovements, createMovement } from '../../controllers/admin/inventory.controller.js';
-import { authorize } from '../../middlewares/auth.middleware.js';
+import { verifyToken, authorize } from '../../middlewares/auth.middleware.js';
 
 const router = Router();
+
+// Require auth
+router.use(verifyToken);
 
 // We already come from /api/admin/inventory so those paths are relative to that
 router.get('/', authorize(['admin', 'manager', 'staff']), getInventory);
