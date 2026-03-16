@@ -315,8 +315,8 @@ export const collectionsAPI = {
 };
 
 export const adminAPI = {
-  getDashboard: () => api.get('/admin/dashboard'),
-  
+  getDashboard: (range?: string) => api.get('/admin/dashboard', { params: { range } }),
+
   // Products
   getProducts: (params?: { page?: number; limit?: number; search?: string; category?: string; status?: string }) =>
     api.get('/admin/products', { params }),

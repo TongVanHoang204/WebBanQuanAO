@@ -593,15 +593,31 @@ export const getDashboardStats = async (
   next: NextFunction
 ) => {
   try {
+    const range = req.query.range as string || '7days';
+    
+    let dateFilter = '';
+    let groupFormat = '%Y-%m-%d';
+    
+    if (range === '7days') {
+      dateFilter = `AND orders.created_at >= DATE_SUB(Now(), INTERVAL 7 DAY)`;
+    } else if (range === '30days') {
+      dateFilter = `AND orders.created_at >= DATE_SUB(Now(), INTERVAL 30 DAY)`;
+    } else if (range === 'this_month') {
+      dateFilter = `AND MONTH(orders.created_at) = MONTH(Now()) AND YEAR(orders.created_at) = YEAR(Now())`;
+    } else if (range === 'this_year') {
+      dateFilter = `AND YEAR(orders.created_at) = YEAR(Now())`;
+      groupFormat = '%Y-%m';
+    }
+
     const [
       totalProducts,
       totalOrders,
       totalUsers,
       pendingOrders,
       recentOrders,
-      topProducts,
-      salesOverTime,
-      ordersThisWeek
+      topItemsRaw,
+      salesOverTimeRaw,
+      ordersThisWeekRaw
     ] = await Promise.all([
       prisma.products.count({ where: { is_active: true } }),
       prisma.orders.count({ where: { status: { in: ['paid', 'completed'] } } }),
@@ -614,36 +630,65 @@ export const getDashboardStats = async (
           user: { select: { username: true, email: true } }
         }
       }),
-      prisma.order_items.groupBy({
-        by: ['product_id'],
-        _sum: { qty: true },
-        orderBy: { _sum: { qty: 'desc' } },
-        take: 5
-      }),
-      // Get sales over time (last 30 days)
-      prisma.$queryRaw`
-        SELECT DATE_FORMAT(created_at, '%Y-%m-%d') as date, SUM(grand_total) as total
+      // top products
+      prisma.$queryRawUnsafe(`
+        SELECT product_id, SUM(qty) as sold, SUM(unit_price * qty) as revenue
+        FROM order_items
+        JOIN orders ON orders.id = order_items.order_id
+        WHERE orders.status IN ('paid', 'completed')
+        ${dateFilter}
+        GROUP BY product_id
+        ORDER BY sold DESC
+        LIMIT 5
+      `),
+      // sales over time
+      prisma.$queryRawUnsafe(`
+        SELECT DATE_FORMAT(created_at, '${groupFormat}') as date, SUM(grand_total) as total
         FROM orders
         WHERE status IN ('paid', 'completed')
-        AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-        GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+        ${dateFilter}
+        GROUP BY DATE_FORMAT(created_at, '${groupFormat}')
         ORDER BY date ASC
-      `,
-      // Get orders this week
-      prisma.$queryRaw`
-        SELECT DATE_FORMAT(created_at, '%a') as day, COUNT(*) as count
+      `),
+      // orders this week equivalent
+      prisma.$queryRawUnsafe(`
+        SELECT DATE_FORMAT(created_at, '%Y-%m-%d') as day, COUNT(*) as count
         FROM orders
-        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-        GROUP BY day, DATE(created_at)
-        ORDER BY DATE(created_at) ASC
-      `
+        WHERE status IN ('paid', 'completed', 'pending', 'processing', 'shipped')
+        ${dateFilter}
+        GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+        ORDER BY day ASC
+      `)
     ]);
 
+    let topProducts: any[] = [];
+    if (Array.isArray(topItemsRaw) && topItemsRaw.length > 0) {
+      const pIds = (topItemsRaw as any[]).map(t => typeof t.product_id === 'bigint' ? t.product_id : BigInt(t.product_id));
+      const products = await prisma.products.findMany({
+        where: { id: { in: pIds } },
+        select: { id: true, name: true, sku: true }
+      });
+      
+      topProducts = (topItemsRaw as any[]).map(t => {
+        const pIdBigInt = typeof t.product_id === 'bigint' ? t.product_id : BigInt(t.product_id);
+        const product = products.find(p => p.id === pIdBigInt);
+        return {
+          id: pIdBigInt.toString(),
+          name: product ? product.name : 'Unknown Product',
+          sku: product ? product.sku : '',
+          sold: Number(t.sold) || 0,
+          revenue: Number(t.revenue) || 0
+        };
+      });
+    }
+
     // Get revenue stats
-    const revenue = await prisma.orders.aggregate({
-      where: { status: { in: ['paid', 'completed'] } },
-      _sum: { grand_total: true }
-    });
+    const revenueStats: any = await prisma.$queryRawUnsafe(`
+      SELECT SUM(grand_total) as total
+      FROM orders
+      WHERE status IN ('paid', 'completed') ${dateFilter}
+    `);
+    const totalRevenue = (Array.isArray(revenueStats) && revenueStats.length > 0) ? Number(revenueStats[0].total || 0) : 0;
 
     res.json({
       success: true,
@@ -652,14 +697,15 @@ export const getDashboardStats = async (
         totalOrders,
         totalUsers,
         pendingOrders,
-        totalRevenue: Number(revenue._sum.grand_total || 0),
+        totalRevenue: totalRevenue,
         recentOrders: serialize(recentOrders),
         topProducts: serialize(topProducts),
-        salesOverTime: serialize(salesOverTime), // Serializes BigInt if any
-        ordersThisWeek: serialize(ordersThisWeek)
+        salesOverTime: serialize(salesOverTimeRaw), 
+        ordersThisWeek: serialize(ordersThisWeekRaw)
       }
     });
   } catch (error) {
+    console.error("DASHBOARD STATS ERROR", error);
     next(error);
   }
 };
