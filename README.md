@@ -60,8 +60,6 @@ docker-compose up -d
 docker-compose logs -f
 ```
 
-Truy cập: http://localhost:3000
-
 ## 📁 Project Structure
 
 ```text
