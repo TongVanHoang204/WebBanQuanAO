@@ -8,6 +8,7 @@ backend/.env.*
 frontend/.env
 frontend/.env.*
 !frontend/.env.example
+!.agents/rules/qa-security-tester.md
 
 # Dependencies
 node_modules/
