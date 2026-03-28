@@ -1,0 +1,14 @@
+FROM shopfeshen-backend:latest
+
+WORKDIR /app
+
+COPY package.json ./package.json
+COPY prisma ./prisma
+COPY dist ./dist
+COPY public ./public
+COPY node_modules ./node_modules
+COPY node_modules/prisma/libquery_engine-linux-musl-openssl-3.0.x.so.node /app/prisma-engines/libquery_engine-linux-musl-openssl-3.0.x.so.node
+
+ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/prisma-engines/libquery_engine-linux-musl-openssl-3.0.x.so.node
+
+CMD ["sh", "-c", "node dist/prisma/seed_permissions.js && node dist/src/server.js"]

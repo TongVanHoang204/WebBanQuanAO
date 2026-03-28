@@ -18,13 +18,11 @@ import categoryRoutes from './routes/user/category.routes.js';
 import cartRoutes from './routes/user/cart.routes.js';
 import orderRoutes from './routes/user/order.routes.js';
 import uploadRoutes from './routes/user/upload.routes.js';
-import chatRoutes from './routes/user/chat.routes.js';
 import personalizationRoutes from './routes/user/personalization.routes.js';
 import adminRoutes from './routes/admin/admin.routes.js';
 import settingsRoutes from './routes/admin/settings.routes.js';
 import permissionRoutes from './routes/admin/permission.routes.js';
 import notificationRoutes from './routes/user/notification.routes.js';
-import aiRoutes from './routes/user/ai.routes.js';
 import couponRoutes from './routes/admin/coupon.routes.js';
 import brandRoutes from './routes/admin/brand.routes.js';
 import brandPublicRoutes from './routes/user/brand.public.routes.js';
@@ -62,6 +60,36 @@ export { prisma };
 const app = express();
 const httpServer = http.createServer(app);
 const PORT = process.env.PORT || 4000;
+const enableAIRoutes = String(process.env.ENABLE_AI_ROUTES || '').toLowerCase() === 'true';
+
+const createUnavailableRouter = (featureName: string) => {
+  const fallbackRouter = express.Router();
+  fallbackRouter.use((_req, res) => {
+    res.status(503).json({
+      success: false,
+      message: `${featureName} is temporarily unavailable in this deployment.`
+    });
+  });
+  return fallbackRouter;
+};
+
+const loadOptionalRoutes = async (importPath: string, featureName: string) => {
+  try {
+    const { default: routes } = await import(importPath);
+    logger.info(`${featureName} routes loaded successfully`);
+    return routes;
+  } catch (error) {
+    logger.warn(`${featureName} routes disabled because optional dependencies failed to load`, { error });
+    return createUnavailableRouter(featureName);
+  }
+};
+
+const chatRoutes = enableAIRoutes
+  ? await loadOptionalRoutes('./routes/user/chat.routes.js', 'Chat')
+  : createUnavailableRouter('Chat');
+const aiRoutes = enableAIRoutes
+  ? await loadOptionalRoutes('./routes/user/ai.routes.js', 'AI')
+  : createUnavailableRouter('AI');
 
 // BigInt serialization setup
 declare global {
