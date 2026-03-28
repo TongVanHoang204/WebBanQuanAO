@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, ReactNode,
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
+import { getSessionId } from '../services/api';
 
 const SOCKET_URL = (() => {
   try {
@@ -11,6 +12,9 @@ const SOCKET_URL = (() => {
     return 'http://localhost:4000';
   }
 })();
+
+const CHAT_CONVERSATION_KEY = 'chat_conversation_id';
+const CHAT_GUEST_TOKEN_KEY = 'chat_guest_token';
 
 export interface Message {
   id: string;
@@ -35,6 +39,12 @@ export interface Conversation {
   updatedAt: Date | null;
 }
 
+export interface TypingState {
+  conversationId: string;
+  senderType: string;
+  senderName: string;
+}
+
 interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
@@ -44,7 +54,9 @@ interface SocketContextType {
   messages: Message[];
   conversations: Conversation[];
   typingUser: { senderType: string; senderName: string } | null;
+  typingByConversation: Record<string, TypingState | null>;
   activeBubbles: string[];
+  bubbleOpenSignals: Record<string, number>;
   unreadCount: number;
   onlineUsers: string[];
   startSupport: (guestName?: string, guestEmail?: string) => void;
@@ -67,28 +79,44 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [isSupportMode, setIsSupportMode] = useState(false);
   const [isAdminConnected, setIsAdminConnected] = useState(false);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   // @ts-ignore - Ignore exact role type matching to prevent strict overlap errors
   const isAdmin = user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff';
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messagesByConv, setMessagesByConv] = useState<Record<string, Message[]>>({});
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [typingUser, setTypingUser] = useState<{ senderType: string; senderName: string } | null>(null);
+  const [typingByConversation, setTypingByConversation] = useState<Record<string, TypingState | null>>({});
+  const typingTimeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   // Computed unique messages for backward compatibility
   const messages = conversationId ? (messagesByConv[conversationId] || []) : [];
+  const typingUser = conversationId ? (
+    typingByConversation[conversationId]
+      ? {
+          senderType: typingByConversation[conversationId]!.senderType,
+          senderName: typingByConversation[conversationId]!.senderName
+        }
+      : null
+  ) : null;
 
   // Chat Bubbles State
   const [activeBubbles, setActiveBubbles] = useState<string[]>([]);
+  const [bubbleOpenSignals, setBubbleOpenSignals] = useState<Record<string, number>>({});
   const [unreadCount, setUnreadCount] = useState(0);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+  const getGuestChatToken = () => localStorage.getItem(CHAT_GUEST_TOKEN_KEY);
 
 
   // Check active conversation on mount
   useEffect(() => {
-      const savedConvId = localStorage.getItem('chat_conversation_id');
+      const savedConvId = localStorage.getItem(CHAT_CONVERSATION_KEY);
+      const guestToken = getGuestChatToken();
       if (savedConvId && socket) {
-           socket.emit('check-active-conversation', { conversationId: savedConvId });
+           socket.emit('check-active-conversation', {
+             conversationId: savedConvId,
+             guestToken,
+             sessionId: getSessionId()
+           });
       }
   }, [socket]);
 
@@ -100,10 +128,8 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
   // Initialize socket connection
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    
     const newSocket = io(SOCKET_URL, {
-      auth: { token },
+      withCredentials: true,
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: 5,
@@ -115,8 +141,13 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       console.log('[Socket] Connected to server');
       
       // Attempt to restore active conversation
-      const savedConvId = localStorage.getItem('chat_conversation_id');
-      newSocket.emit('check-active-conversation', { conversationId: savedConvId });
+      const savedConvId = localStorage.getItem(CHAT_CONVERSATION_KEY);
+      const guestToken = getGuestChatToken();
+      newSocket.emit('check-active-conversation', {
+        conversationId: savedConvId,
+        guestToken,
+        sessionId: getSessionId()
+      });
     });
 
 // ... inside useEffect ...
@@ -125,12 +156,14 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       setIsAdminConnected(false);
       console.log('[Socket] Disconnected from server');
     });
+    newSocket.on('connect_error', (error) => {
+      console.error('[Socket] Connection error:', error.message);
+    });
 
     // Handle forced logout
     newSocket.on('force_logout', (data: { message: string }) => {
       toast.error(data.message || 'Phiên đăng nhập đã hết hạn');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      void logout();
       // Adding a small delay to ensure toast is seen if possible, though redirect might cut it short.
       // But alert or confirm blocks execution. 
       // window.location.href forces reload.
@@ -140,16 +173,27 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     });
 
     // Support started successfully
-    newSocket.on('support-started', (data: { conversationId: string; status: string }) => {
+    newSocket.on('support-started', (data: { conversationId: string; status: string; guestToken?: string | null }) => {
       setConversationId(data.conversationId);
       setIsSupportMode(true);
       setMessagesByConv(prev => ({ ...prev, [data.conversationId]: [] }));
-      localStorage.setItem('chat_conversation_id', data.conversationId);
+      localStorage.setItem(CHAT_CONVERSATION_KEY, data.conversationId);
+      if (data.guestToken) {
+        localStorage.setItem(CHAT_GUEST_TOKEN_KEY, data.guestToken);
+      } else {
+        localStorage.removeItem(CHAT_GUEST_TOKEN_KEY);
+      }
     });
 
 
     newSocket.on('new-message', (message: Message) => {
       console.log('[Socket] New message received:', message);
+      if (typingTimeoutsRef.current[message.conversationId]) {
+        clearTimeout(typingTimeoutsRef.current[message.conversationId]);
+        delete typingTimeoutsRef.current[message.conversationId];
+      }
+      setTypingByConversation(prev => ({ ...prev, [message.conversationId]: null }));
+
       setMessagesByConv(prev => {
         const convId = message.conversationId;
         const current = prev[convId] || [];
@@ -246,7 +290,8 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         [data.conversationId]: [...(prev[data.conversationId] || []), systemMessage]
       }));
 
-      localStorage.removeItem('chat_conversation_id');
+      localStorage.removeItem(CHAT_CONVERSATION_KEY);
+      localStorage.removeItem(CHAT_GUEST_TOKEN_KEY);
 
       if (conversationId === data.conversationId) {
         setTimeout(() => {
@@ -257,14 +302,32 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       setConversations(prev => prev.map(c => 
         c.id === data.conversationId ? { ...c, status: 'closed', updatedAt: new Date() } : c
       ));
+      setTypingByConversation(prev => ({ ...prev, [data.conversationId]: null }));
     });
 
     // Typing indicator
-    newSocket.on('user-typing', (data: { senderType: string; senderName: string; isTyping: boolean }) => {
+    newSocket.on('user-typing', (data: { conversationId: string; senderType: string; senderName: string; isTyping: boolean }) => {
+      if (typingTimeoutsRef.current[data.conversationId]) {
+        clearTimeout(typingTimeoutsRef.current[data.conversationId]);
+        delete typingTimeoutsRef.current[data.conversationId];
+      }
+
       if (data.isTyping) {
-        setTypingUser({ senderType: data.senderType, senderName: data.senderName });
+        setTypingByConversation(prev => ({
+          ...prev,
+          [data.conversationId]: {
+            conversationId: data.conversationId,
+            senderType: data.senderType,
+            senderName: data.senderName
+          }
+        }));
+
+        typingTimeoutsRef.current[data.conversationId] = setTimeout(() => {
+          setTypingByConversation(prev => ({ ...prev, [data.conversationId]: null }));
+          delete typingTimeoutsRef.current[data.conversationId];
+        }, 3000);
       } else {
-        setTypingUser(null);
+        setTypingByConversation(prev => ({ ...prev, [data.conversationId]: null }));
       }
     });
 
@@ -352,26 +415,47 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     };
   }, [isAuthenticated]); // Re-connect when auth state changes
 
+  useEffect(() => {
+    return () => {
+      Object.values(typingTimeoutsRef.current).forEach(clearTimeout);
+      typingTimeoutsRef.current = {};
+    };
+  }, []);
+
   const startSupport = useCallback((guestName?: string, guestEmail?: string) => {
     if (socket) {
-      socket.emit('start-support', { guestName, guestEmail });
+      socket.emit('start-support', {
+        guestName,
+        guestEmail,
+        sessionId: user ? undefined : getSessionId()
+      });
     }
-  }, [socket]);
+  }, [socket, user]);
 
   const sendMessage = useCallback((content: string, specificConvId?: string) => {
     const targetId = specificConvId || conversationIdRef.current;
     console.log('[Socket] sendMessage called:', { targetId, content: content.trim(), socketConnected: !!socket });
     if (socket && targetId && content.trim()) {
-      socket.emit('send-message', { conversationId: targetId, content: content.trim() });
+      socket.emit('send-message', {
+        conversationId: targetId,
+        content: content.trim(),
+        guestToken: user ? undefined : getGuestChatToken(),
+        sessionId: user ? undefined : getSessionId()
+      });
     }
-  }, [socket]);
+  }, [socket, user]);
 
   const setTyping = useCallback((isTyping: boolean, specificConvId?: string) => {
     const targetId = specificConvId || conversationId;
     if (socket && targetId) {
-      socket.emit('typing', { conversationId: targetId, isTyping });
+      socket.emit('typing', {
+        conversationId: targetId,
+        isTyping,
+        guestToken: user ? undefined : getGuestChatToken(),
+        sessionId: user ? undefined : getSessionId()
+      });
     }
-  }, [socket, conversationId]);
+  }, [socket, conversationId, user]);
 
   const joinConversation = useCallback((convId: string) => {
     if (socket) {
@@ -381,10 +465,10 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       
       // Optimistically mark as active/read
       setConversations(prev => prev.map(c => 
-        c.id === convId ? { ...c, status: 'active' } : c
+        c.id === convId ? { ...c, status: 'active', assignedTo: user?.id || c.assignedTo } : c
       ));
     }
-  }, [socket]);
+  }, [socket, user?.id]);
 
   const closeConversation = useCallback((convId: string) => {
     if (socket) {
@@ -412,11 +496,16 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   }, [socket]);
 
   const openBubble = useCallback((convId: string) => {
+    setBubbleOpenSignals(prev => ({
+      ...prev,
+      [convId]: (prev[convId] || 0) + 1
+    }));
+
     setActiveBubbles(prev => {
-      if (prev.includes(convId)) return prev;
-      const newBubbles = [...prev, convId];
-      // Max 3 bubbles
-      if (newBubbles.length > 3) return newBubbles.slice(1);
+      const withoutCurrent = prev.filter(id => id !== convId);
+      const newBubbles = [...withoutCurrent, convId];
+      // Keep only the 2 most recently opened bubbles, like Messenger.
+      if (newBubbles.length > 2) return newBubbles.slice(-2);
       return newBubbles;
     });
     // Ensure we are joined to receive messages
@@ -424,10 +513,10 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       socket.emit('join-conversation', { conversationId: convId });
       // Optimistically mark as active/read
       setConversations(prev => prev.map(c => 
-        c.id === convId ? { ...c, status: 'active' } : c
+        c.id === convId ? { ...c, status: 'active', assignedTo: user?.id || c.assignedTo } : c
       ));
     }
-  }, [socket]);
+  }, [socket, user?.id]);
 
   const closeBubble = useCallback((convId: string) => {
     setActiveBubbles(prev => prev.filter(id => id !== convId));
@@ -448,7 +537,9 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       messages,
       conversations,
       typingUser,
+      typingByConversation,
       activeBubbles,
+      bubbleOpenSignals,
       unreadCount,
       onlineUsers,
       messagesByConv,

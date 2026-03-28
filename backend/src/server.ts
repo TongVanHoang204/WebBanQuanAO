@@ -1,6 +1,7 @@
 import express from 'express';
 import cors, { CorsOptions } from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
 import path from 'path';
 import http from 'http';
 import { fileURLToPath } from 'url';
@@ -8,6 +9,7 @@ import { prisma } from './lib/prisma.js';
 import { initializeSocket } from './socket.js';
 import { initializeScheduler } from './services/scheduler.service.js';
 import { createOriginValidator, getAllowedOrigins } from './config/cors.js';
+import { validateSecurityConfig } from './utils/auth-session.js';
 
 // Routes
 import authRoutes from './routes/user/auth.routes.js';
@@ -26,6 +28,7 @@ import aiRoutes from './routes/user/ai.routes.js';
 import couponRoutes from './routes/admin/coupon.routes.js';
 import brandRoutes from './routes/admin/brand.routes.js';
 import brandPublicRoutes from './routes/user/brand.public.routes.js';
+import collectionPublicRoutes from './routes/user/collection.public.routes.js';
 import reviewRoutes from './routes/user/review.routes.js';
 import shippingRoutes from './routes/admin/shipping.routes.js';
 import bannerRoutes from './routes/admin/banner.routes.js';
@@ -48,6 +51,7 @@ import { maintenanceMiddleware } from './middlewares/maintenance.middleware.js';
 import { logger } from './config/logger.js';
 
 dotenv.config();
+validateSecurityConfig();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -73,11 +77,29 @@ BigInt.prototype.toJSON = function (): string | number {
 
 // CORS Configuration
 const allowedOrigins = getAllowedOrigins();
+const websocketOrigins = allowedOrigins.flatMap((origin) => {
+  if (origin.startsWith('https://')) {
+    return [origin, origin.replace(/^https:\/\//, 'wss://')];
+  }
+  if (origin.startsWith('http://')) {
+    return [origin, origin.replace(/^http:\/\//, 'ws://')];
+  }
+  return [origin];
+});
+const cspConnectSources = Array.from(new Set([
+  "'self'",
+  ...websocketOrigins,
+  'https://accounts.google.com',
+  'https://apis.google.com',
+  'https://*.googleapis.com',
+  'https://*.gstatic.com'
+]));
 const corsOptions: CorsOptions = {
   origin: createOriginValidator(allowedOrigins),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id'],
+  exposedHeaders: ['Content-Disposition']
 };
 
 logger.info(`[CORS] Allowed Origins: ${allowedOrigins.join(', ')}`);
@@ -85,21 +107,36 @@ logger.info(`[CORS] Allowed Origins: ${allowedOrigins.join(', ')}`);
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
+app.use(helmet({
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      defaultSrc: ["'self'"],
+      baseUri: ["'self'"],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'self'"],
+      formAction: ["'self'"],
+      imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+      fontSrc: ["'self'", 'data:', 'https:'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https:'],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://accounts.google.com', 'https://apis.google.com', 'https://*.gstatic.com'],
+      connectSrc: cspConnectSources,
+      frameSrc: ["'self'", 'https://accounts.google.com'],
+      scriptSrcAttr: ["'none'"],
+      upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null
+    }
+  },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
+}));
+
 // HTTP Logging
 app.use(morganMiddleware);
 
 // Global Rate Limiting & Maintenance Mode
 app.use('/api', globalLimiter);
 app.use('/api', maintenanceMiddleware);
-
-// Security Headers for Cross-Origin
-app.use((req, res, next) => {
-  // Allow cross-origin window communication for OAuth and popups
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
-  // Note: COEP require-corp can break CORS, so we use credentialless or remove it
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  next();
-});
 
 // Body Parser
 app.use(express.json());
@@ -148,6 +185,7 @@ app.use('/api/v1/payment', paymentRoutes);
 app.use('/api/v1/wishlist', wishlistRoutes);
 app.use('/api/v1/reviews', reviewRoutes); // New public/mixed reviews route
 app.use('/api/v1/brands', brandPublicRoutes);
+app.use('/api/v1/collections', collectionPublicRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 
 // Public API Routes

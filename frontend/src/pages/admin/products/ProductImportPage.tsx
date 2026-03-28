@@ -39,9 +39,9 @@ export default function ProductImportPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDownloadTemplate = () => {
-    const token = localStorage.getItem('token');
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1';
-    window.open(`${apiUrl}/admin/import/products/template?token=${token}`, '_blank');
+    adminAPI.downloadProductTemplate().catch(() => {
+      toast.error('Không thể tải file mẫu');
+    });
   };
 
   const handlePreviewImport = async () => {

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Pencil, Trash2, ChevronRight, ChevronDown } from 'lucide-react';
 import { categoriesAPI } from '../../../services/api';
@@ -101,7 +101,7 @@ export default function CategoryPage() {
     }
 
     return (
-      <div key={`cat-${category.id}`} className="contents">
+      <Fragment key={`cat-${category.id}`}>
         <tr className={`hover:bg-gray-50 dark:hover:bg-secondary-700/50 border-b border-gray-100 dark:border-secondary-700 last:border-0 transition-colors ${!category.is_active ? 'bg-gray-50/50 dark:bg-secondary-800/50' : ''}`}>
           <td className="px-6 py-4 whitespace-nowrap">
             <div className="flex items-center" style={{ paddingLeft: `${depth * 24}px` }}>
@@ -165,7 +165,7 @@ export default function CategoryPage() {
         </tr>
         {/* Render Children */}
         {hasChildren && isExpanded && category.children.map((child: any) => renderCategoryRow(child, depth + 1))}
-      </div>
+      </Fragment>
     );
   };
 

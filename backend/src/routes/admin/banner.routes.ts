@@ -33,7 +33,6 @@ router.get('/public', getPublicBanners);
 
 // Admin routes - require authentication
 router.use(verifyToken);
-router.use(authorize(['admin', 'manager', 'staff']));
 
 /**
  * @swagger
@@ -47,9 +46,9 @@ router.use(authorize(['admin', 'manager', 'staff']));
  *       200:
  *         description: List of banners
  */
-router.get('/', getBanners);
+router.get('/', authorize(['admin', 'manager', 'staff']), getBanners);
 
-router.get('/:id', getBannerById);
+router.get('/:id', authorize(['admin', 'manager', 'staff']), getBannerById);
 
 /**
  * @swagger
@@ -74,9 +73,9 @@ router.get('/:id', getBannerById);
  *       201:
  *         description: Banner created
  */
-router.post('/', createBanner);
-router.patch('/reorder', reorderBanners);
-router.put('/:id', updateBanner);
-router.delete('/:id', deleteBanner);
+router.post('/', authorize(['admin', 'manager']), createBanner);
+router.patch('/reorder', authorize(['admin', 'manager']), reorderBanners);
+router.put('/:id', authorize(['admin', 'manager']), updateBanner);
+router.delete('/:id', authorize(['admin', 'manager']), deleteBanner);
 
 export default router;

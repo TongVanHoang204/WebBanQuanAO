@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../../lib/prisma.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
 import { logActivity } from '../../services/logger.service.js';
+import { deepDiff } from '../../utils/deepDiff.js';
 
 // Get current stock (Variants)
 export const getInventory = async (req: Request, res: Response) => {
@@ -158,16 +159,29 @@ export const getMovements = async (req: Request, res: Response) => {
 export const createMovement = async (req: AuthRequest, res: Response) => {
   try {
     const { variant_id, type, qty, note } = req.body;
+    const allowedMovementTypes = ['in', 'out', 'adjust'];
 
     if (!variant_id || !type || !qty) {
       return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc' });
     }
 
+    if (!allowedMovementTypes.includes(type)) {
+      return res.status(400).json({ success: false, message: 'Loại điều chỉnh kho không hợp lệ' });
+    }
+
     const variantIdBigInt = BigInt(variant_id);
     const parsedQty = parseInt(qty);
 
+    if (!Number.isInteger(parsedQty)) {
+      return res.status(400).json({ success: false, message: 'Số lượng phải là số nguyên hợp lệ' });
+    }
+
     if (parsedQty <= 0 && type !== 'adjust') {
       return res.status(400).json({ success: false, message: 'Số lượng phải lớn hơn 0' });
+    }
+
+    if (type === 'adjust' && parsedQty < 0) {
+      return res.status(400).json({ success: false, message: 'Số lượng tồn kho sau điều chỉnh không được âm' });
     }
 
     const variant = await prisma.product_variants.findUnique({
@@ -220,6 +234,16 @@ export const createMovement = async (req: AuthRequest, res: Response) => {
       entity_type: 'inventory',
       entity_id: String(variantIdBigInt),
       details: { 
+        before: {
+          stock_qty: variant.stock_qty
+        },
+        after: {
+          stock_qty: newStock
+        },
+        diff: deepDiff(
+          { stock_qty: variant.stock_qty },
+          { stock_qty: newStock }
+        ),
         product_name: variant.product.name,
         variant_sku: variant.variant_sku,
         old_stock: variant.stock_qty,
@@ -239,3 +263,5 @@ export const createMovement = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ success: false, message: 'Lỗi server' });
   }
 };
+
+

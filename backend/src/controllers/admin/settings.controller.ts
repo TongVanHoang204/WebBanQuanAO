@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../../lib/prisma.js';
 import { getIO } from '../../socket.js';
 import { logActivity } from '../../services/logger.service.js';
+import { deepDiff } from '../../utils/deepDiff.js';
 
 interface AuthRequest extends Request {
   user?: any;
@@ -39,6 +40,37 @@ const DEFAULT_SETTINGS = {
   payment_momo_qrcode: '', // Image URL or Phone number
 };
 
+const PUBLIC_SETTING_KEYS = [
+  'store_name',
+  'store_logo',
+  'support_email',
+  'support_phone',
+  'physical_address',
+  'maintenance_mode',
+  'shipping_standard_fee',
+  'shipping_free_threshold',
+  'shipping_min_days',
+  'shipping_max_days',
+  'google_client_id',
+  'payment_cod_enabled',
+  'payment_vnpay_enabled',
+  'payment_bank_enabled',
+  'payment_bank_info',
+  'payment_bank_id',
+  'payment_bank_account',
+  'payment_bank_account_name',
+  'payment_momo_enabled',
+  'payment_momo_qrcode'
+] as const;
+
+const pickPublicSettings = (source: Record<string, string>) =>
+  PUBLIC_SETTING_KEYS.reduce<Record<string, string>>((acc, key) => {
+    if (key in source) {
+      acc[key] = source[key];
+    }
+    return acc;
+  }, {});
+
 // Get all settings
 export const getSettings = async (
   req: AuthRequest,
@@ -74,6 +106,11 @@ export const updateSettings = async (
     const updates = req.body;
     const allowedKeys = Object.keys(DEFAULT_SETTINGS);
     const results: { [key: string]: string } = {};
+    const currentRows = await prisma.$queryRaw<any[]>`SELECT * FROM settings`;
+    const currentSettings: Record<string, string> = { ...DEFAULT_SETTINGS };
+    currentRows.forEach((row) => {
+      currentSettings[row.key] = row.value;
+    });
 
     for (const [key, value] of Object.entries(updates)) {
       if (allowedKeys.includes(key) && typeof value === 'string') {
@@ -87,11 +124,19 @@ export const updateSettings = async (
       }
     }
 
-    // Broadcast real-time update to all connected clients
+    const beforeSettings: Record<string, string> = {};
+    const afterSettings: Record<string, string> = {};
+    for (const key of Object.keys(results)) {
+      beforeSettings[key] = currentSettings[key] ?? '';
+      afterSettings[key] = results[key];
+    }
+
+    // Broadcast only public-safe settings to clients.
     try {
       const io = getIO();
-      if (io) {
-        io.emit('settings-updated', results);
+      const publicResults = pickPublicSettings(results);
+      if (io && Object.keys(publicResults).length > 0) {
+        io.emit('settings-updated', publicResults);
       }
     } catch (socketErr) {
       console.error('Socket broadcast failed:', socketErr);
@@ -102,7 +147,11 @@ export const updateSettings = async (
       action: 'Cập nhật cài đặt hệ thống',
       entity_type: 'settings',
       entity_id: 'system',
-      details: { keys: Object.keys(results) },
+      details: {
+        before: beforeSettings,
+        after: afterSettings,
+        diff: deepDiff(beforeSettings, afterSettings)
+      },
       ip_address: req.ip,
       user_agent: req.get('User-Agent')
     });
@@ -132,6 +181,8 @@ export const uploadLogo = async (
     }
 
     const logoUrl = `/uploads/${req.file.filename}`;
+    const existingLogoRows = await prisma.$queryRaw<any[]>`SELECT value FROM settings WHERE \`key\` = 'store_logo' LIMIT 1`;
+    const previousLogo = existingLogoRows[0]?.value || '';
     
     // Use raw query
     await prisma.$executeRaw`
@@ -145,7 +196,11 @@ export const uploadLogo = async (
       action: 'Tải lên logo cửa hàng',
       entity_type: 'settings',
       entity_id: 'store_logo',
-      details: { url: logoUrl },
+      details: {
+        before: { store_logo: previousLogo },
+        after: { store_logo: logoUrl },
+        diff: deepDiff({ store_logo: previousLogo }, { store_logo: logoUrl })
+      },
       ip_address: req.ip,
       user_agent: req.get('User-Agent')
     });
@@ -174,28 +229,7 @@ export const getPublicSettings = async (
     });
 
     // Filter secure keys
-    const safeSettings = {
-      store_name: settingsObj.store_name,
-      store_logo: settingsObj.store_logo,
-      support_email: settingsObj.support_email,
-      support_phone: settingsObj.support_phone,
-      physical_address: settingsObj.physical_address,
-      maintenance_mode: settingsObj.maintenance_mode,
-      shipping_standard_fee: settingsObj.shipping_standard_fee,
-      shipping_free_threshold: settingsObj.shipping_free_threshold,
-      shipping_min_days: settingsObj.shipping_min_days,
-      shipping_max_days: settingsObj.shipping_max_days,
-      google_client_id: settingsObj.google_client_id,
-      payment_cod_enabled: settingsObj.payment_cod_enabled,
-      payment_vnpay_enabled: settingsObj.payment_vnpay_enabled,
-      payment_bank_enabled: settingsObj.payment_bank_enabled,
-      payment_bank_info: settingsObj.payment_bank_info,
-      payment_bank_id: settingsObj.payment_bank_id,
-      payment_bank_account: settingsObj.payment_bank_account,
-      payment_bank_account_name: settingsObj.payment_bank_account_name,
-      payment_momo_enabled: settingsObj.payment_momo_enabled,
-      payment_momo_qrcode: settingsObj.payment_momo_qrcode,
-    };
+    const safeSettings = pickPublicSettings(settingsObj);
 
     res.json({
       success: true,

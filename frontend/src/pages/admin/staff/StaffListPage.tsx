@@ -95,7 +95,6 @@ export default function StaffListPage() {
   const fetchStaff = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       const params = new URLSearchParams();
       if (search) params.append('search', search);
       if (roleFilter !== 'all') params.append('role', roleFilter);
@@ -103,7 +102,7 @@ export default function StaffListPage() {
       params.append('limit', '10');
 
       const res = await fetch(resolveApiUrl(`/api/admin/staff?${params}`), {
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: 'include'
       });
       const data = await res.json();
       if (data.success) {
@@ -200,7 +199,6 @@ export default function StaffListPage() {
 
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
       const url = editingId ? `/api/admin/staff/${editingId}` : '/api/admin/staff';
       const method = editingId ? 'PUT' : 'POST';
 
@@ -211,9 +209,9 @@ export default function StaffListPage() {
       const res = await fetch(resolveApiUrl(url), {
         method,
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(body)
       });
       
@@ -247,15 +245,14 @@ export default function StaffListPage() {
       isDestructive: isBlocking,
       onConfirm: async () => {
         try {
-          const token = localStorage.getItem('token');
           const newStatus = staff.status === 'active' ? 'blocked' : 'active';
           
           const res = await fetch(resolveApiUrl(`/api/admin/staff/${staff.id}`), {
             method: 'PUT',
             headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
+              'Content-Type': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify({ status: newStatus })
           });
           

@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { verifyToken, authorize } from '../../middlewares/auth.middleware.js';
 import { 
   updateOrderStatus,
-  getOrderById
+  getOrderById,
+  restockOrder
 } from '../../controllers/user/order.controller.js';
 import {
   createProduct,
@@ -109,6 +110,7 @@ const orderRoles = ['admin', 'manager', 'staff'];
 router.get('/orders', authorize(orderRoles), getAdminOrders);
 router.get('/orders/:id', authorize(orderRoles), getOrderById);
 router.put('/orders/:id/status', authorize(orderRoles), updateOrderStatus);
+router.post('/orders/:id/restock', authorize(['admin', 'manager']), restockOrder);
 
 // Categories Management
 router.post('/categories', authorize(productRoles), createCategory);
@@ -135,9 +137,9 @@ router.get('/users/:id', authorize(['admin', 'manager', 'staff']), getUserById);
 // User requirement: "Quan ly doi ngu" -> Manager. 
 // We reserve Create/Update/Delete user for Manager/Admin
 const userMgmtRoles = ['admin', 'manager'];
-router.post('/users', authorize(userMgmtRoles), createUser);
+router.post('/users', authorize(['admin']), createUser);
 router.put('/users/:id', authorize(userMgmtRoles), updateUser);
-router.delete('/users/:id', authorize(userMgmtRoles), deleteUser);
+router.delete('/users/:id', authorize(['admin']), deleteUser);
 
 // Analytics & Reports
 // "Xem bao cao doanh thu tong" -> Manager/Admin only

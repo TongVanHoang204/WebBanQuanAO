@@ -103,6 +103,7 @@ import path from 'path';
 import sharp from 'sharp';
 
 import { logActivity } from './logger.service.js';
+import { transitionOrderStatus } from './order-workflow.service.js';
 
 // --- INTERFACES ---
 interface ChatMessage {
@@ -343,14 +344,14 @@ ${styleContext}
 - Khi khách hỏi "đơn hàng của tôi" -> Dùng 'get_my_orders'
 - Khi khách hỏi "thông tin tài khoản" -> Dùng 'get_my_info'
 - Khi khách hỏi "kiểm tra đơn hàng #..." -> Dùng 'get_order_by_id'
-- 💰 Khi khách hỏi theo ngân sách ("dưới 500k", "từ 200-300k") -> Dùng 'search_by_price_range' với min_price, max_price
-- ⚖️ Khi khách muốn so sánh 2 sản phẩm -> Dùng 'compare_products' với tên 2 sản phẩm
+- Khi khách hỏi theo ngân sách ("dưới 500k", "từ 200-300k") -> Dùng 'search_by_price_range' với min_price, max_price
+- Khi khách muốn so sánh 2 sản phẩm -> Dùng 'compare_products' với tên 2 sản phẩm
 
 ### QUY TẮC TRẢ LỜI:
 1. Nếu câu hỏi liên quan đến kiến thức shop/thời trang (size, ship, đổi trả, phối đồ, outfit) -> Trả lời từ kiến thức trên, KHÔNG gọi tool.
 2. Nếu cần tìm sản phẩm -> Gọi tool rồi tóm tắt kết quả thân thiện.
 3. Nếu khách chào hỏi -> Chào lại vui vẻ và hỏi có thể giúp gì.
-4. Luôn kết thúc bằng câu hỏi mở để tiếp tục hỗ trợ (VD: "Bạn cần mình tìm thêm gì không?" 😊)
+4. Luôn kết thúc bằng câu hỏi mở để tiếp tục hỗ trợ.
 5. Khi tư vấn outfit/phối đồ, HÃY ĐỀ XUẤT SẢN PHẨM CỤ THỂ bằng cách gọi 'search_products'.
 
 KHI CẦN DÙNG CÔNG CỤ, trả về JSON như sau (không thêm text):
@@ -1385,7 +1386,7 @@ QUY TẮC BẮT BUỘC:
   private static async updateOrderStatus(args: { order_id: string, status: string }, user: any) {
     try {
         if (!user) return { error: 'Bạn cần đăng nhập để thực hiện thao tác này.' };
-        if (!['pending', 'processing', 'shipped', 'completed', 'cancelled', 'returned'].includes(args.status)) {
+        if (!['confirmed', 'paid', 'processing', 'shipped', 'completed', 'cancelled', 'refunded'].includes(args.status)) {
              return { error: 'Trạng thái không hợp lệ.' };
         }
 
@@ -1403,10 +1404,9 @@ QUY TẮC BẮT BUỘC:
 
         if (!order) return { error: `Không tìm thấy đơn hàng ${args.order_id}` };
 
-        await this.prisma.orders.update({
-            where: { id: order.id },
-            data: { status: args.status as any }
-        });
+        await this.prisma.$transaction((tx) =>
+            transitionOrderStatus(tx as any, order.id, args.status, user)
+        );
 
         await logActivity({
             user_id: BigInt(user.id),

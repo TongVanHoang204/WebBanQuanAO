@@ -5,12 +5,8 @@ import crypto from 'crypto';
 import querystring from 'qs';
 import dayjs from 'dayjs';
 import { logActivity } from '../../services/logger.service.js';
-
-// VNPay Config (Should be in env)
-const vnp_TmnCode = process.env.VNP_TMN_CODE || '2QXUI4J4'; // Demo code
-const vnp_HashSecret = process.env.VNP_HASH_SECRET || 'secret';
-const vnp_Url = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
-const vnp_ReturnUrl = process.env.VNP_RETURN_URL || 'http://localhost:5173/payment/vnpay-return';
+import { sendOrderConfirmationForOrder } from '../../services/email.service.js';
+import { transitionOrderStatus } from '../../services/order-workflow.service.js';
 
 function sortObject(obj: any) {
 	let sorted: any = {};
@@ -101,7 +97,7 @@ export const createPaymentUrl = async (req: AuthRequest, res: Response, next: Ne
         // Audit: Log payment URL creation
         logActivity({
             user_id: req.user?.id ? BigInt(req.user.id) : undefined,
-            action: 'T\u1ea1o URL thanh to\u00e1n VNPay',
+            action: 'Tạo URL thanh toán VNPay',
             entity_type: 'order',
             entity_id: String(order_id),
             details: { order_code: order.order_code, amount: Number(order.grand_total) },
@@ -162,25 +158,32 @@ export const vnpayReturn = async (req: AuthRequest, res: Response, next: NextFun
                         return res.status(400).json({ success: false, message: 'Payment amount mismatch' });
                     }
                     
-                    // Skip if already paid (prevent duplicate processing)
-                    if (order.status === 'paid') {
+                    // Skip duplicate success callbacks after payment was already recorded.
+                    if (!['pending', 'confirmed'].includes(order.status)) {
                         return res.json({ success: true, message: 'Payment already processed', data: { order_code: orderCode } });
                     }
-                    
-                    // Success
-                    await prisma.orders.update({
-                        where: { id: order.id },
-                        data: { status: 'paid' }
+
+                    const updatedOrder = await prisma.$transaction(async (tx) => {
+                        await transitionOrderStatus(tx as any, order.id, 'paid');
+                        await tx.payments.updateMany({
+                            where: { order_id: order.id },
+                            data: {
+                                transaction_ref: vnp_Params['vnp_TransactionNo'] as string
+                            }
+                        });
+                        return tx.orders.findUnique({
+                            where: { id: order.id },
+                            include: {
+                                user: {
+                                    select: { email: true }
+                                }
+                            }
+                        });
                     });
-                    
-                    await prisma.payments.updateMany({
-                        where: { order_id: order.id },
-                        data: { 
-                            status: 'paid',
-                            paid_at: new Date(),
-                            transaction_ref: vnp_Params['vnp_TransactionNo'] as string
-                        }
-                    });
+
+                    if (updatedOrder) {
+                        sendOrderConfirmationForOrder(updatedOrder).catch(console.error);
+                    }
 
                     // Log
                     logActivity({
@@ -252,24 +255,31 @@ export const vnpayIpn = async (req: AuthRequest, res: Response, next: NextFuncti
                         return res.status(200).json({ RspCode: '04', Message: 'Amount mismatch' });
                     }
                     
-                    // Skip if already paid
-                    if (order.status === 'paid') {
+                    if (!['pending', 'confirmed'].includes(order.status)) {
                         return res.status(200).json({ RspCode: '02', Message: 'Already confirmed' });
                     }
-                    
-                    await prisma.orders.update({
-                        where: { id: order.id },
-                        data: { status: 'paid' }
+
+                    const updatedOrder = await prisma.$transaction(async (tx) => {
+                        await transitionOrderStatus(tx as any, order.id, 'paid');
+                        await tx.payments.updateMany({
+                            where: { order_id: order.id },
+                            data: {
+                                transaction_ref: vnp_Params['vnp_TransactionNo'] as string
+                            }
+                        });
+                        return tx.orders.findUnique({
+                            where: { id: order.id },
+                            include: {
+                                user: {
+                                    select: { email: true }
+                                }
+                            }
+                        });
                     });
-                    
-                    await prisma.payments.updateMany({
-                        where: { order_id: order.id },
-                        data: { 
-                            status: 'paid',
-                            paid_at: new Date(),
-                            transaction_ref: vnp_Params['vnp_TransactionNo'] as string
-                        }
-                    });
+
+                    if (updatedOrder) {
+                        sendOrderConfirmationForOrder(updatedOrder).catch(console.error);
+                    }
                 }
                 res.status(200).json({ RspCode: '00', Message: 'Confirm Success' });
             } else {

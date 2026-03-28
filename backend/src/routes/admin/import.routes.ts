@@ -23,9 +23,9 @@ const upload = multer({
 });
 
 // Download import template
-router.get('/products/template', verifyToken, authorize(['admin', 'staff']), downloadProductTemplate);
+router.get('/products/template', verifyToken, authorize(['admin', 'manager', 'staff']), downloadProductTemplate);
 
 // Import products from Excel
-router.post('/products', verifyToken, authorize(['admin', 'staff']), upload.single('file'), importProducts);
+router.post('/products', verifyToken, authorize(['admin', 'manager', 'staff']), upload.single('file'), importProducts);
 
 export default router;

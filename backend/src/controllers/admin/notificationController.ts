@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { Response } from 'express';
 import { prisma } from '../../lib/prisma.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
@@ -15,6 +16,76 @@ interface NotificationData {
   created_at: Date;
 }
 
+const extractInventorySku = (message: string): string | null => {
+  const match = message.match(/SKU:\s*([^).,\s]+)/i);
+  return match?.[1] || null;
+};
+
+const getDefaultNotificationLink = (type: string, message?: string): string | null => {
+  if (INVENTORY_NOTIFICATION_TYPES.includes(type)) {
+    const sku = message ? extractInventorySku(message) : null;
+    if (sku) {
+      return `/admin/inventory?lowStock=true&sku=${encodeURIComponent(sku)}&open=true`;
+    }
+
+    return '/admin/inventory?lowStock=true';
+  }
+
+  return null;
+};
+
+const resolveNotificationLink = (type: string, link?: string | null, message?: string): string | null => {
+  const inventoryLink = getDefaultNotificationLink(type, message);
+
+  if (inventoryLink) {
+    return inventoryLink;
+  }
+
+  return link || null;
+};
+
+const SHARED_ADMIN_ROLES = new Set(['admin', 'manager', 'staff']);
+const ORDER_NOTIFICATION_TYPES = ['order_new', 'order_status'];
+const INVENTORY_NOTIFICATION_TYPES = ['product_low_stock', 'product_out_of_stock'];
+
+const canAccessSharedNotifications = (role?: string | null): boolean =>
+  role ? SHARED_ADMIN_ROLES.has(role) : false;
+
+const getVisibilityCondition = (userId: bigint, includeShared: boolean) =>
+  includeShared
+    ? Prisma.sql`(user_id = ${userId} OR user_id IS NULL)`
+    : Prisma.sql`user_id = ${userId}`;
+
+const getCategoryCondition = (category?: string) => {
+  if (!category || category === 'all') {
+    return Prisma.empty;
+  }
+
+  if (category === 'order') {
+    return Prisma.sql`AND type IN (${Prisma.join(ORDER_NOTIFICATION_TYPES)})`;
+  }
+
+  if (category === 'inventory') {
+    return Prisma.sql`AND type IN (${Prisma.join(INVENTORY_NOTIFICATION_TYPES)})`;
+  }
+
+  if (category === 'system') {
+    return Prisma.sql`AND type = 'system'`;
+  }
+
+  return Prisma.empty;
+};
+
+const toCount = (value: unknown): number => Number(value || 0);
+
+const serializeNotification = (notification: NotificationData) => ({
+  ...notification,
+  id: notification.id.toString(),
+  user_id: notification.user_id?.toString(),
+  link: resolveNotificationLink(notification.type, notification.link, notification.message),
+  is_read: Boolean(Number(notification.is_read))
+});
+
 /**
  * Get all notifications for current user
  * GET /api/admin/notifications
@@ -22,90 +93,96 @@ interface NotificationData {
 export const getNotifications = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
-    const isAdmin = req.user?.role === 'admin';
+    const includeShared = canAccessSharedNotifications(req.user?.role);
     
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const { page = 1, limit = 20, unread_only = 'false' } = req.query;
-    const skip = (Number(page) - 1) * Number(limit);
-    
-    const where: any = { user_id: userId };
-    if (unread_only === 'true') {
-      where.is_read = false;
-    }
+    const {
+      page = 1,
+      limit = 20,
+      unread_only = 'false',
+      category,
+      search,
+      recent_hours
+    } = req.query;
+    const parsedPage = Math.max(1, Number(page) || 1);
+    const parsedLimit = Math.min(50, Math.max(1, Number(limit) || 20));
+    const skip = (parsedPage - 1) * parsedLimit;
+    const recentHours = Number(recent_hours);
+    const visibilityCondition = getVisibilityCondition(userId, includeShared);
+    const unreadCondition = unread_only === 'true' ? Prisma.sql`AND is_read = false` : Prisma.empty;
+    const categoryCondition = getCategoryCondition(typeof category === 'string' ? category : undefined);
+    const searchValue = typeof search === 'string' ? search.trim() : '';
+    const searchCondition = searchValue
+      ? Prisma.sql`AND (title LIKE ${`%${searchValue}%`} OR message LIKE ${`%${searchValue}%`})`
+      : Prisma.empty;
+    const recentCondition = Number.isFinite(recentHours) && recentHours > 0
+      ? Prisma.sql`AND created_at >= DATE_SUB(NOW(), INTERVAL ${Math.floor(recentHours)} HOUR)`
+      : Prisma.empty;
 
-    // Use raw query since notifications model might not be generated yet
-    let notifications: NotificationData[];
-    let total: number;
-    
-    if (unread_only === 'true') {
-      if (isAdmin) {
-        notifications = await prisma.$queryRaw<NotificationData[]>`
-          SELECT * FROM notifications 
-          WHERE (user_id = ${userId} OR user_id IS NULL) AND is_read = false
-          ORDER BY created_at DESC 
-          LIMIT ${Number(limit)} OFFSET ${skip}
-        `;
-        const countResult = await prisma.$queryRaw<{count: bigint}[]>`
-          SELECT COUNT(*) as count FROM notifications WHERE (user_id = ${userId} OR user_id IS NULL) AND is_read = false
-        `;
-        total = Number(countResult[0]?.count || 0);
-      } else {
-        notifications = await prisma.$queryRaw<NotificationData[]>`
-          SELECT * FROM notifications 
-          WHERE user_id = ${userId} AND is_read = false
-          ORDER BY created_at DESC 
-          LIMIT ${Number(limit)} OFFSET ${skip}
-        `;
-        const countResult = await prisma.$queryRaw<{count: bigint}[]>`
-          SELECT COUNT(*) as count FROM notifications WHERE user_id = ${userId} AND is_read = false
-        `;
-        total = Number(countResult[0]?.count || 0);
-      }
-    } else {
-      if (isAdmin) {
-        notifications = await prisma.$queryRaw<NotificationData[]>`
-          SELECT * FROM notifications 
-          WHERE (user_id = ${userId} OR user_id IS NULL)
-          ORDER BY created_at DESC 
-          LIMIT ${Number(limit)} OFFSET ${skip}
-        `;
-        const countResult = await prisma.$queryRaw<{count: bigint}[]>`
-          SELECT COUNT(*) as count FROM notifications WHERE (user_id = ${userId} OR user_id IS NULL)
-        `;
-        total = Number(countResult[0]?.count || 0);
-      } else {
-        notifications = await prisma.$queryRaw<NotificationData[]>`
-          SELECT * FROM notifications 
-          WHERE user_id = ${userId}
-          ORDER BY created_at DESC 
-          LIMIT ${Number(limit)} OFFSET ${skip}
-        `;
-        const countResult = await prisma.$queryRaw<{count: bigint}[]>`
-          SELECT COUNT(*) as count FROM notifications WHERE user_id = ${userId}
-        `;
-        total = Number(countResult[0]?.count || 0);
-      }
-    }
+    const notifications = await prisma.$queryRaw<NotificationData[]>`
+      SELECT * FROM notifications
+      WHERE ${visibilityCondition}
+      ${unreadCondition}
+      ${categoryCondition}
+      ${searchCondition}
+      ${recentCondition}
+      ORDER BY created_at DESC
+      LIMIT ${parsedLimit} OFFSET ${skip}
+    `;
 
-    // Convert BigInt to string for JSON serialization
-    const serializedNotifications = notifications.map((n: NotificationData) => ({
-      ...n,
-      id: n.id.toString(),
-      user_id: n.user_id?.toString(),
-      is_read: Boolean(Number(n.is_read)) // Robust conversion for raw query results
-    }));
+    const countResult = await prisma.$queryRaw<{ count: bigint }[]>`
+      SELECT COUNT(*) as count FROM notifications
+      WHERE ${visibilityCondition}
+      ${unreadCondition}
+      ${categoryCondition}
+      ${searchCondition}
+      ${recentCondition}
+    `;
+    const total = toCount(countResult[0]?.count);
+
+    const summaryRows = await prisma.$queryRaw<Array<{
+      total: bigint | number | null;
+      unread: bigint | number | null;
+      orders: bigint | number | null;
+      inventory: bigint | number | null;
+      system: bigint | number | null;
+    }>>`
+      SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN is_read = false THEN 1 ELSE 0 END) as unread,
+        SUM(CASE WHEN type IN (${Prisma.join(ORDER_NOTIFICATION_TYPES)}) THEN 1 ELSE 0 END) as orders,
+        SUM(CASE WHEN type IN (${Prisma.join(INVENTORY_NOTIFICATION_TYPES)}) THEN 1 ELSE 0 END) as inventory,
+        SUM(CASE WHEN type = 'system' THEN 1 ELSE 0 END) as system
+      FROM notifications
+      WHERE ${visibilityCondition}
+    `;
+
+    const summary = summaryRows[0] || {
+      total: 0,
+      unread: 0,
+      orders: 0,
+      inventory: 0,
+      system: 0
+    };
 
     res.json({
       success: true,
       data: {
-        notifications: serializedNotifications,
+        notifications: notifications.map(serializeNotification),
         total,
-        page: Number(page),
-        limit: Number(limit),
-        totalPages: Math.ceil(total / Number(limit)),
+        page: parsedPage,
+        limit: parsedLimit,
+        totalPages: Math.ceil(total / parsedLimit),
+        summary: {
+          total: toCount(summary.total),
+          unread: toCount(summary.unread),
+          orders: toCount(summary.orders),
+          inventory: toCount(summary.inventory),
+          system: toCount(summary.system)
+        }
       },
     });
   } catch (error) {
@@ -121,24 +198,17 @@ export const getNotifications = async (req: AuthRequest, res: Response) => {
 export const getUnreadCount = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
-    const isAdmin = req.user?.role === 'admin';
+    const includeShared = canAccessSharedNotifications(req.user?.role);
     
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    let result;
-    if (isAdmin) {
-      result = await prisma.$queryRaw<{count: bigint}[]>`
-        SELECT COUNT(*) as count FROM notifications 
-        WHERE (user_id = ${userId} OR user_id IS NULL) AND is_read = false
-      `;
-    } else {
-      result = await prisma.$queryRaw<{count: bigint}[]>`
-        SELECT COUNT(*) as count FROM notifications 
-        WHERE user_id = ${userId} AND is_read = false
-      `;
-    }
+    const visibilityCondition = getVisibilityCondition(userId, includeShared);
+    const result = await prisma.$queryRaw<{count: bigint}[]>`
+      SELECT COUNT(*) as count FROM notifications 
+      WHERE ${visibilityCondition} AND is_read = false
+    `;
     const count = Number(result[0]?.count || 0);
 
     res.json({ success: true, data: { count } });
@@ -156,7 +226,7 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
-    const isAdmin = req.user?.role === 'admin';
+    const includeShared = canAccessSharedNotifications(req.user?.role);
 
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -165,16 +235,10 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
     const notificationId = BigInt(id as string);
 
     // Check ownership
-    let existing;
-    if (isAdmin) {
-      existing = await prisma.$queryRaw<NotificationData[]>`
-        SELECT * FROM notifications WHERE id = ${notificationId} AND (user_id = ${userId} OR user_id IS NULL)
-      `;
-    } else {
-      existing = await prisma.$queryRaw<NotificationData[]>`
-        SELECT * FROM notifications WHERE id = ${notificationId} AND user_id = ${userId}
-      `;
-    }
+    const visibilityCondition = getVisibilityCondition(userId, includeShared);
+    const existing = await prisma.$queryRaw<NotificationData[]>`
+      SELECT * FROM notifications WHERE id = ${notificationId} AND ${visibilityCondition}
+    `;
 
     if (!existing.length) {
       return res.status(404).json({ success: false, message: 'Notification not found' });
@@ -188,10 +252,8 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
     res.json({
       success: true,
       data: {
-        ...existing[0],
-        id: existing[0].id.toString(),
-        user_id: existing[0].user_id?.toString(),
-        is_read: true,
+        ...serializeNotification(existing[0]),
+        is_read: true
       },
     });
   } catch (error) {
@@ -207,23 +269,17 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
 export const markAllAsRead = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
-    const isAdmin = req.user?.role === 'admin';
+    const includeShared = canAccessSharedNotifications(req.user?.role);
 
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    if (isAdmin) {
-      await prisma.$executeRaw`
-        UPDATE notifications SET is_read = true 
-        WHERE (user_id = ${userId} OR user_id IS NULL) AND is_read = false
-      `;
-    } else {
-      await prisma.$executeRaw`
-        UPDATE notifications SET is_read = true 
-        WHERE user_id = ${userId} AND is_read = false
-      `;
-    }
+    const visibilityCondition = getVisibilityCondition(userId, includeShared);
+    await prisma.$executeRaw`
+      UPDATE notifications SET is_read = true 
+      WHERE ${visibilityCondition} AND is_read = false
+    `;
 
     res.json({ success: true, message: 'All notifications marked as read' });
   } catch (error) {
@@ -240,7 +296,7 @@ export const deleteNotification = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
-    const isAdmin = req.user?.role === 'admin';
+    const includeShared = canAccessSharedNotifications(req.user?.role);
 
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -249,16 +305,10 @@ export const deleteNotification = async (req: AuthRequest, res: Response) => {
     const notificationId = BigInt(id as string);
 
     // Check ownership
-    let existing;
-    if (isAdmin) {
-      existing = await prisma.$queryRaw<NotificationData[]>`
-        SELECT * FROM notifications WHERE id = ${notificationId} AND (user_id = ${userId} OR user_id IS NULL)
-      `;
-    } else {
-      existing = await prisma.$queryRaw<NotificationData[]>`
-        SELECT * FROM notifications WHERE id = ${notificationId} AND user_id = ${userId}
-      `;
-    }
+    const visibilityCondition = getVisibilityCondition(userId, includeShared);
+    const existing = await prisma.$queryRaw<NotificationData[]>`
+      SELECT * FROM notifications WHERE id = ${notificationId} AND ${visibilityCondition}
+    `;
 
     if (!existing.length) {
       return res.status(404).json({ success: false, message: 'Notification not found' });
@@ -284,9 +334,10 @@ export const createNotification = async (data: {
   link?: string;
 }) => {
   try {
+    const resolvedLink = resolveNotificationLink(data.type, data.link, data.message);
     const result = await prisma.$queryRaw<{id: bigint}[]>`
       INSERT INTO notifications (user_id, type, title, message, link, is_read, created_at)
-      VALUES (${data.user_id}, ${data.type}, ${data.title}, ${data.message}, ${data.link || null}, false, NOW())
+      VALUES (${data.user_id}, ${data.type}, ${data.title}, ${data.message}, ${resolvedLink}, false, NOW())
       RETURNING id
     `;
     
@@ -300,7 +351,7 @@ export const createNotification = async (data: {
         type: data.type,
         title: data.title,
         message: data.message,
-        link: data.link,
+        link: resolvedLink,
         is_read: false,
         created_at: new Date()
       };

@@ -1,6 +1,6 @@
 import React from 'react';
 import Lottie from 'lottie-react';
-import loadingAnimation from '../../assets/loading-animation.json';
+import runningCatAnimation from '../../assets/running-cat-animation.json';
 
 interface LoadingScreenProps {
   message?: string;
@@ -17,31 +17,40 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
 
   return (
     <div className={`${containerClass} flex flex-col items-center justify-center`}>
-      {/* Animated Lottie Sticker */}
       <div className="relative">
-        {/* Glow effect behind animation */}
-        <div className="absolute inset-0 bg-gradient-to-r from-primary-400/20 via-pink-400/20 to-purple-400/20 rounded-full blur-2xl scale-150 animate-pulse"></div>
-        
-        {/* Lottie Animation */}
-        <div className="relative w-32 h-32">
-          <Lottie 
-            animationData={loadingAnimation}
-            loop={true}
-            autoplay={true}
-            style={{ width: '100%', height: '100%' }}
-          />
+        <div className="absolute inset-0 scale-150 rounded-full bg-gradient-to-r from-amber-300/30 via-orange-300/25 to-rose-300/20 blur-2xl" />
+
+        <div className="relative h-40 w-40">
+          <div className="absolute inset-x-6 bottom-3 h-4 rounded-full bg-secondary-200/70 blur-md dark:bg-secondary-700/60" />
+          <div className="absolute inset-x-0 bottom-0 h-1 overflow-hidden rounded-full bg-secondary-100 dark:bg-secondary-800">
+            <div
+              className="h-full w-20 rounded-full bg-gradient-to-r from-transparent via-amber-400 to-transparent"
+              style={{ animation: 'track-run 1.1s linear infinite' }}
+            />
+          </div>
+
+          <div className="absolute inset-0">
+            <Lottie
+              animationData={runningCatAnimation}
+              loop
+              autoplay
+              style={{ width: '100%', height: '100%' }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Loading text */}
-      <p className="mt-6 text-secondary-600 dark:text-secondary-400 text-sm font-medium animate-pulse">
+      <p className="mt-6 text-sm font-medium text-secondary-600 dark:text-secondary-400">
         {message}
       </p>
 
-      {/* Animated gradient bar */}
-      <div className="mt-4 w-48 h-1 bg-secondary-100 dark:bg-secondary-800 rounded-full overflow-hidden">
+      <div className="mt-2 text-xs tracking-[0.22em] text-secondary-400 dark:text-secondary-500">
+        MÈO MODE
+      </div>
+
+      <div className="mt-4 h-1 w-48 overflow-hidden rounded-full bg-secondary-100 dark:bg-secondary-800">
         <div 
-          className="h-full bg-gradient-to-r from-primary-500 via-pink-500 to-purple-500 rounded-full"
+          className="h-full rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500"
           style={{
             animation: 'shimmer 1.5s ease-in-out infinite',
             width: '50%'
@@ -49,11 +58,15 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
         />
       </div>
       
-      {/* Custom CSS for shimmer animation */}
       <style>{`
         @keyframes shimmer {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(300%); }
+        }
+
+        @keyframes track-run {
+          0% { transform: translateX(-120%); }
+          100% { transform: translateX(320%); }
         }
       `}</style>
     </div>

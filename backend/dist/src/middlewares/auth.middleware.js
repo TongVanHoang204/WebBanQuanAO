@@ -1,21 +1,14 @@
 import jwt from 'jsonwebtoken';
 import { prisma } from '../server.js';
 import { ApiError } from './error.middleware.js';
+import { getJwtSecret, getTokenFromRequest } from '../utils/auth-session.js';
 export const verifyToken = async (req, res, next) => {
     try {
-        let token;
-        const authHeader = req.headers.authorization;
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            token = authHeader.split(' ')[1];
-        }
-        else if (req.query.token) {
-            token = req.query.token;
-        }
-        else {
+        const token = getTokenFromRequest(req);
+        if (!token) {
             throw new ApiError(401, 'Access token required');
         }
-        const secret = process.env.JWT_SECRET || 'default-secret';
-        const decoded = jwt.verify(token, secret);
+        const decoded = jwt.verify(token, getJwtSecret());
         const user = await prisma.users.findUnique({
             where: { id: BigInt(decoded.userId) },
             select: {
@@ -56,13 +49,11 @@ export const verifyToken = async (req, res, next) => {
 };
 export const optionalAuth = async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        const token = getTokenFromRequest(req);
+        if (!token) {
             return next();
         }
-        const token = authHeader.split(' ')[1];
-        const secret = process.env.JWT_SECRET || 'default-secret';
-        const decoded = jwt.verify(token, secret);
+        const decoded = jwt.verify(token, getJwtSecret());
         const user = await prisma.users.findUnique({
             where: { id: BigInt(decoded.userId) },
             select: {

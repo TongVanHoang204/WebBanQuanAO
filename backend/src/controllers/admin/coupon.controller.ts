@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../lib/prisma.js';
 import { logActivity } from '../../services/logger.service.js';
+import { deepDiff, createDeleteSnapshot } from '../../utils/deepDiff.js';
 
 export const getCoupons = async (req: Request, res: Response) => {
     try {
@@ -178,12 +179,41 @@ export const updateCoupon = async (req: Request, res: Response) => {
             }
         });
 
+        const beforeSnapshot = {
+            code: existing.code,
+            type: existing.type,
+            value: Number(existing.value),
+            min_subtotal: Number(existing.min_subtotal),
+            max_discount: existing.max_discount != null ? Number(existing.max_discount) : null,
+            start_at: existing.start_at,
+            end_at: existing.end_at,
+            usage_limit: existing.usage_limit,
+            usage_per_user: existing.usage_per_user,
+            is_active: existing.is_active
+        };
+        const afterSnapshot = {
+            code: coupon.code,
+            type: coupon.type,
+            value: Number(coupon.value),
+            min_subtotal: Number(coupon.min_subtotal),
+            max_discount: coupon.max_discount != null ? Number(coupon.max_discount) : null,
+            start_at: coupon.start_at,
+            end_at: coupon.end_at,
+            usage_limit: coupon.usage_limit,
+            usage_per_user: coupon.usage_per_user,
+            is_active: coupon.is_active
+        };
+
         await logActivity({
           user_id: BigInt((req as any).user?.id || 0),
           action: 'Cập nhật mã giảm giá',
           entity_type: 'coupon',
           entity_id: String(id),
-          details: { code: coupon.code },
+          details: {
+            before: beforeSnapshot,
+            after: afterSnapshot,
+            diff: deepDiff(beforeSnapshot, afterSnapshot)
+          },
           ip_address: req.ip,
           user_agent: req.get('User-Agent')
         });
@@ -212,6 +242,13 @@ export const deleteCoupon = async (req: Request, res: Response) => {
             });
         }
 
+        const existing = await prisma.coupons.findUnique({
+            where: { id: couponId }
+        });
+        if (!existing) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy mã giảm giá' });
+        }
+
         await prisma.coupons.delete({
             where: { id: couponId }
         });
@@ -221,7 +258,14 @@ export const deleteCoupon = async (req: Request, res: Response) => {
           action: 'Xóa mã giảm giá',
           entity_type: 'coupon',
           entity_id: String(id),
-          details: { },
+          details: {
+            deleted_data: createDeleteSnapshot({
+              ...existing,
+              value: Number(existing.value),
+              min_subtotal: Number(existing.min_subtotal),
+              max_discount: existing.max_discount != null ? Number(existing.max_discount) : null
+            })
+          },
           ip_address: req.ip,
           user_agent: req.get('User-Agent')
         });

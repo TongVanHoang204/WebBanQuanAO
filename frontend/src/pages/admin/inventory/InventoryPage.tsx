@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Package, Plus, Search, AlertCircle, ArrowDownCircle, ArrowUpCircle, Edit3, X } from 'lucide-react';
 import { inventoryAPI } from '../../../services/api';
 import { toast } from 'react-hot-toast';
 import AIInsightPanel from '../../../components/common/AIInsightPanel';
 
 export default function InventoryPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedSku = searchParams.get('sku')?.trim() || '';
+  const shouldOpenFromNotification = searchParams.get('open') === 'true';
   const [activeTab, setActiveTab] = useState<'stock' | 'movements'>('stock');
   
   // Stock State
   const [stock, setStock] = useState<any[]>([]);
   const [stockPage, setStockPage] = useState(1);
   const [stockTotalPages, setStockTotalPages] = useState(1);
-  const [search, setSearch] = useState('');
-  const [lowStock, setLowStock] = useState(false);
+  const [search, setSearch] = useState(requestedSku);
+  const [lowStock, setLowStock] = useState(searchParams.get('lowStock') === 'true');
   const [loadingStock, setLoadingStock] = useState(false);
 
   // Movements State
@@ -69,10 +73,47 @@ export default function InventoryPage() {
     }
   }, [activeTab, search, lowStock]);
 
+  useEffect(() => {
+    if (!requestedSku || search === requestedSku) {
+      return;
+    }
+
+    setSearch(requestedSku);
+  }, [requestedSku]);
+
+  useEffect(() => {
+    const shouldEnableLowStock = searchParams.get('lowStock') === 'true';
+    if (lowStock !== shouldEnableLowStock) {
+      setLowStock(shouldEnableLowStock);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (activeTab !== 'stock' || loadingStock || isModalOpen || !shouldOpenFromNotification || !requestedSku) {
+      return;
+    }
+
+    const matchedVariant = stock.find(
+      (item) => String(item.variant_sku).toLowerCase() === requestedSku.toLowerCase()
+    );
+
+    if (!matchedVariant) {
+      return;
+    }
+
+    handleOpenModal(matchedVariant);
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.delete('open');
+      return next;
+    }, { replace: true });
+  }, [activeTab, loadingStock, isModalOpen, requestedSku, shouldOpenFromNotification, stock, setSearchParams]);
+
   const handleOpenModal = (variant: any) => {
     setSelectedVariant(variant);
-    setMoveType('in');
-    setMoveQty('');
+    const openedFromNotification = searchParams.get('open') === 'true';
+    setMoveType(openedFromNotification ? 'adjust' : 'in');
+    setMoveQty(openedFromNotification ? Number(variant.stock_qty) : '');
     setMoveNote('');
     setIsModalOpen(true);
   };

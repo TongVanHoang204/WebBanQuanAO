@@ -124,7 +124,7 @@ export default function ProductDetailPage() {
       await addToCart(Number(selectedVariant.id), quantity);
       navigate('/checkout');
     } catch (error: any) {
-      const msg = error.response?.data?.error?.message || 'Khong the mua ngay';
+      const msg = error.response?.data?.error?.message || 'Không thể mua ngay';
       toast.error(msg);
     } finally {
       setIsBuyingNow(false);

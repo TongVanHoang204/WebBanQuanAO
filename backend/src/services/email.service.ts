@@ -1,34 +1,20 @@
-import nodemailer from 'nodemailer';
-import { logActivity } from './logger.service.js';
+import { Resend } from 'resend';
 
-// Create reusable transporter object using the default SMTP transport
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-  port: parseInt(process.env.SMTP_PORT || '2525'), // Try 2525 if 587 fails
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  // Timeout settings for slow connections (Render/Cloud)
-  connectionTimeout: 30000, // 30s
-  greetingTimeout: 15000,   // 15s
-  socketTimeout: 30000,     // 30s
-  logger: true, // Log to console
-  debug: false, // Include SMTP traffic in logs
-});
+const stripWrappingQuotes = (value?: string | null) => value?.replace(/^"(.*)"$/, '$1').trim();
 
-// Verify connection configuration ONLY if credentials are present
-if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-  transporter.verify(function (error, success) {
-    if (error) {
-      console.log('[Email] Server connection failed:', error);
-    } else {
-      console.log('[Email] Server is ready to take our messages');
-    }
-  });
+const resendApiKey = stripWrappingQuotes(process.env.RESEND_API_KEY);
+const appName = stripWrappingQuotes(process.env.APP_NAME) || 'Fashion Store';
+const configuredFrom = stripWrappingQuotes(process.env.RESEND_FROM) || 'onboarding@resend.dev';
+const configuredReplyTo =
+  stripWrappingQuotes(process.env.RESEND_REPLY_TO) ||
+  stripWrappingQuotes(process.env.SMTP_FROM);
+
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
+
+if (resend) {
+  console.log(`[Email] Resend enabled with sender ${configuredFrom}`);
 } else {
-  console.log('[Email] SMTP credentials missing. Email service will run in MOCK mode.');
+  console.log('[Email] RESEND_API_KEY missing. Email service will run in MOCK mode.');
 }
 
 interface EmailOptions {
@@ -37,23 +23,61 @@ interface EmailOptions {
   html: string;
 }
 
+interface OrderEmailPayload {
+  order_code: string;
+  grand_total: number | string | { toString(): string };
+  admin_note?: string | null;
+  user?: {
+    email?: string | null;
+  } | null;
+}
+
+const ORDER_EMAIL_MARKER_PREFIX = '[CONTACT_EMAIL:';
+
+export const attachOrderEmailToAdminNote = (adminNote: string | null | undefined, email?: string | null) => {
+  const normalizedEmail = email?.trim();
+  if (!normalizedEmail) {
+    return adminNote ?? null;
+  }
+
+  const cleanedNote = (adminNote || '').replace(/\[CONTACT_EMAIL:[^\]]+\]\s*\|?\s*/g, '').trim();
+  const marker = `${ORDER_EMAIL_MARKER_PREFIX}${normalizedEmail}]`;
+  return [cleanedNote, marker].filter(Boolean).join(' | ');
+};
+
+export const getOrderEmailFromAdminNote = (adminNote?: string | null) => {
+  if (!adminNote) {
+    return null;
+  }
+
+  const match = adminNote.match(/\[CONTACT_EMAIL:([^\]]+)\]/);
+  return match?.[1]?.trim() || null;
+};
+
 export const sendEmail = async ({ to, subject, html }: EmailOptions) => {
   try {
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log('[Email] SMTP credentials missing. Mock email sent to:', to);
+    if (!resend) {
+      console.log('[Email] RESEND_API_KEY missing. Mock email sent to:', to);
       console.log('[Email] Subject:', subject);
-      console.log('[Email] Body Preview:', html.substring(0, 200) + '...'); 
-      return true; // Return success to avoid blocking flow in dev
+      console.log('[Email] Body Preview:', html.substring(0, 200) + '...');
+      return true;
     }
 
-    const info = await transporter.sendMail({
-      from: `"${process.env.APP_NAME || 'Fashion Store'}" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-      to,
+    const { data, error } = await resend.emails.send({
+      from: `${appName} <${configuredFrom}>`,
+      to: [to],
       subject,
       html,
+      replyTo: configuredReplyTo ? [configuredReplyTo] : undefined
     });
 
-    console.log('[Email] Message sent: %s', info.messageId);
+    if (error) {
+      console.error('[Email] Resend rejected email:', error);
+      return false;
+    }
+
+    console.log('[Email] Resend message queued:', data?.id);
+    console.log('[Email] To:', to);
     return true;
   } catch (error) {
     console.error('[Email] Error sending email:', error);
@@ -81,14 +105,8 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
 
 export const sendResetPasswordEmail = async (email: string, token: string) => {
   const subject = 'Yêu cầu đặt lại mật khẩu - Fashion Store';
-  // In a real app, this would link to a frontend page with the token
-  // For this simplified flow, we send the token as a "code" or link
-  // Let's assume we link to /reset-password?token=XYZ or just give them a temp code if logic dictates
-  // But wait, the previous logic was just console log a token.
-  // Ideally: Link to /reset-password?email=...&token=...
-  
   const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?email=${encodeURIComponent(email)}&token=${token}`;
-  
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #4F46E5;">Đặt lại mật khẩu</h2>
@@ -102,19 +120,20 @@ export const sendResetPasswordEmail = async (email: string, token: string) => {
     </div>
   `;
 
-  if (!process.env.SMTP_USER) {
-      console.log('====================================================');
-      console.log('>>> MOCK RESET LINK:', resetLink);
-      console.log('>>> TOKEN:', token);
-      console.log('====================================================');
+  if (!resend) {
+    console.log('====================================================');
+    console.log('>>> MOCK RESET LINK:', resetLink);
+    console.log('>>> TOKEN:', token);
+    console.log('====================================================');
   }
+
   return sendEmail({ to: email, subject, html });
 };
 
 export const sendOrderConfirmationEmail = async (email: string, orderCode: string, total: number) => {
   const subject = `Xác nhận đơn hàng #${orderCode} - Fashion Store`;
   const formattedTotal = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total);
-  
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #10B981;">Đặt hàng thành công!</h2>
@@ -128,6 +147,15 @@ export const sendOrderConfirmationEmail = async (email: string, orderCode: strin
     </div>
   `;
   return sendEmail({ to: email, subject, html });
+};
+
+export const sendOrderConfirmationForOrder = async (order: OrderEmailPayload) => {
+  const recipientEmail = order.user?.email || getOrderEmailFromAdminNote(order.admin_note);
+  if (!recipientEmail) {
+    return false;
+  }
+
+  return sendOrderConfirmationEmail(recipientEmail, order.order_code, Number(order.grand_total));
 };
 
 export const sendOTP = async (email: string, otp: string) => {
@@ -145,10 +173,11 @@ export const sendOTP = async (email: string, otp: string) => {
     </div>
   `;
 
-  if (!process.env.SMTP_USER) {
-      console.log('====================================================');
-      console.log('>>> MOCK OTP CODE:', otp);
-      console.log('====================================================');
+  if (!resend) {
+    console.log('====================================================');
+    console.log('>>> MOCK OTP CODE:', otp);
+    console.log('====================================================');
   }
+
   return sendEmail({ to: email, subject, html });
 };

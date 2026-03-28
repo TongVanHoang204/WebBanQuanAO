@@ -4,14 +4,58 @@ import { ApiError } from '../../middlewares/error.middleware.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
 import { checkoutSchema, updateOrderStatusSchema } from '../../validators/order.validator.js';
 import { logActivity } from '../../services/logger.service.js';
-import { sendOrderConfirmationEmail } from '../../services/email.service.js';
+import { attachOrderEmailToAdminNote, sendOrderConfirmationForOrder } from '../../services/email.service.js';
 import { createNotification } from '../admin/notificationController.js';
+import {
+  enrichOrderWorkflowState,
+  restockRefundedOrder,
+  requestOrderRefund,
+  transitionOrderStatus
+} from '../../services/order-workflow.service.js';
 
-// Helper to convert BigInt to string for JSON serialization
+const toSerializableValue = (value: any) => {
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+
+  if (value && typeof value === 'object') {
+    if (typeof value.toNumber === 'function') {
+      return value.toNumber();
+    }
+
+    if (typeof value.toString === 'function' && value.constructor?.name === 'Decimal') {
+      return Number(value.toString());
+    }
+  }
+
+  return value;
+};
+
+const serializeOrderItemSnapshot = (item: any) => {
+  const unitPrice = Number(item.unit_price ?? 0);
+  const lineTotal = Number(item.line_total ?? unitPrice * Number(item.qty ?? 0));
+
+  return {
+    ...item,
+    unit_price: unitPrice,
+    line_total: lineTotal
+  };
+};
+
+// Helper to convert Prisma values to JSON-safe snapshot values
 const serializeOrder = (order: any) => {
-  return JSON.parse(JSON.stringify(order, (key, value) =>
-    typeof value === 'bigint' ? value.toString() : value
-  ));
+  const normalizedOrder = enrichOrderWorkflowState({
+    ...order,
+    subtotal: Number(order.subtotal ?? 0),
+    discount_total: Number(order.discount_total ?? 0),
+    shipping_fee: Number(order.shipping_fee ?? 0),
+    grand_total: Number(order.grand_total ?? 0),
+    order_items: Array.isArray(order.order_items)
+      ? order.order_items.map(serializeOrderItemSnapshot)
+      : order.order_items
+  });
+
+  return JSON.parse(JSON.stringify(normalizedOrder, (key, value) => toSerializableValue(value)));
 };
 
 // Generate order code
@@ -67,13 +111,13 @@ export const checkout = async (
     });
 
     if (!cart || cart.cart_items.length === 0) {
-      throw new ApiError(400, 'Cart is empty');
+      throw new ApiError(400, 'Giỏ hàng đang trống');
     }
 
     // Validate stock for all items
     for (const item of cart.cart_items) {
       if (item.qty > item.variant.stock_qty) {
-        throw new ApiError(400, `${item.variant.product.name} is out of stock. Only ${item.variant.stock_qty} available.`);
+        throw new ApiError(400, `${item.variant.product.name} không đủ tồn kho. Chỉ còn ${item.variant.stock_qty} sản phẩm.`);
       }
     }
 
@@ -156,12 +200,16 @@ export const checkout = async (
           ship_province: validatedData.ship_province,
           ship_postal_code: validatedData.ship_postal_code,
           ship_country: validatedData.ship_country,
-          note: validatedData.note
+          note: validatedData.note,
+          admin_note: attachOrderEmailToAdminNote(null, validatedData.email || req.user?.email || null)
         }
       });
 
       // 2. Create order items and update stock
       for (const item of cart.cart_items) {
+        const lockedUnitPrice = Number(item.variant.price);
+        const lockedLineTotal = lockedUnitPrice * item.qty;
+
         // Create order item
         const optionsText = item.variant.variant_option_values
           .map(vov => `${vov.option_value.option.name}: ${vov.option_value.value}`)
@@ -175,9 +223,9 @@ export const checkout = async (
             sku: item.variant.variant_sku,
             name: item.variant.product.name,
             options_text: optionsText,
-            unit_price: item.variant.price,
+            unit_price: lockedUnitPrice,
             qty: item.qty,
-            line_total: Number(item.variant.price) * item.qty
+            line_total: lockedLineTotal
           }
         });
 
@@ -289,9 +337,8 @@ export const checkout = async (
 
     // Send confirmation email if user has email or provided one AND if COD
     // For Bank/QR, we send email only after payment.
-    const recipientEmail = fullOrder?.user?.email || validatedData.email;
-    if (recipientEmail && fullOrder && validatedData.payment_method === 'cod') {
-      sendOrderConfirmationEmail(recipientEmail, fullOrder.order_code, Number(fullOrder.grand_total)).catch(console.error);
+    if (fullOrder && validatedData.payment_method === 'cod') {
+      sendOrderConfirmationForOrder(fullOrder).catch(console.error);
     }
 
     res.status(201).json({
@@ -310,7 +357,7 @@ export const getOrders = async (
 ) => {
   try {
     if (!req.user) {
-      throw new ApiError(401, 'Authentication required');
+      throw new ApiError(401, 'Vui lòng đăng nhập để tiếp tục');
     }
 
     const { page = '1', limit = '10' } = req.query;
@@ -359,13 +406,16 @@ export const getOrders = async (
     next(error);
   }
 };
-
 export const getOrderById = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    if (!req.user) {
+      throw new ApiError(401, 'Vui lòng đăng nhập để tiếp tục');
+    }
+
     const { id } = req.params;
 
     const order = await prisma.orders.findUnique({
@@ -389,16 +439,12 @@ export const getOrderById = async (
     });
 
     if (!order) {
-      throw new ApiError(404, 'Order not found');
+      throw new ApiError(404, 'Không tìm thấy đơn hàng');
     }
 
-    // Check ownership (unless admin) - unauthenticated users cannot view orders by ID
-    if (!req.user) {
-      throw new ApiError(401, 'Authentication required');
-    }
     if (req.user.role !== 'admin' && req.user.role !== 'manager' && req.user.role !== 'staff') {
       if (order.user_id?.toString() !== req.user.id.toString()) {
-        throw new ApiError(403, 'Unauthorized');
+        throw new ApiError(403, 'Bạn không có quyền thực hiện thao tác này');
       }
     }
 
@@ -420,9 +466,9 @@ export const getOrderByCode = async (
     const { code } = req.params;
     const { phone } = req.query as { phone?: string };
 
-    // Authenticated users can access their own orders freely.
-    // Guest tracking requires phone for two-factor verification.
     const isAuthenticated = !!req.user?.id;
+    const isPrivilegedRole =
+      req.user?.role === 'admin' || req.user?.role === 'manager' || req.user?.role === 'staff';
 
     if (!isAuthenticated && !phone) {
       throw new ApiError(400, 'Vui lòng cung cấp số điện thoại để tra cứu đơn hàng');
@@ -449,24 +495,24 @@ export const getOrderByCode = async (
     });
 
     if (!order) {
-      throw new ApiError(404, 'Order not found');
+      throw new ApiError(404, 'Không tìm thấy đơn hàng');
     }
 
-    // For authenticated users, ensure they own the order (unless admin).
-    if (isAuthenticated && req.user?.role !== 'admin' && req.user?.role !== 'manager' && req.user?.role !== 'staff') {
-      if (order.user_id && order.user_id !== req.user!.id) {
+    const orderPhone = (order.customer_phone || '').trim();
+    const queryPhone = (phone || '').trim();
+
+    if (isAuthenticated && !isPrivilegedRole) {
+      if (order.user_id && order.user_id.toString() !== req.user!.id.toString()) {
         throw new ApiError(403, 'Bạn không có quyền xem đơn hàng này');
       }
-    }
 
-    // For guest tracking, verify phone matches the order's customer phone.
-    if (!isAuthenticated) {
-      const orderPhone = (order.customer_phone || '').trim().toLowerCase();
-      const queryPhone = (phone || '').trim().toLowerCase();
-
-      if (!queryPhone || !orderPhone || queryPhone !== orderPhone) {
+      if (!order.user_id && (!queryPhone || !orderPhone || queryPhone !== orderPhone)) {
         throw new ApiError(403, 'Thông tin xác minh không khớp với đơn hàng');
       }
+    }
+
+    if (!isAuthenticated && (!queryPhone || !orderPhone || queryPhone !== orderPhone)) {
+      throw new ApiError(403, 'Thông tin xác minh không khớp với đơn hàng');
     }
 
     res.json({
@@ -484,124 +530,52 @@ export const updateOrderStatus = async (
   next: NextFunction
 ) => {
   try {
+    if (!req.user) {
+      throw new ApiError(401, 'Vui lòng đăng nhập để tiếp tục');
+    }
+
     const { id } = req.params;
     const validatedData = updateOrderStatusSchema.parse(req.body);
 
-    // Valid status transitions (admin can do more flexible transitions)
-    const validTransitions: Record<string, string[]> = {
-      pending: ['confirmed', 'paid', 'processing', 'shipped', 'cancelled'],
-      confirmed: ['paid', 'processing', 'shipped', 'cancelled'],
-      paid: ['processing', 'shipped', 'completed', 'cancelled', 'refunded'],
-      processing: ['shipped', 'completed', 'cancelled'],
-      shipped: ['completed', 'cancelled'],
-      completed: ['refunded'],
-      cancelled: [],
-      refunded: []
-    };
+    const order = await prisma.$transaction((tx) =>
+      transitionOrderStatus(tx as any, BigInt(id as string), validatedData.status, req.user)
+    );
 
-    // Fetch current order to check transition
-    const currentOrder = await prisma.orders.findUnique({
-      where: { id: BigInt(id as string) },
-      include: { order_items: true }
-    });
-
-    if (!currentOrder) {
-      throw new ApiError(404, 'Order not found');
-    }
-
-    const allowed = validTransitions[currentOrder.status] || [];
-    if (!allowed.includes(validatedData.status)) {
-      throw new ApiError(400, `Không thể chuyển trạng thái từ "${currentOrder.status}" sang "${validatedData.status}"`);
-    }
-
-// If cancelling or refunding from admin, restore stock
-      if ((validatedData.status === 'cancelled' && ['pending', 'confirmed', 'paid', 'processing'].includes(currentOrder.status)) ||
-          (validatedData.status === 'refunded' && ['shipped', 'completed', 'paid'].includes(currentOrder.status))) {
-        await prisma.$transaction(async (tx) => {
-          for (const item of currentOrder.order_items) {
-            if (item.variant_id) {
-              await tx.product_variants.update({
-                where: { id: item.variant_id },
-                data: { stock_qty: { increment: item.qty } }
-              });
-              await tx.inventory_movements.create({
-                data: {
-                  variant_id: item.variant_id,
-                  type: 'in',
-                  qty: item.qty,
-                  note: `Admin ${validatedData.status} order ${currentOrder.order_code}`
-              }
-            });
-          }
-        }
-        await tx.orders.update({
-          where: { id: BigInt(id as string) },
-          data: { status: validatedData.status }
-        });
-      });
-    } else {
-      await prisma.orders.update({
-        where: { id: BigInt(id as string) },
-        data: { status: validatedData.status }
-      });
-    }
-
-    const order = await prisma.orders.findUnique({
-      where: { id: BigInt(id as string) }
-    });
-
-    if (!order) {
-      throw new ApiError(404, 'Order not found after update');
-    }
-
-    // Update related records based on status
-    if (validatedData.status === 'paid') {
-      await prisma.payments.updateMany({
-        where: { order_id: BigInt(id as string) },
-        data: { status: 'paid', paid_at: new Date() }
-      });
-    } else if (validatedData.status === 'shipped') {
-      await prisma.shipments.updateMany({
-        where: { order_id: BigInt(id as string) },
-        data: { status: 'shipping', shipped_at: new Date() }
-      });
-    } else if (validatedData.status === 'completed') {
-      await prisma.shipments.updateMany({
-        where: { order_id: BigInt(id as string) },
-        data: { status: 'delivered', delivered_at: new Date() }
-      });
-    }
-
-
-
-    // Correctly proceeding to notification logic
-
-    // Send notification to customer
     if (order.user_id) {
-       let title = 'Cập nhật đơn hàng';
-       let message = `Đơn hàng ${order.order_code} đã được cập nhật sang trạng thái: ${validatedData.status}`;
-       
-       if (validatedData.status === 'processing') {
-          title = 'Đơn hàng đã được xác nhận';
-          message = `Đơn hàng ${order.order_code} của bạn đã được xác nhận và đang được xử lý.`;
-       } else if (validatedData.status === 'shipped') {
-          title = 'Đơn hàng đang được giao';
-          message = `Đơn hàng ${order.order_code} đã được giao cho đơn vị vận chuyển.`;
-       } else if (validatedData.status === 'completed') {
-          title = 'Giao hàng thành công';
-          message = `Đơn hàng ${order.order_code} đã được giao thành công. Cảm ơn bạn đã mua sắm!`;
-       } else if (validatedData.status === 'cancelled') {
-          title = 'Đơn hàng đã bị hủy';
-          message = `Đơn hàng ${order.order_code} đã bị hủy.`;
-       }
+      let title = 'Cập nhật đơn hàng';
+      let message = `Đơn hàng ${order.order_code} đã được cập nhật sang trạng thái: ${validatedData.status}`;
 
-       await createNotification({
+      if (validatedData.status === 'processing') {
+        title = 'Đơn hàng đã được xác nhận';
+        message = `Đơn hàng ${order.order_code} của bạn đã được xác nhận và đang được xử lý.`;
+      } else if (validatedData.status === 'shipped') {
+        title = 'Đơn hàng đang được giao';
+        message = `Đơn hàng ${order.order_code} đã được giao cho đơn vị vận chuyển.`;
+      } else if (validatedData.status === 'completed') {
+        title = 'Giao hàng thành công';
+        message = `Đơn hàng ${order.order_code} đã được giao thành công. Cảm ơn bạn đã mua sắm!`;
+      } else if (validatedData.status === 'cancelled') {
+        title = 'Đơn hàng đã bị hủy';
+        message = `Đơn hàng ${order.order_code} đã bị hủy.`;
+      } else if (validatedData.status === 'paid') {
+        title = 'Thanh toán thành công';
+        message = `Đơn hàng ${order.order_code} đã được ghi nhận thanh toán.`;
+      } else if (validatedData.status === 'refunded') {
+        title = 'Đơn hàng đã hoàn tiền';
+        message = `Yêu cầu hoàn tiền cho đơn hàng ${order.order_code} đã được xử lý.`;
+      }
+
+      await createNotification({
         user_id: order.user_id,
         type: 'order_status',
         title,
         message,
         link: `/orders/${order.id}`
       });
+    }
+
+    if (validatedData.status === 'paid') {
+      sendOrderConfirmationForOrder(order).catch(console.error);
     }
 
     await logActivity({
@@ -688,19 +662,19 @@ export const cancelOrder = async (
     });
 
     if (!order) {
-      throw new ApiError(404, 'Order not found');
+      throw new ApiError(404, 'Không tìm thấy đơn hàng');
     }
 
     // Check ownership
     if (!req.user) {
-      throw new ApiError(401, 'Authentication required');
+      throw new ApiError(401, 'Vui lòng đăng nhập để tiếp tục');
     }
     
     // Admin/manager/staff can cancel any order; customers can only cancel their own
     const isStaff = ['admin', 'manager', 'staff'].includes(req.user.role);
     if (!isStaff) {
       if (!order.user_id || order.user_id.toString() !== req.user.id.toString()) {
-        throw new ApiError(403, 'Unauthorized');
+        throw new ApiError(403, 'Bạn không có quyền thực hiện thao tác này');
       }
     }
 
@@ -709,41 +683,16 @@ export const cancelOrder = async (
       throw new ApiError(400, 'Chỉ có thể hủy đơn hàng đang chờ hoặc đã xác nhận');
     }
 
-    // Use transaction to cancel order and restore stock
-    const updatedOrder = await prisma.$transaction(async (tx) => {
-      // Restore stock for each order item
-      for (const item of order.order_items) {
-        if (item.variant_id) {
-          await tx.product_variants.update({
-            where: { id: item.variant_id },
-            data: { stock_qty: { increment: item.qty } }
-          });
-
-          // Log inventory movement
-          await tx.inventory_movements.create({
-            data: {
-              variant_id: item.variant_id,
-              type: 'in',
-              qty: item.qty,
-              note: `Cancelled order ${order.order_code}`
-            }
-          });
-        }
-      }
-
-      // Update order status
-      return tx.orders.update({
-        where: { id: BigInt(id as string) },
-        data: { status: 'cancelled' }
-      });
-    });
+    const updatedOrder = await prisma.$transaction((tx) =>
+      transitionOrderStatus(tx as any, BigInt(id as string), 'cancelled')
+    );
 
     await logActivity({
       user_id: BigInt(req.user?.id || 0),
       action: 'cancel_order',
       entity_type: 'order',
       entity_id: id as string,
-      details: `Cancelled order ${order.order_code} - Stock restored`,
+      details: `Cancelled order ${order.order_code}`,
       ip_address: req.ip,
       user_agent: req.headers['user-agent']
     });
@@ -756,3 +705,86 @@ export const cancelOrder = async (
     next(error);
   }
 };
+
+export const requestRefund = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.user) {
+      throw new ApiError(401, 'Vui lòng đăng nhập để tiếp tục');
+    }
+
+    const updatedOrder = await prisma.$transaction((tx) =>
+      requestOrderRefund(tx as any, BigInt(id as string), BigInt(req.user!.id))
+    );
+
+    await createNotification({
+      user_id: null,
+      type: 'order_status',
+      title: 'Yêu cầu hoàn tiền mới',
+      message: `Khách hàng đã gửi yêu cầu hoàn tiền cho đơn hàng ${updatedOrder.order_code}.`,
+      link: `/admin/orders/${updatedOrder.id}`
+    });
+
+    await createNotification({
+      user_id: updatedOrder.user_id,
+      type: 'order_status',
+      title: 'Đã gửi yêu cầu hoàn tiền',
+      message: `Yêu cầu hoàn tiền cho đơn hàng ${updatedOrder.order_code} đã được gửi tới quản trị viên.`,
+      link: `/orders/${updatedOrder.id}`
+    });
+
+    await logActivity({
+      user_id: BigInt(req.user.id),
+      action: 'request_refund',
+      entity_type: 'order',
+      entity_id: id as string,
+      details: `Requested refund for order ${updatedOrder.order_code}`,
+      ip_address: req.ip,
+      user_agent: req.headers['user-agent']
+    });
+
+    res.json({
+      success: true,
+      data: serializeOrder(updatedOrder)
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const restockOrder = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+
+    const order = await prisma.$transaction((tx) =>
+      restockRefundedOrder(tx as any, BigInt(id as string), req.user)
+    );
+
+    await logActivity({
+      user_id: BigInt(req.user?.id || 0),
+      action: 'restock_refunded_order',
+      entity_type: 'order',
+      entity_id: id as string,
+      details: `Restocked refunded order ${order.order_code}`,
+      ip_address: req.ip,
+      user_agent: req.headers['user-agent']
+    });
+
+    res.json({
+      success: true,
+      data: serializeOrder(order)
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

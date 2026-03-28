@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { prisma } from '../../server.js';
 import { ApiError } from '../../middlewares/error.middleware.js';
@@ -8,6 +7,7 @@ import { AuthRequest } from '../../middlewares/auth.middleware.js';
 import { registerSchema, loginSchema } from '../../validators/auth.validator.js';
 import { logActivity } from '../../services/logger.service.js';
 import { sendWelcomeEmail, sendResetPasswordEmail, sendOTP } from '../../services/email.service.js';
+import { clearAuthCookie, setAuthCookie, signAuthToken } from '../../utils/auth-session.js';
 
 // Helper to serialize BigInt for JSON
 const serializeUser = (user: any) => ({
@@ -25,6 +25,21 @@ const serializeUser = (user: any) => ({
   created_at: user.created_at,
   two_factor_enabled: user.two_factor_enabled || false
 });
+
+const createAuthResponseData = (res: Response, user: any) => {
+  const token = signAuthToken({
+    userId: user.id.toString(),
+    email: user.email,
+    role: user.role
+  });
+
+  setAuthCookie(res, token);
+
+  return {
+    user: serializeUser(user),
+    token
+  };
+};
 
 export const register = async (
   req: Request,
@@ -69,13 +84,6 @@ export const register = async (
       }
     });
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user.id.toString(), email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'default-secret',
-      { expiresIn: '7d' as const }
-    );
-
     // Send welcome email
     sendWelcomeEmail(user.email, user.full_name || user.username).catch(console.error);
 
@@ -92,10 +100,7 @@ export const register = async (
 
     res.status(201).json({
       success: true,
-      data: {
-        user: serializeUser(user),
-        token
-      }
+      data: createAuthResponseData(res, user)
     });
   } catch (error) {
     next(error);
@@ -171,19 +176,9 @@ export const login = async (
        });
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user.id.toString(), email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'default-secret',
-      { expiresIn: '7d' as const }
-    );
-
     res.json({
       success: true,
-      data: {
-        user: serializeUser(user),
-        token
-      }
+      data: createAuthResponseData(res, user)
     });
 
     // Audit: Log successful login
@@ -242,13 +237,6 @@ export const verify2FA = async (
       } as any
     });
 
-    // Generate Token
-    const token = jwt.sign(
-      { userId: user.id.toString(), email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'default-secret',
-      { expiresIn: '7d' as const }
-    );
-
     // Audit: Log 2FA success
     logActivity({
       user_id: user.id,
@@ -261,10 +249,7 @@ export const verify2FA = async (
 
     res.json({
       success: true,
-      data: {
-        user: serializeUser(user),
-        token
-      }
+      data: createAuthResponseData(res, user)
     });
 
   } catch (error) {
@@ -427,19 +412,9 @@ export const googleLogin = async (
       sendWelcomeEmail(user.email, user.full_name || user.username).catch(console.error);
     }
 
-    // Generate JWT
-    const token = jwt.sign(
-      { userId: user.id.toString(), email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'default-secret',
-      { expiresIn: '7d' as const }
-    );
-
     res.json({
       success: true,
-      data: {
-        user: serializeUser(user),
-        token
-      }
+      data: createAuthResponseData(res, user)
     });
 
     // Audit: Log Google login
@@ -493,6 +468,22 @@ export const getMe = async (
     res.json({
       success: true,
       data: serializeUser(user)
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    clearAuthCookie(res);
+    res.json({
+      success: true,
+      message: 'Logged out successfully'
     });
   } catch (error) {
     next(error);

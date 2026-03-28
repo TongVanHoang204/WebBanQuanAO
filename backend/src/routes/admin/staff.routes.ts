@@ -65,9 +65,9 @@ router.get('/:id', getStaffById);
  *       201:
  *         description: Staff created
  */
-router.post('/', createStaff);
+router.post('/', authorize(['admin']), createStaff);
 router.put('/:id', updateStaff);
-router.delete('/:id', deleteStaff);
+router.delete('/:id', authorize(['admin']), deleteStaff);
 
 // Role management
 /**
@@ -83,8 +83,8 @@ router.delete('/:id', deleteStaff);
  *         description: List of roles
  */
 router.get('/roles/list', getRoles);
-router.post('/roles', createRole);
-router.put('/roles/:id', updateRole);
-router.delete('/roles/:id', deleteRole);
+router.post('/roles', authorize(['admin']), createRole);
+router.put('/roles/:id', authorize(['admin']), updateRole);
+router.delete('/roles/:id', authorize(['admin']), deleteRole);
 
 export default router;

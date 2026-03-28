@@ -86,14 +86,13 @@ export default function BannerListPage() {
   const fetchBanners = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       const params = new URLSearchParams({ include_inactive: 'true' });
       if (positionFilter) params.append('position', positionFilter);
       params.append('page', page.toString());
       params.append('limit', '10');
 
       const res = await fetch(resolveApiUrl(`/api/admin/banners?${params}`), {
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: 'include'
       });
       const data = await res.json();
       if (data.success) {
@@ -165,7 +164,6 @@ export default function BannerListPage() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const token = localStorage.getItem('token');
     const newImages: string[] = [];
 
     // Upload each file
@@ -176,7 +174,7 @@ export default function BannerListPage() {
         try {
             const res = await fetch(resolveApiUrl('/api/upload'), {
                 method: 'POST',
-                headers: { Authorization: `Bearer ${token}` },
+                credentials: 'include',
                 body: formData
             });
             const data = await res.json();
@@ -238,16 +236,15 @@ export default function BannerListPage() {
 
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
       const url = editingId ? `/api/admin/banners/${editingId}` : '/api/admin/banners';
       const method = editingId ? 'PUT' : 'POST';
 
       const res = await fetch(resolveApiUrl(url), {
         method,
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           ...form,
           // Explicitly send images array
@@ -278,10 +275,9 @@ export default function BannerListPage() {
     if (!confirm(`Xóa banner "${title}"?`)) return;
 
     try {
-      const token = localStorage.getItem('token');
       const res = await fetch(resolveApiUrl(`/api/admin/banners/${id}`), {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: 'include'
       });
       const data = await res.json();
       
@@ -296,13 +292,12 @@ export default function BannerListPage() {
 
   const handleToggleActive = async (banner: Banner) => {
     try {
-      const token = localStorage.getItem('token');
       await fetch(resolveApiUrl(`/api/admin/banners/${banner.id}`), {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ is_active: !banner.is_active })
       });
       fetchBanners();

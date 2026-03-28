@@ -6,8 +6,8 @@ services:
     image: mariadb:10.5
     container_name: shopfeshen-db
     environment:
-      MYSQL_ROOT_PASSWORD: hoang
-      MYSQL_DATABASE: fashion_store
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-fashion_store}
     ports:
       - "8081:8080"
     volumes:
@@ -25,10 +25,9 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      DATABASE_URL: mysql://root:hoang@db:8080/fashion_store
-      PORT: 4000
-      JWT_SECRET: dev_secret_key_123
-      FRONTEND_URL: http://localhost
+      DATABASE_URL: ${DATABASE_URL}
+      PORT: ${PORT:-4000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
       # Add other env vars here (Email, VNPay...)
     depends_on:
       - db

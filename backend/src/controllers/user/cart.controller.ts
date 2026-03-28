@@ -207,18 +207,6 @@ export const addToCart = async (
       message: 'Item added to cart'
     });
 
-    // Audit: Log add to cart (fire-and-forget)
-    if (userId) {
-      logActivity({
-        user_id: userId,
-        action: 'Thêm vào giỏ hàng',
-        entity_type: 'cart',
-        entity_id: String(validatedData.variant_id),
-        details: { variant_id: validatedData.variant_id, quantity: validatedData.quantity },
-        ip_address: req.ip,
-        user_agent: req.get('User-Agent')
-      }).catch(() => {});
-    }
   } catch (error) {
     next(error);
   }
@@ -318,19 +306,6 @@ export const removeCartItem = async (
     await prisma.cart_items.delete({
       where: { id: BigInt(itemId as string) }
     });
-
-    // Audit: Log item removed
-    if (userId) {
-      logActivity({
-        user_id: userId,
-        action: 'Xóa sản phẩm khỏi giỏ hàng',
-        entity_type: 'cart',
-        entity_id: String(itemId),
-        details: {},
-        ip_address: req.ip,
-        user_agent: req.get('User-Agent')
-      }).catch(() => {});
-    }
 
     res.json({
       success: true,

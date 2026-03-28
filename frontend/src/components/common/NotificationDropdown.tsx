@@ -1,7 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { AlertCircle, Bell, Check, CheckCheck, Package, Settings, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { notificationsAPI } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
+import {
+  emitNotificationDeleted,
+  emitNotificationMarkedRead,
+  emitNotificationsMarkedAllRead,
+  formatNotificationRelativeTime,
+  normalizeNotification,
+  notificationEvents,
+  type NotificationItem
+} from '../../utils/notifications';
 
 const TwoToneBell = ({ className }: { className?: string }) => (
   <svg 
@@ -39,19 +49,11 @@ const TwoToneBell = ({ className }: { className?: string }) => (
   </svg>
 );
 
-interface Notification {
-  id: string;
-  type: 'order_new' | 'order_status' | 'product_low_stock' | 'product_out_of_stock' | 'system';
-  title: string;
-  message: string;
-  link?: string;
-  is_read: boolean;
-  created_at: string;
-}
-
 export const NotificationDropdown: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -73,13 +75,45 @@ export const NotificationDropdown: React.FC = () => {
   // Listen for real-time notifications via custom event from SocketContext
   useEffect(() => {
     const handleNewNotification = (event: any) => {
-      const newNotif = event.detail;
-      setNotifications(prev => [newNotif, ...prev.slice(0, 9)]);
+      const newNotif = normalizeNotification(event.detail);
+      setNotifications(prev => {
+        const deduped = prev.filter((item) => item.id !== newNotif.id);
+        return [newNotif, ...deduped].slice(0, 10);
+      });
       setUnreadCount(prev => prev + 1);
     };
 
-    window.addEventListener('new_notification_received', handleNewNotification);
-    return () => window.removeEventListener('new_notification_received', handleNewNotification);
+    const handleMarkedRead = (event: Event) => {
+      const id = (event as CustomEvent<{ id: string }>).detail?.id;
+      if (!id) return;
+
+      setNotifications(prev =>
+        prev.map(notification => (notification.id === id ? { ...notification, is_read: true } : notification))
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    };
+
+    const handleMarkedAllRead = () => {
+      setNotifications(prev => prev.map(notification => ({ ...notification, is_read: true })));
+      setUnreadCount(0);
+    };
+
+    const handleDeleted = (event: Event) => {
+      const id = (event as CustomEvent<{ id: string }>).detail?.id;
+      if (!id) return;
+      setNotifications(prev => prev.filter(notification => notification.id !== id));
+    };
+
+    window.addEventListener(notificationEvents.created, handleNewNotification);
+    window.addEventListener(notificationEvents.markedRead, handleMarkedRead as EventListener);
+    window.addEventListener(notificationEvents.markedAllRead, handleMarkedAllRead);
+    window.addEventListener(notificationEvents.deleted, handleDeleted as EventListener);
+    return () => {
+      window.removeEventListener(notificationEvents.created, handleNewNotification);
+      window.removeEventListener(notificationEvents.markedRead, handleMarkedRead as EventListener);
+      window.removeEventListener(notificationEvents.markedAllRead, handleMarkedAllRead);
+      window.removeEventListener(notificationEvents.deleted, handleDeleted as EventListener);
+    };
   }, []);
 
   // Close dropdown when clicking outside
@@ -99,7 +133,7 @@ export const NotificationDropdown: React.FC = () => {
       setLoading(true);
       const res = await notificationsAPI.getNotifications({ limit: 10 });
       if (res.data.success) {
-        setNotifications(res.data.data.notifications);
+        setNotifications(res.data.data.notifications.map(normalizeNotification));
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
@@ -126,6 +160,7 @@ export const NotificationDropdown: React.FC = () => {
         prev.map(n => (n.id === id ? { ...n, is_read: true } : n))
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
+      emitNotificationMarkedRead(id);
     } catch (error) {
       console.error('Failed to mark as read:', error);
     }
@@ -136,6 +171,7 @@ export const NotificationDropdown: React.FC = () => {
       await notificationsAPI.markAllAsRead();
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
       setUnreadCount(0);
+      emitNotificationsMarkedAllRead();
     } catch (error) {
       console.error('Failed to mark all as read:', error);
     }
@@ -152,22 +188,23 @@ export const NotificationDropdown: React.FC = () => {
       if (notification && !notification.is_read) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
+      emitNotificationDeleted(id);
     } catch (error) {
       console.error('Failed to delete notification:', error);
     }
   };
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationIcon = (type: NotificationItem['type']) => {
     const iconClass = 'w-4 h-4';
     switch (type) {
       case 'order_new':
       case 'order_status':
-        return <Bell className={iconClass} />;
+        return <Package className={iconClass} />;
       case 'product_low_stock':
       case 'product_out_of_stock':
-        return <Bell className={iconClass} />;
+        return <AlertCircle className={iconClass} />;
       default:
-        return <Bell className={iconClass} />;
+        return <Settings className={iconClass} />;
     }
   };
 
@@ -186,14 +223,21 @@ export const NotificationDropdown: React.FC = () => {
     return date.toLocaleDateString('vi-VN');
   };
 
-  const handleNotificationClick = (notification: Notification) => {
+  const handleNotificationClick = async (notification: NotificationItem) => {
     setIsOpen(false);
     if (!notification.is_read) {
-      handleMarkAsRead(notification.id);
+      await handleMarkAsRead(notification.id);
+    }
+
+    if (notification.link) {
+      navigate(notification.link);
     }
   };
 
-  const renderNotificationItem = (notification: Notification) => {
+  const getNotificationKey = (notification: NotificationItem) =>
+    notification.id || `${notification.type}-${notification.created_at}-${notification.title}`;
+
+  const renderNotificationItem = (notification: NotificationItem) => {
     const baseClassName = `
       block px-4 py-3 hover:bg-secondary-50 dark:hover:bg-secondary-700/50 transition-colors relative group
       ${!notification.is_read ? 'bg-primary-50/50 dark:bg-primary-950/20' : ''}
@@ -233,7 +277,7 @@ export const NotificationDropdown: React.FC = () => {
           
           <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-transparent group-hover:border-secondary-100/50 dark:group-hover:border-secondary-700/50 transition-colors">
             <span className="text-[11px] font-medium text-secondary-500 dark:text-secondary-500 bg-secondary-100/50 dark:bg-secondary-800/50 px-2 py-0.5 rounded-full">
-              {getTimeDiff(notification.created_at)}
+              {formatNotificationRelativeTime(notification.created_at)}
             </span>
             
             <div className="flex items-center gap-1">
@@ -263,23 +307,8 @@ export const NotificationDropdown: React.FC = () => {
       </div>
     );
 
-    // Use Link if notification has a link, otherwise use div
-    if (notification.link) {
-      return (
-        <Link
-          key={notification.id}
-          to={notification.link}
-          onClick={() => handleNotificationClick(notification)}
-          className={baseClassName}
-        >
-          {content}
-        </Link>
-      );
-    }
-
     return (
       <div
-        key={notification.id}
         className={baseClassName}
         onClick={() => handleNotificationClick(notification)}
       >
@@ -346,7 +375,11 @@ export const NotificationDropdown: React.FC = () => {
               </div>
             ) : (
               <div className="divide-y divide-secondary-100 dark:divide-secondary-700">
-                {notifications.map(notification => renderNotificationItem(notification))}
+                {notifications.map(notification => (
+                  <React.Fragment key={getNotificationKey(notification)}>
+                    {renderNotificationItem(notification)}
+                  </React.Fragment>
+                ))}
               </div>
             )}
           </div>
@@ -355,7 +388,7 @@ export const NotificationDropdown: React.FC = () => {
           {notifications.length > 0 && (
             <div className="px-4 py-3 border-t border-secondary-100 dark:border-secondary-700 text-center bg-secondary-50 dark:bg-secondary-800/50">
               <Link
-                to="/profile"
+                to={user && ['admin', 'manager', 'staff'].includes(user.role) ? '/admin/notifications' : '/profile'}
                 className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium tracking-wide"
                 onClick={() => setIsOpen(false)}
               >

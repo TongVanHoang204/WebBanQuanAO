@@ -2,7 +2,6 @@ import { Response, NextFunction } from 'express';
 import { prisma } from '../../lib/prisma.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
 import { ApiError } from '../../middlewares/error.middleware.js';
-import { logActivity } from '../../services/logger.service.js';
 
 // Get wishlist items
 export const getWishlist = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -112,17 +111,6 @@ export const addToWishlist = async (req: AuthRequest, res: Response, next: NextF
         }
     });
 
-    // Audit: Log add to wishlist
-    logActivity({
-      user_id: userId,
-      action: 'Thêm vào danh sách yêu thích',
-      entity_type: 'wishlist',
-      entity_id: String(product_id),
-      details: { product_id },
-      ip_address: req.ip,
-      user_agent: req.get('User-Agent')
-    }).catch(() => {});
-
     res.status(201).json({ success: true, message: 'Added to wishlist' });
   } catch (error) {
     next(error);
@@ -149,17 +137,6 @@ export const removeFromWishlist = async (req: AuthRequest, res: Response, next: 
             product_id: BigInt(product_id as string)
         }
     });
-
-    // Audit: Log remove from wishlist
-    logActivity({
-      user_id: userId,
-      action: 'Xóa khỏi danh sách yêu thích',
-      entity_type: 'wishlist',
-      entity_id: String(product_id),
-      details: { product_id },
-      ip_address: req.ip,
-      user_agent: req.get('User-Agent')
-    }).catch(() => {});
 
     res.json({ success: true, message: 'Removed from wishlist' });
   } catch (error) {

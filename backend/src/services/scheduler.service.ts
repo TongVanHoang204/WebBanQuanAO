@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { prisma } from '../server.js';
 import { createNotification } from '../controllers/admin/notificationController.js';
+import { transitionOrderStatus } from './order-workflow.service.js';
 
 const PAYMENT_TIMEOUT_MINUTES = parseInt(process.env.PAYMENT_TIMEOUT_MINUTES || '30', 10); // Configurable via env, default 30 min
 
@@ -54,33 +55,9 @@ const cancelExpiredBankTransferOrders = async () => {
 
     for (const order of expiredOrders) {
       try {
-        await prisma.$transaction(async (tx) => {
-          // Restore stock for each order item
-          for (const item of order.order_items) {
-            if (item.variant_id) {
-              await tx.product_variants.update({
-                where: { id: item.variant_id },
-                data: { stock_qty: { increment: item.qty } }
-              });
-
-              // Log inventory movement
-              await tx.inventory_movements.create({
-                data: {
-                  variant_id: item.variant_id,
-                  type: 'in',
-                  qty: item.qty,
-                  note: `Auto-cancelled expired order ${order.order_code}`
-                }
-              });
-            }
-          }
-
-          // Update order status to cancelled
-          await tx.orders.update({
-            where: { id: order.id },
-            data: { status: 'cancelled' }
-          });
-        });
+        await prisma.$transaction((tx) =>
+          transitionOrderStatus(tx as any, order.id, 'cancelled')
+        );
 
         // Send notification to user
         if (order.user_id) {

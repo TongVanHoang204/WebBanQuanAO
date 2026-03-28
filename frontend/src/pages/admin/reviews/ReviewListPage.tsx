@@ -61,7 +61,6 @@ export default function ReviewListPage() {
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       const params = new URLSearchParams();
       if (search) params.append('search', search);
       if (statusFilter !== 'all') params.append('status', statusFilter);
@@ -70,7 +69,7 @@ export default function ReviewListPage() {
       params.append('limit', '10');
 
       const res = await fetch(resolveApiUrl(`/api/admin/reviews?${params}`), {
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: 'include'
       });
       const data = await res.json();
       if (data.success) {
@@ -122,13 +121,12 @@ export default function ReviewListPage() {
 
   const handleUpdateStatus = async (id: string, status: string) => {
     try {
-      const token = localStorage.getItem('token');
       const res = await fetch(resolveApiUrl(`/api/admin/reviews/${id}/status`), {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ status })
       });
       const data = await res.json();
@@ -151,17 +149,15 @@ export default function ReviewListPage() {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      
       if (action === 'delete') {
         if (!confirm(`Xóa ${selectedIds.length} đánh giá đã chọn?`)) return;
         
         const res = await fetch(resolveApiUrl('/api/admin/reviews/bulk'), {
           method: 'DELETE',
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
+            'Content-Type': 'application/json'
           },
+          credentials: 'include',
           body: JSON.stringify({ ids: selectedIds })
         });
         const data = await res.json();
@@ -175,9 +171,9 @@ export default function ReviewListPage() {
         const res = await fetch(resolveApiUrl('/api/admin/reviews/bulk-status'), {
           method: 'PATCH',
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
+            'Content-Type': 'application/json'
           },
+          credentials: 'include',
           body: JSON.stringify({ ids: selectedIds, status: statusMap[action] })
         });
         const data = await res.json();
@@ -196,10 +192,9 @@ export default function ReviewListPage() {
     if (!confirm('Xóa đánh giá này?')) return;
 
     try {
-      const token = localStorage.getItem('token');
       const res = await fetch(resolveApiUrl(`/api/admin/reviews/${id}`), {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: 'include'
       });
       const data = await res.json();
       

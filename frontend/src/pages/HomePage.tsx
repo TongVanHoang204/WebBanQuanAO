@@ -9,8 +9,8 @@ import {
 import ProductCard from '../components/common/ProductCard';
 import HeroSection from '../components/home/HeroSection';
 import CategoryGrid from '../components/home/CategoryGrid';
-import { Product, Category, Banner } from '../types';
-import { productsAPI, bannersAPI, personalizationAPI } from '../services/api';
+import { Product, Category, Banner, Collection } from '../types';
+import { productsAPI, bannersAPI, personalizationAPI, publicCollectionsAPI, toMediaUrl } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function HomePage() {
@@ -19,6 +19,7 @@ export default function HomePage() {
   const [flashSale, setFlashSale] = useState<Product[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [recommendations, setRecommendations] = useState<Product[]>([]);
+  const [featuredCollections, setFeaturedCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isAuthenticated } = useAuth();
 
@@ -30,7 +31,8 @@ export default function HomePage() {
           productsAPI.getAll({ sort: 'price_desc', limit: 8 }), // Best Sellers
           productsAPI.getAll({ sort: 'discount_desc', limit: 8, on_sale: true }),  // Flash Sale
           bannersAPI.getAll({ position: 'home_hero' }),
-          isAuthenticated ? personalizationAPI.getRecommendations(8) : Promise.resolve({ data: { success: false } })
+          isAuthenticated ? personalizationAPI.getRecommendations(8) : Promise.resolve({ data: { success: false } }),
+          publicCollectionsAPI.getFeatured()
         ]);
 
         const [
@@ -38,7 +40,8 @@ export default function HomePage() {
           bestSellersRes, 
           flashSaleRes, 
           bannersRes,
-          recommendationsRes
+          recommendationsRes,
+          featuredCollectionsRes
         ] = results;
 
         if (newArrivalsRes.status === 'fulfilled') setNewArrivals(newArrivalsRes.value.data.data);
@@ -47,6 +50,15 @@ export default function HomePage() {
         if (bannersRes.status === 'fulfilled' && bannersRes.value.data.success) setBanners(bannersRes.value.data.data);
         if (recommendationsRes.status === 'fulfilled' && recommendationsRes.value?.data?.success) {
           setRecommendations(recommendationsRes.value.data.data);
+        }
+        if (featuredCollectionsRes.status === 'fulfilled' && featuredCollectionsRes.value.data.success) {
+          setFeaturedCollections(
+            (featuredCollectionsRes.value.data.data || []).map((collection: Collection) => ({
+              ...collection,
+              image: toMediaUrl(collection.image),
+              preview_images: (collection.preview_images || []).map((image) => toMediaUrl(image))
+            }))
+          );
         }
 
       } catch (error) {
@@ -116,6 +128,110 @@ export default function HomePage() {
         <HeroSection banner={featuredBanner} />
 
         <CategoryGrid />
+
+        {featuredCollections.length > 0 && (
+          <section className="border-y border-black/5 bg-[#f5f1e8] py-16 text-secondary-900 transition-colors duration-300 dark:border-white/10 dark:bg-[#101826] dark:text-white">
+            <div className="container-custom">
+              <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+                <div className="max-w-2xl">
+                  <span className="mb-3 inline-flex rounded-full border border-black/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.32em] text-[#8c734b] dark:border-white/10 dark:text-[#d2b47c]">
+                    Tuyển chọn nổi bật
+                  </span>
+                  <h2 className="text-3xl font-semibold leading-tight md:text-5xl">
+                    Bộ sưu tập nổi bật dành cho những lần lên đồ có chủ đề rõ ràng.
+                  </h2>
+                </div>
+                <Link
+                  to="/shop"
+                  className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.24em] text-secondary-700 transition hover:text-black dark:text-slate-300 dark:hover:text-white"
+                >
+                  Khám phá cửa hàng
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-[1.22fr_0.9fr]">
+                <Link
+                  to={`/collections/${featuredCollections[0].slug}`}
+                  className="group relative min-h-[380px] overflow-hidden rounded-[1.8rem] bg-black text-white lg:min-h-[420px]"
+                >
+                  <img
+                    src={featuredCollections[0].image || featuredCollections[0].preview_images?.[0] || 'https://placehold.co/1200x900/e5ddd0/1f2937?text=Collection'}
+                    alt={featuredCollections[0].name}
+                    className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+                  <div className="relative flex h-full flex-col justify-end p-6 md:p-8">
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-[0.28em] text-white/70">
+                      Bộ sưu tập nổi bật
+                    </p>
+                    <h3 className="max-w-xl text-3xl font-semibold leading-tight md:text-5xl">
+                      {featuredCollections[0].name}
+                    </h3>
+                    {featuredCollections[0].description && (
+                      <p className="mt-4 max-w-lg text-sm leading-7 text-white/80 md:text-base">
+                        {featuredCollections[0].description}
+                      </p>
+                    )}
+                    <div className="mt-6 flex items-center justify-between gap-4">
+                      <div className="flex -space-x-3">
+                        {(featuredCollections[0].preview_images || []).slice(0, 3).map((image, index) => (
+                          <span key={`${featuredCollections[0].id}-preview-${index}`} className="h-12 w-12 overflow-hidden rounded-2xl border border-white/30 bg-white/10">
+                            <img src={image} alt={featuredCollections[0].name} className="h-full w-full object-cover" />
+                          </span>
+                        ))}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-semibold">{featuredCollections[0].product_count || 0}</p>
+                        <p className="text-xs uppercase tracking-[0.24em] text-white/60">Sản phẩm</p>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                  {featuredCollections.slice(1, 4).map((collection) => (
+                    <Link
+                      key={collection.id}
+                      to={`/collections/${collection.slug}`}
+                      className="group grid min-h-[186px] gap-4 overflow-hidden rounded-[1.8rem] border border-black/10 bg-white/80 p-4 backdrop-blur dark:border-white/10 dark:bg-[#182233]/80 sm:grid-cols-[120px_1fr] sm:items-center"
+                    >
+                      <div className="relative h-32 overflow-hidden rounded-[1.25rem] bg-[#ebe3d7] dark:bg-[#243147] sm:h-full">
+                        <img
+                          src={collection.image || collection.preview_images?.[0] || 'https://placehold.co/600x600/e5ddd0/1f2937?text=Collection'}
+                          alt={collection.name}
+                          className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                        />
+                      </div>
+                      <div className="flex h-full flex-col justify-between gap-4">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#8c734b]">
+                            Bộ sưu tập
+                          </p>
+                          <h3 className="mt-2 text-xl font-semibold leading-tight text-secondary-900 dark:text-white">
+                            {collection.name}
+                          </h3>
+                          {collection.description && (
+                            <p className="mt-2 line-clamp-2 text-sm leading-6 text-secondary-600 dark:text-slate-300">
+                              {collection.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between text-sm text-secondary-600 dark:text-slate-300">
+                          <span>{collection.product_count || 0} sản phẩm</span>
+                          <span className="inline-flex items-center gap-2 font-semibold text-secondary-900 dark:text-white">
+                            Xem bộ sưu tập
+                            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* FLASH EVENT */}
         <section className="bg-[#F9F8F4] dark:bg-secondary-900 py-24 transition-colors duration-300"> 

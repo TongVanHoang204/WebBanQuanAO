@@ -44,7 +44,7 @@ export default function CouponListPage() {
     setAiLoading(true);
     const today = new Date().toISOString().split('T')[0];
     const msgs = [
-      { role: 'system', content: `Bạn là trợ lý Marketing. Hôm nay là ${today}. Chỉ trả về duy nhất một mảng JSON Array (bắt đầu bằng [ và kết thúc bằng ]) chứa các Object mã khuyến mãi. Dù tạo 1 mã cũng phải bọc trong Array! Không giải thích, không dùng markdown block. Các key bắt buộc cho mỗi Object:
+      { role: 'system', content: `Bạn là trợ lý Marketing. Hôm nay là ${today}. Chỉ trả về duy nhất một mảng JSON Array (bắt đầu bằng [ và kết thúc bằng ]) chứa các object mã khuyến mãi. Dù tạo 1 mã cũng phải bọc trong Array. Không giải thích, không dùng markdown block. Các key bắt buộc cho mỗi object:
 {
   "code": "MÃ IN HOA (VD: TINKY50)",
   "type": "percent" hoặc "fixed",

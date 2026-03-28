@@ -1,11 +1,10 @@
 import express from 'express';
-import { getLogs, getLogStats, exportLogs, deleteLog, bulkDeleteLogs, rollbackLog } from '../../controllers/admin/log.controller.js';
+import { getLogs, getLogStats, exportLogs, deleteLog, bulkDeleteLogs, deleteOldLogs, rollbackLog } from '../../controllers/admin/log.controller.js';
 import { verifyToken, authorize } from '../../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
 router.use(verifyToken);
-router.use(authorize(['admin', 'manager']));
 
 /**
  * @swagger
@@ -23,11 +22,12 @@ router.use(authorize(['admin', 'manager']));
  *     security:
  *       - bearerAuth: []
  */
-router.get('/stats', getLogStats);
+router.get('/stats', authorize(['admin', 'manager']), getLogStats);
 
-router.delete('/:id', deleteLog);
-router.post('/bulk-delete', bulkDeleteLogs);
-router.post('/:id/rollback', rollbackLog);
+router.delete('/:id', authorize(['admin']), deleteLog);
+router.post('/bulk-delete', authorize(['admin']), bulkDeleteLogs);
+router.post('/delete-old', authorize(['admin']), deleteOldLogs);
+router.post('/:id/rollback', authorize(['admin']), rollbackLog);
 
 /**
  * @swagger
@@ -36,7 +36,7 @@ router.post('/:id/rollback', rollbackLog);
  *     summary: Export activity logs as CSV
  *     tags: [Logs]
  */
-router.get('/export', exportLogs);
+router.get('/export', authorize(['admin', 'manager']), exportLogs);
 
 /**
  * @swagger
@@ -50,6 +50,6 @@ router.get('/export', exportLogs);
  *       200:
  *         description: List of logs
  */
-router.get('/', getLogs);
+router.get('/', authorize(['admin', 'manager']), getLogs);
 
 export default router;

@@ -2,8 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { logger } from '../config/logger.js';
 import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+import { getJwtSecret, getTokenFromRequest } from '../utils/auth-session.js';
 
 export const maintenanceMiddleware = async (
   req: Request,
@@ -23,11 +22,10 @@ export const maintenanceMiddleware = async (
   }
 
   // Check if user is an admin/staff based on JWT
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.split(' ')[1];
+  const token = getTokenFromRequest(req);
+  if (token) {
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const decoded = jwt.verify(token, getJwtSecret()) as any;
       if (decoded && ['admin', 'manager', 'staff'].includes(decoded.role)) {
         return next(); // Admins bypass maintenance mode entirely
       }

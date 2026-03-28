@@ -209,7 +209,7 @@ export default function AdminLayout() {
     { icon: MessageSquare, label: 'Đánh giá', path: '/admin/reviews', roles: ['admin', 'manager', 'staff'] },
     { icon: Headphones, label: 'Chat', path: '/admin/chat', roles: ['admin', 'manager', 'staff'] },
     { icon: Truck, label: 'Vận chuyển', path: '/admin/shipping', roles: ['admin', 'manager', 'staff'] },
-    { icon: Image, label: 'Banner', path: '/admin/banners', roles: ['admin', 'manager', 'staff'] },
+    { icon: Image, label: 'Banner', path: '/admin/banners', roles: ['admin', 'manager'] },
     { icon: UserCog, label: 'Nhân viên', path: '/admin/staff', roles: ['admin', 'manager'] },
     { icon: CreditCard, label: 'Giao dịch', path: '/admin/transactions', roles: ['admin', 'manager'] },
     { icon: Activity, label: 'Nhật ký hoạt động', path: '/admin/logs', roles: ['admin', 'manager'] },
@@ -222,8 +222,10 @@ export default function AdminLayout() {
     return item.roles.includes(user?.role || '');
   });
 
+  const isChatWorkspace = pathname === '/admin/chat';
+
   return (
-    <div className="min-h-screen bg-secondary-50 dark:bg-secondary-900 flex transition-colors duration-200">
+    <div className="h-screen overflow-hidden bg-secondary-50 dark:bg-secondary-900 flex transition-colors duration-200">
       {/* Sidebar */}
       <aside 
         className={`bg-white dark:bg-secondary-800 border-r border-secondary-200 dark:border-secondary-700 fixed inset-y-0 left-0 z-50 w-64 transition-transform duration-300 transform lg:translate-x-0 lg:static ${
@@ -291,7 +293,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 bg-secondary-50 dark:bg-secondary-900 transition-colors duration-200">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-secondary-50 dark:bg-secondary-900 transition-colors duration-200">
         {/* Header */}
         <header className="bg-white dark:bg-secondary-800 h-16 border-b border-secondary-200 dark:border-secondary-700 flex items-center justify-between px-4 lg:px-8 transition-colors duration-200">
           <div className="flex items-center gap-4 flex-1">
@@ -336,7 +338,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+        <main className={`flex-1 min-h-0 ${isChatWorkspace ? 'flex overflow-hidden p-4 lg:p-6' : 'overflow-y-auto p-4 lg:p-8'}`}>
           <Outlet />
         </main>
       </div>
@@ -635,6 +637,9 @@ export default function AdminLayout() {
       )}
       
       {/* Search Modal code omitted here for brevity (it remains above) */}
+
+      {/* Global Admin Chat Bubbles */}
+      <AdminChatManager />
 
       {/* Global AI Assistant Button for Admin */}
       <AIAssistant />

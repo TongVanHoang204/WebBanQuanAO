@@ -325,7 +325,7 @@ export default function OrderDetailPage() {
                          {formatPrice(item.unit_price)}
                        </td>
                        <td className="px-8 py-6 text-right text-sm font-black text-secondary-900 dark:text-white">
-                         {formatPrice(item.unit_price * item.qty)}
+                         {formatPrice(item.line_total)}
                        </td>
                      </tr>
                    ))}

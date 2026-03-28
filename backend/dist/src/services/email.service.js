@@ -1,49 +1,55 @@
-import nodemailer from 'nodemailer';
-// Create reusable transporter object using the default SMTP transport
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-    port: parseInt(process.env.SMTP_PORT || '2525'), // Try 2525 if 587 fails
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
-    // Timeout settings for slow connections (Render/Cloud)
-    connectionTimeout: 30000, // 30s
-    greetingTimeout: 15000, // 15s
-    socketTimeout: 30000, // 30s
-    logger: true, // Log to console
-    debug: false, // Include SMTP traffic in logs
-});
-// Verify connection configuration ONLY if credentials are present
-if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-    transporter.verify(function (error, success) {
-        if (error) {
-            console.log('[Email] Server connection failed:', error);
-        }
-        else {
-            console.log('[Email] Server is ready to take our messages');
-        }
-    });
+import { Resend } from 'resend';
+const stripWrappingQuotes = (value) => value?.replace(/^"(.*)"$/, '$1').trim();
+const resendApiKey = stripWrappingQuotes(process.env.RESEND_API_KEY);
+const appName = stripWrappingQuotes(process.env.APP_NAME) || 'Fashion Store';
+const configuredFrom = stripWrappingQuotes(process.env.RESEND_FROM) || 'onboarding@resend.dev';
+const configuredReplyTo = stripWrappingQuotes(process.env.RESEND_REPLY_TO) ||
+    stripWrappingQuotes(process.env.SMTP_FROM);
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
+if (resend) {
+    console.log(`[Email] Resend enabled with sender ${configuredFrom}`);
 }
 else {
-    console.log('[Email] SMTP credentials missing. Email service will run in MOCK mode.');
+    console.log('[Email] RESEND_API_KEY missing. Email service will run in MOCK mode.');
 }
+const ORDER_EMAIL_MARKER_PREFIX = '[CONTACT_EMAIL:';
+export const attachOrderEmailToAdminNote = (adminNote, email) => {
+    const normalizedEmail = email?.trim();
+    if (!normalizedEmail) {
+        return adminNote ?? null;
+    }
+    const cleanedNote = (adminNote || '').replace(/\[CONTACT_EMAIL:[^\]]+\]\s*\|?\s*/g, '').trim();
+    const marker = `${ORDER_EMAIL_MARKER_PREFIX}${normalizedEmail}]`;
+    return [cleanedNote, marker].filter(Boolean).join(' | ');
+};
+export const getOrderEmailFromAdminNote = (adminNote) => {
+    if (!adminNote) {
+        return null;
+    }
+    const match = adminNote.match(/\[CONTACT_EMAIL:([^\]]+)\]/);
+    return match?.[1]?.trim() || null;
+};
 export const sendEmail = async ({ to, subject, html }) => {
     try {
-        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-            console.log('[Email] SMTP credentials missing. Mock email sent to:', to);
+        if (!resend) {
+            console.log('[Email] RESEND_API_KEY missing. Mock email sent to:', to);
             console.log('[Email] Subject:', subject);
             console.log('[Email] Body Preview:', html.substring(0, 200) + '...');
-            return true; // Return success to avoid blocking flow in dev
+            return true;
         }
-        const info = await transporter.sendMail({
-            from: `"${process.env.APP_NAME || 'Fashion Store'}" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-            to,
+        const { data, error } = await resend.emails.send({
+            from: `${appName} <${configuredFrom}>`,
+            to: [to],
             subject,
             html,
+            replyTo: configuredReplyTo ? [configuredReplyTo] : undefined
         });
-        console.log('[Email] Message sent: %s', info.messageId);
+        if (error) {
+            console.error('[Email] Resend rejected email:', error);
+            return false;
+        }
+        console.log('[Email] Resend message queued:', data?.id);
+        console.log('[Email] To:', to);
         return true;
     }
     catch (error) {
@@ -70,11 +76,6 @@ export const sendWelcomeEmail = async (email, name) => {
 };
 export const sendResetPasswordEmail = async (email, token) => {
     const subject = 'Yêu cầu đặt lại mật khẩu - Fashion Store';
-    // In a real app, this would link to a frontend page with the token
-    // For this simplified flow, we send the token as a "code" or link
-    // Let's assume we link to /reset-password?token=XYZ or just give them a temp code if logic dictates
-    // But wait, the previous logic was just console log a token.
-    // Ideally: Link to /reset-password?email=...&token=...
     const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?email=${encodeURIComponent(email)}&token=${token}`;
     const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -88,7 +89,7 @@ export const sendResetPasswordEmail = async (email, token) => {
       <p>Nếu bạn không yêu cầu điều này, vui lòng bỏ qua email này.</p>
     </div>
   `;
-    if (!process.env.SMTP_USER) {
+    if (!resend) {
         console.log('====================================================');
         console.log('>>> MOCK RESET LINK:', resetLink);
         console.log('>>> TOKEN:', token);
@@ -113,6 +114,13 @@ export const sendOrderConfirmationEmail = async (email, orderCode, total) => {
   `;
     return sendEmail({ to: email, subject, html });
 };
+export const sendOrderConfirmationForOrder = async (order) => {
+    const recipientEmail = order.user?.email || getOrderEmailFromAdminNote(order.admin_note);
+    if (!recipientEmail) {
+        return false;
+    }
+    return sendOrderConfirmationEmail(recipientEmail, order.order_code, Number(order.grand_total));
+};
 export const sendOTP = async (email, otp) => {
     const subject = 'Mã xác thực 2 bước (2FA) - Fashion Store';
     const html = `
@@ -127,7 +135,7 @@ export const sendOTP = async (email, otp) => {
       <p>Nếu bạn không thực hiện yêu cầu này, vui lòng đổi mật khẩu ngay lập tức.</p>
     </div>
   `;
-    if (!process.env.SMTP_USER) {
+    if (!resend) {
         console.log('====================================================');
         console.log('>>> MOCK OTP CODE:', otp);
         console.log('====================================================');

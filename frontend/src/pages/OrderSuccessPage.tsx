@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { 
   CheckCircle2, 
@@ -26,6 +26,8 @@ import { Order } from '../types';
 
 export default function OrderSuccessPage() {
   const { orderCode } = useParams<{ orderCode: string }>();
+  const location = useLocation();
+  const locationState = location.state as { order?: Order; orderPhone?: string } | null;
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showItems, setShowItems] = useState(false);
@@ -34,18 +36,32 @@ export default function OrderSuccessPage() {
 
   const isPendingPayment = order?.status === 'pending' && 
                            (!order?.payments?.length || (order?.payments[0]?.method !== 'cod'));
+  const orderLookupPhone =
+    locationState?.orderPhone ||
+    locationState?.order?.customer_phone ||
+    (orderCode ? sessionStorage.getItem(`order_lookup_phone_${orderCode}`) : null) ||
+    undefined;
 
   // Initial Fetch
   useEffect(() => {
+    if (locationState?.order) {
+      setOrder(locationState.order);
+      if (locationState.order.customer_phone) {
+        sessionStorage.setItem(`order_lookup_phone_${locationState.order.order_code}`, locationState.order.customer_phone);
+      }
+    }
+
     const fetchOrder = async () => {
       if (!orderCode) return;
       try {
         const [orderRes, settingsRes] = await Promise.all([
-             ordersAPI.getByCode(orderCode),
+             ordersAPI.getByCode(orderCode, orderLookupPhone),
              settingsAPI.getPublic()
         ]);
-        console.log("DEBUG ORDER:", orderRes.data.data); // Debug logging
         setOrder(orderRes.data.data);
+        if (orderRes.data.data?.customer_phone) {
+          sessionStorage.setItem(`order_lookup_phone_${orderCode}`, orderRes.data.data.customer_phone);
+        }
         if (settingsRes.data.success) {
             setPaymentSettings(settingsRes.data.data);
         }
@@ -56,7 +72,7 @@ export default function OrderSuccessPage() {
       }
     };
     fetchOrder();
-  }, [orderCode]);
+  }, [orderCode, orderLookupPhone, locationState]);
 
   // Polling for Payment Status
   useEffect(() => {
@@ -66,7 +82,7 @@ export default function OrderSuccessPage() {
         setIsPolling(true);
         intervalId = setInterval(async () => {
             try {
-                const res = await ordersAPI.getByCode(orderCode!); 
+                const res = await ordersAPI.getByCode(orderCode!, orderLookupPhone); 
                 const updatedOrder = res.data.data;
                 
                 if (updatedOrder.status !== 'pending') {
@@ -82,7 +98,7 @@ export default function OrderSuccessPage() {
     return () => {
         if (intervalId) clearInterval(intervalId);
     };
-  }, [order?.status, orderCode, isPendingPayment]);
+  }, [order?.status, orderCode, isPendingPayment, orderLookupPhone]);
 
 
   if (isLoading) {

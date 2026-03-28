@@ -30,6 +30,7 @@ const ProfilePage = React.lazy(() => import('./pages/ProfilePage'));
 const WishlistPage = React.lazy(() => import('./pages/WishlistPage'));
 const OrderSuccessPage = React.lazy(() => import('./pages/OrderSuccessPage'));
 const OrderPaymentPage = React.lazy(() => import('./pages/OrderPaymentPage'));
+const CollectionDetailPage = React.lazy(() => import('./pages/CollectionDetailPage'));
 
 // Lazy Load Admin Pages
 const DashboardPage = React.lazy(() => import('./pages/admin/DashboardPage'));
@@ -170,16 +171,13 @@ export default function App() {
             <Route index element={<HomePage />} />
             <Route path="shop" element={<ShopPage />} />
             <Route path="sale" element={<SalePage />} />
+            <Route path="collections/:slug" element={<CollectionDetailPage />} />
 
             <Route path="products/:slug" element={<ProductDetailPage />} />
             <Route path="cart" element={<CartPage />} />
             
-            {/* Protected Routes */}
-            <Route path="checkout" element={
-              <ProtectedRoute>
-                <CheckoutPage />
-              </ProtectedRoute>
-            } />
+            {/* Checkout */}
+            <Route path="checkout" element={<CheckoutPage />} />
             <Route
               path="orders"
               element={
@@ -216,7 +214,14 @@ export default function App() {
             
             {/* Order Success */}
             <Route path="order-success/:orderCode" element={<OrderSuccessPage />} />
-            <Route path="checkout/payment/:orderId" element={<OrderPaymentPage />} />
+            <Route
+              path="checkout/payment/:orderId"
+              element={
+                <ProtectedRoute>
+                  <OrderPaymentPage />
+                </ProtectedRoute>
+              }
+            />
             <Route path="payment/vnpay-return" element={<PaymentReturnPage />} />
 
             {/* Static Pages */}

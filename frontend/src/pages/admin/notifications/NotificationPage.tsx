@@ -1,340 +1,484 @@
-import { useState, useEffect } from 'react';
-import { 
-  Bell, 
-  Settings, 
-  Check, 
-  Clock, 
-  Package, 
-  AlertCircle, 
-  Info,
-  MoreVertical
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  AlertCircle,
+  ArrowRight,
+  Bell,
+  Check,
+  CheckCheck,
+  Clock3,
+  ExternalLink,
+  Package,
+  Search,
+  Settings,
+  Trash2
 } from 'lucide-react';
-import { notificationService, NotificationItem } from '@/services/notification.service';
 import { toast } from 'react-hot-toast';
-import AIInsightPanel from '../../../components/common/AIInsightPanel';
+import Pagination from '../../../components/common/Pagination';
+import { notificationService } from '../../../services/notification.service';
+import {
+  buildEmptySummary,
+  emitNotificationDeleted,
+  emitNotificationMarkedRead,
+  emitNotificationsMarkedAllRead,
+  formatNotificationRelativeTime,
+  getNotificationCategory,
+  matchesNotificationCategory,
+  normalizeNotification,
+  notificationEvents,
+  type NotificationCategory,
+  type NotificationItem,
+  type NotificationSummary
+} from '../../../utils/notifications';
 
-function NotificationPage() {
-  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'order' | 'inventory' | 'customer' | 'system'>('all');
+const PAGE_SIZE = 12;
+
+const TABS: Array<{
+  id: NotificationCategory;
+  label: string;
+  summaryKey?: keyof NotificationSummary;
+  icon: typeof Bell;
+}> = [
+  { id: 'all', label: 'Tất cả', summaryKey: 'total', icon: Bell },
+  { id: 'unread', label: 'Chưa đọc', summaryKey: 'unread', icon: CheckCheck },
+  { id: 'order', label: 'Đơn hàng', summaryKey: 'orders', icon: Package },
+  { id: 'inventory', label: 'Kho hàng', summaryKey: 'inventory', icon: AlertCircle },
+  { id: 'system', label: 'Hệ thống', summaryKey: 'system', icon: Settings }
+];
+
+const getNotificationMeta = (type: NotificationItem['type']) => {
+  switch (type) {
+    case 'order_new':
+      return {
+        icon: Package,
+        badge: 'Đơn mới',
+        accent: 'text-blue-600 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/30'
+      };
+    case 'order_status':
+      return {
+        icon: Check,
+        badge: 'Trạng thái',
+        accent: 'text-emerald-600 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-900/30'
+      };
+    case 'product_low_stock':
+    case 'product_out_of_stock':
+      return {
+        icon: AlertCircle,
+        badge: 'Kho hàng',
+        accent: 'text-rose-600 bg-rose-100 dark:text-rose-300 dark:bg-rose-900/30'
+      };
+    default:
+      return {
+        icon: Settings,
+        badge: 'Hệ thống',
+        accent: 'text-amber-600 bg-amber-100 dark:text-amber-300 dark:bg-amber-900/30'
+      };
+  }
+};
+
+const getNotificationAction = (notification: NotificationItem) => {
+  if (notification.type === 'product_low_stock' || notification.type === 'product_out_of_stock') {
+    return {
+      label: 'Mở kho',
+      className: 'bg-rose-600 text-white hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-400'
+    };
+  }
+
+  if (notification.type === 'order_new' || notification.type === 'order_status') {
+    return {
+      label: 'Mở đơn',
+      className: 'bg-secondary-900 text-white dark:bg-white dark:text-secondary-900'
+    };
+  }
+
+  return {
+    label: 'Mở chi tiết',
+    className: 'bg-secondary-900 text-white dark:bg-white dark:text-secondary-900'
+  };
+};
+
+export default function NotificationPage() {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<NotificationCategory>('all');
+  const [search, setSearch] = useState('');
+  const [recentOnly, setRecentOnly] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [summary, setSummary] = useState<NotificationSummary>(buildEmptySummary());
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const res = await notificationService.getAll();
-      setNotifications(res.data.data.notifications || []);
+      const response = await notificationService.getAll({
+        page,
+        limit: PAGE_SIZE,
+        unread_only: activeTab === 'unread',
+        category: activeTab === 'order' || activeTab === 'inventory' || activeTab === 'system' ? activeTab : undefined,
+        search: search.trim() || undefined,
+        recent_hours: recentOnly ? 24 : undefined
+      });
+      const payload = response.data.data;
+      setNotifications((payload.notifications || []).map(normalizeNotification));
+      setSummary(payload.summary || buildEmptySummary());
+      setTotalPages(Math.max(1, payload.totalPages || 1));
     } catch (error) {
       console.error('Fetch notifications error', error);
+      toast.error('Không thể tải danh sách thông báo');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchNotifications();
+    const debounce = setTimeout(() => {
+      fetchNotifications();
+    }, 250);
 
-    // Listen for real-time notifications from SocketContext
-    const handleNewNotification = () => {
+    return () => clearTimeout(debounce);
+  }, [activeTab, page, recentOnly, search]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab, recentOnly]);
+
+  useEffect(() => {
+    const handleNewNotification = (event: Event) => {
+      const detail = (event as CustomEvent<NotificationItem>).detail;
+      if (!detail) {
+        fetchNotifications();
+        return;
+      }
+
+      const incoming = normalizeNotification(detail);
+      setSummary((prev) => ({
+        total: prev.total + 1,
+        unread: prev.unread + 1,
+        orders: prev.orders + (getNotificationCategory(incoming.type) === 'order' ? 1 : 0),
+        inventory: prev.inventory + (getNotificationCategory(incoming.type) === 'inventory' ? 1 : 0),
+        system: prev.system + (getNotificationCategory(incoming.type) === 'system' ? 1 : 0)
+      }));
+
+      if (page !== 1) {
+        return;
+      }
+
+      const matchesSearch = !search.trim() || [incoming.title, incoming.message].join(' ').toLowerCase().includes(search.trim().toLowerCase());
+      const matchesRecent = !recentOnly || Date.now() - new Date(incoming.created_at).getTime() <= 24 * 60 * 60 * 1000;
+      const matchesTab = matchesNotificationCategory(incoming, activeTab);
+
+      if (!matchesSearch || !matchesRecent || !matchesTab) {
+        return;
+      }
+
+      setNotifications((prev) => [incoming, ...prev.filter((item) => item.id !== incoming.id)].slice(0, PAGE_SIZE));
+    };
+
+    const handleMarkedRead = (event: Event) => {
+      const id = (event as CustomEvent<{ id: string }>).detail?.id;
+      if (!id) return;
+
+      setNotifications((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, is_read: true } : item))
+      );
+      setSummary((prev) => ({ ...prev, unread: Math.max(0, prev.unread - 1) }));
+    };
+
+    const handleMarkedAllRead = () => {
+      setNotifications((prev) => prev.map((item) => ({ ...item, is_read: true })));
+      setSummary((prev) => ({ ...prev, unread: 0 }));
+    };
+
+    const handleDeleted = (event: Event) => {
+      const id = (event as CustomEvent<{ id: string }>).detail?.id;
+      if (!id) return;
+
+      setNotifications((prev) => prev.filter((item) => item.id !== id));
       fetchNotifications();
     };
 
-    window.addEventListener('new_notification_received', handleNewNotification);
-    
-    const interval = setInterval(fetchNotifications, 60000); // Poll less frequently when real-time is active
-    
+    window.addEventListener(notificationEvents.created, handleNewNotification as EventListener);
+    window.addEventListener(notificationEvents.markedRead, handleMarkedRead as EventListener);
+    window.addEventListener(notificationEvents.markedAllRead, handleMarkedAllRead as EventListener);
+    window.addEventListener(notificationEvents.deleted, handleDeleted as EventListener);
+
     return () => {
-      window.removeEventListener('new_notification_received', handleNewNotification);
-      clearInterval(interval);
+      window.removeEventListener(notificationEvents.created, handleNewNotification as EventListener);
+      window.removeEventListener(notificationEvents.markedRead, handleMarkedRead as EventListener);
+      window.removeEventListener(notificationEvents.markedAllRead, handleMarkedAllRead as EventListener);
+      window.removeEventListener(notificationEvents.deleted, handleDeleted as EventListener);
     };
-  }, []);
+  }, [activeTab, page, recentOnly, search]);
+
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await notificationService.markRead(id);
+      setNotifications((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, is_read: true } : item))
+      );
+      setSummary((prev) => ({ ...prev, unread: Math.max(0, prev.unread - 1) }));
+      emitNotificationMarkedRead(id);
+    } catch (error) {
+      toast.error('Không thể đánh dấu đã đọc');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await notificationService.delete(id);
+      setNotifications((prev) => prev.filter((item) => item.id !== id));
+      emitNotificationDeleted(id);
+      toast.success('Đã xóa thông báo');
+      fetchNotifications();
+    } catch (error) {
+      toast.error('Không thể xóa thông báo');
+    }
+  };
 
   const handleMarkAllRead = async () => {
     try {
       await notificationService.markAllRead();
+      setNotifications((prev) => prev.map((item) => ({ ...item, is_read: true })));
+      setSummary((prev) => ({ ...prev, unread: 0 }));
+      emitNotificationsMarkedAllRead();
       toast.success('Đã đánh dấu tất cả là đã đọc');
-      fetchNotifications();
     } catch (error) {
-      toast.error('Có lỗi xảy ra');
+      toast.error('Không thể cập nhật toàn bộ thông báo');
     }
   };
 
-  const getFilteredNotifications = () => {
-    let filtered = notifications;
-    if (activeTab === 'unread') {
-      filtered = notifications.filter(n => !n.is_read);
-    } else if (activeTab === 'order') {
-      filtered = notifications.filter(n => ['order_new', 'order_status'].includes(n.type));
-    } else if (activeTab === 'inventory') {
-      filtered = notifications.filter(n => ['product_low_stock', 'product_out_of_stock'].includes(n.type));
-    } else if (activeTab === 'system') {
-      filtered = notifications.filter(n => n.type === 'system');
+  const handleOpenNotification = async (notification: NotificationItem) => {
+    if (!notification.link) {
+      return;
     }
-    // "customer" type assumption? If not in Enum, maybe 'system'? 
-    // Adapting to Schema: order_new, order_status, product_low_stock, product_out_of_stock, system
-    return filtered;
+
+    if (!notification.is_read) {
+      await handleMarkAsRead(notification.id);
+    }
+
+    navigate(notification.link);
   };
 
-  const getTypeStyles = (notification: NotificationItem) => {
-    switch (notification.type) {
-      case 'order_new':
-        return {
-          icon: <Package className="w-5 h-5 text-white" />,
-          bg: 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30',
-          tag: 'ĐƠN HÀNG',
-          tagBg: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
-        };
-      case 'order_status':
-        return {
-          icon: <Check className="w-5 h-5 text-white" />,
-          bg: 'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/30',
-          tag: 'CẬP NHẬT',
-          tagBg: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
-        };
-      case 'product_low_stock':
-      case 'product_out_of_stock':
-        return {
-          icon: <AlertCircle className="w-5 h-5 text-white" />,
-          bg: 'bg-gradient-to-br from-rose-500 to-rose-600 shadow-lg shadow-rose-500/30',
-          tag: 'KHO HÀNG',
-          tagBg: 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400',
-        };
-      case 'system':
-        return {
-          icon: <Settings className="w-5 h-5 text-white" />,
-          bg: 'bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg shadow-amber-500/30',
-          tag: 'HỆ THỐNG',
-          tagBg: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
-        };
-      default:
-        return {
-          icon: <Info className="w-5 h-5 text-white" />,
-          bg: 'bg-gradient-to-br from-secondary-500 to-secondary-600 shadow-lg shadow-secondary-500/30',
-          tag: 'THÔNG TIN',
-          tagBg: 'bg-secondary-100 dark:bg-secondary-900/30 text-secondary-600 dark:text-secondary-400',
-        };
-    }
-  };
-
-  const filteredList = getFilteredNotifications();
-  const unreadCount = notifications.filter(n => !Number(n.is_read)).length;
-
-  const tabActiveClassMap = {
-    primary: 'bg-black dark:bg-white text-white dark:text-black shadow-lg shadow-secondary-500/30 transform scale-[1.02]',
-    blue: 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 transform scale-[1.02]',
-    rose: 'bg-rose-600 text-white shadow-lg shadow-rose-500/30 transform scale-[1.02]',
-    amber: 'bg-amber-600 text-white shadow-lg shadow-amber-500/30 transform scale-[1.02]',
-  } as const;
-
-  const tabIconClassMap = {
-    primary: 'text-secondary-500',
-    blue: 'text-blue-500',
-    rose: 'text-rose-500',
-    amber: 'text-amber-500',
-  } as const;
+  const activeTabLabel = TABS.find((tab) => tab.id === activeTab)?.label || 'Tất cả';
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 h-full bg-secondary-50/50 dark:bg-transparent -m-4 p-4 lg:-m-8 lg:p-8 rounded-3xl overflow-hidden">
-      {/* Sidebar Section */}
-      <div className="w-full lg:w-72 flex-shrink-0 space-y-8">
-        <div className="px-2">
-          <h2 className="text-2xl font-black text-secondary-900 dark:text-white mb-2 tracking-tight">Trung tâm thông báo</h2>
-          <p className="text-sm font-medium text-secondary-500 dark:text-secondary-400">Tất cả tin tức & hoạt động mới nhất</p>
+    <div className="space-y-4">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-secondary-900 dark:text-white">Thông báo</h1>
+          <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-1">
+            Một nơi gọn để theo dõi đơn hàng, kho hàng và cảnh báo hệ thống.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-secondary-500 dark:text-secondary-400">
+            <span className="inline-flex items-center gap-2 rounded-full bg-secondary-100 dark:bg-secondary-800 px-3 py-1.5">
+              Đang xem
+              <span className="font-semibold text-secondary-900 dark:text-white">{activeTabLabel}</span>
+            </span>
+            {recentOnly && (
+              <span className="inline-flex items-center rounded-full bg-primary-50 dark:bg-primary-950/30 px-3 py-1.5 font-medium text-primary-700 dark:text-primary-300">
+                24 giờ gần nhất
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="bg-white/80 dark:bg-secondary-900/50 backdrop-blur-xl border border-white dark:border-secondary-800 rounded-2xl shadow-xl shadow-secondary-200/50 dark:shadow-none p-3 space-y-2">
-          {[
-            { id: 'all', label: 'Tất cả', icon: Bell, count: notifications.length, color: 'primary' },
-            { id: 'order', label: 'Đơn hàng', icon: Package, count: notifications.filter(n => ['order_new', 'order_status'].includes(n.type)).length, color: 'blue' },
-            { id: 'inventory', label: 'Kho hàng', icon: AlertCircle, count: notifications.filter(n => ['product_low_stock', 'product_out_of_stock'].includes(n.type)).length, color: 'rose' },
-            { id: 'system', label: 'Hệ thống', icon: Settings, color: 'amber' }
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id as any)}
-              className={`w-full flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${
-                activeTab === item.id 
-                  ? tabActiveClassMap[item.color as keyof typeof tabActiveClassMap]
-                  : 'text-secondary-500 hover:bg-secondary-100 dark:hover:bg-secondary-800 hover:text-secondary-900 dark:hover:text-white'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <item.icon className={`w-5 h-5 ${activeTab === item.id ? '' : tabIconClassMap[item.color as keyof typeof tabIconClassMap]}`} />
-                {item.label}
-              </div>
-              {item.count !== undefined && item.count > 0 && (
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                    activeTab === item.id ? 'bg-white/20 text-white' : 'bg-secondary-100 dark:bg-secondary-800 text-secondary-600 dark:text-secondary-400'
-                  }`}>
-                      {item.count}
-                  </span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <h2 className="text-3xl font-black text-secondary-900 dark:text-white tracking-tight">Hoạt động gần đây</h2>
-            </div>
-            <p className="text-secondary-500 dark:text-secondary-400 font-medium italic">Ghi nhận thông tin từ {new Date().toLocaleDateString('vi-VN')}</p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary-100 dark:bg-secondary-800 text-sm text-secondary-700 dark:text-secondary-200">
+            <Clock3 className="w-4 h-4" />
+            {summary.unread} chưa đọc
           </div>
           <button
             onClick={handleMarkAllRead}
-            disabled={unreadCount === 0}
-            className="flex items-center gap-2 px-6 py-2.5 bg-black dark:bg-white text-white dark:text-black hover:bg-secondary-800 dark:hover:bg-secondary-100 disabled:bg-secondary-200 dark:disabled:bg-secondary-800 disabled:text-secondary-400 disabled:cursor-not-allowed rounded-full transition-all duration-300 text-sm font-black shadow-xl shadow-secondary-200/50 dark:shadow-none"
+            disabled={summary.unread === 0}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary-900 text-white dark:bg-white dark:text-secondary-900 disabled:bg-secondary-200 dark:disabled:bg-secondary-800 disabled:text-secondary-400 disabled:cursor-not-allowed"
           >
-            <Check className="w-4 h-4" />
-            Đánh dấu đã đọc hết
+            <CheckCheck className="w-4 h-4" />
+            Đọc hết
           </button>
-        </div>
-
-        {/* Filter Pills */}
-        <div className="flex items-center gap-3 mb-8 overflow-x-auto no-scrollbar pb-2">
-          {['unread', 'priority', '24h'].map((filter) => (
-            <button
-              key={filter}
-              onClick={() => filter === 'unread' && setActiveTab(activeTab === 'unread' ? 'all' : 'unread')}
-              className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all duration-300 border-2 ${
-                (filter === 'unread' && activeTab === 'unread')
-                  ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-lg' 
-                  : 'bg-white dark:bg-secondary-800 border-white dark:border-secondary-700 text-secondary-600 dark:text-secondary-400 hover:border-secondary-200 dark:hover:border-secondary-600'
-              }`}
-            >
-              {filter === 'unread' ? 'Chưa đọc' : filter === 'priority' ? 'Ưu tiên' : '24h qua'}
-            </button>
-          ))}
-        </div>
-
-        {/* AI Insight */}
-        <AIInsightPanel
-          title="AI Phân tích thông báo"
-          prompt={`Phân tích xu hướng thông báo hệ thống. Tab đang xem: ${activeTab}. Nhận diện loại thông báo xuất hiện nhiều, cảnh báo quan trọng, và đề xuất tối ưu quy trình.`}
-          dataContext={(() => {
-            const lines: string[] = [
-              `Tổng thông báo: ${notifications.length}`,
-              `Chưa đọc: ${notifications.filter((n: any) => !n.is_read).length}`,
-            ];
-            const typeCounts: Record<string, number> = {};
-            notifications.forEach((n: any) => {
-              const t = n.type || 'other';
-              typeCounts[t] = (typeCounts[t] || 0) + 1;
-            });
-            if (Object.keys(typeCounts).length > 0) {
-              lines.push(`Phân loại: ${Object.entries(typeCounts).map(([k,v]) => `${k}: ${v}`).join(', ')}`);
-            }
-            if (notifications.length > 0) {
-              lines.push(`Thông báo gần nhất: ${notifications.slice(0, 3).map((n: any) => `[${n.type || '?'}] ${(n.title || n.message || '').slice(0, 50)}`).join('; ')}`);
-            }
-            return lines.join('\n');
-          })()}
-        />
-
-        {/* List */}
-        <div className="mt-6 flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar pb-12">
-          {loading ? (
-             <div className="space-y-4">
-               {[1,2,3,4].map(i => (
-                 <div key={i} className="h-28 bg-white/50 dark:bg-secondary-800/50 rounded-2xl animate-pulse border border-white dark:border-secondary-800"></div>
-               ))}
-             </div>
-          ) : filteredList.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white/50 dark:bg-secondary-900/30 rounded-3xl border-2 border-dashed border-secondary-200 dark:border-secondary-800">
-              <div className="w-24 h-24 bg-gradient-to-tr from-secondary-100 to-secondary-200 dark:from-secondary-800 dark:to-secondary-700 rounded-full flex items-center justify-center mb-6 shadow-inner">
-                <Bell className="w-10 h-10 text-secondary-400 animate-bounce" />
-              </div>
-              <h3 className="text-xl font-black text-secondary-900 dark:text-white mb-2">Yên bình quá!</h3>
-              <p className="text-secondary-500 dark:text-secondary-400 font-medium">Hiện tại không có thông báo nào mới cho bạn.</p>
-            </div>
-          ) : (
-            filteredList.map((notification) => {
-              const style = getTypeStyles(notification);
-              const isUnread = !Number(notification.is_read);
-              
-              return (
-                <div 
-                  key={notification.id} 
-                  className={`group relative bg-white dark:bg-secondary-900/50 hover:bg-secondary-50 dark:hover:bg-secondary-800/80 rounded-2xl p-5 border transition-all duration-500 ${
-                    isUnread 
-                      ? 'border-l-4 border-l-blue-600 border-white dark:border-secondary-700 shadow-xl shadow-blue-500/5' 
-                      : 'border-white dark:border-secondary-800 shadow-sm'
-                  }`}
-                >
-                  <div className="flex gap-5">
-                    {/* Icon Box */}
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 relative overflow-hidden ${style.bg}`}>
-                      <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                      {style.icon}
-                    </div>
-                    
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                        <span className={`self-start text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest ${style.tagBg}`}>
-                          {style.tag}
-                        </span>
-                        <h4 className={`text-lg font-black text-secondary-900 dark:text-white leading-tight truncate ${isUnread ? 'opacity-100' : 'opacity-70'}`}>
-                          {notification.title}
-                        </h4>
-                      </div>
-                      
-                      <p className={`text-sm mb-4 leading-relaxed line-clamp-2 font-medium ${isUnread ? 'text-secondary-700 dark:text-secondary-200' : 'text-secondary-500 dark:text-secondary-400'}`}>
-                        {notification.message}
-                      </p>
-                      
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5 text-xs text-secondary-400 dark:text-secondary-500 font-bold uppercase tracking-wider">
-                          <Clock className="w-3.5 h-3.5" />
-                          {new Date(notification.created_at).toLocaleString('vi-VN', { 
-                            hour: '2-digit', minute: '2-digit',
-                            day: 'numeric', month: 'numeric'
-                          })}
-                        </div>
-                        {isUnread && (
-                           <span className="flex items-center gap-1 text-[10px] font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full uppercase">
-                             Mới
-                           </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Actions (Right Side) */}
-                    <div className="flex flex-col items-end justify-between pl-4">
-                         <div className="flex items-center gap-1">
-                            <button 
-                                className="p-2 text-secondary-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all duration-300"
-                                onClick={() => { /* Handle Delete */ }}
-                            >
-                              <MoreVertical className="w-5 h-5" />
-                            </button>
-                         </div>
-                         
-                         {notification.link && (
-                           <a 
-                             href={notification.link}
-                             className="group/btn relative px-5 py-2 overflow-hidden bg-secondary-900 dark:bg-white text-white dark:text-black text-xs font-black rounded-xl transition-all duration-300 hover:shadow-lg active:scale-95 whitespace-nowrap uppercase tracking-widest"
-                           >
-                             <span className="relative z-10 flex items-center gap-2">
-                               Chi tiết
-                               <Check className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
-                             </span>
-                           </a>
-                         )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
         </div>
       </div>
 
+      <div className="bg-white dark:bg-secondary-800 rounded-2xl border border-secondary-200 dark:border-secondary-700 p-4">
+        <div className="flex flex-col xl:flex-row xl:items-center gap-4">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400" />
+            <input
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              placeholder="Tìm theo tiêu đề hoặc nội dung..."
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-900 text-secondary-900 dark:text-white"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setRecentOnly((value) => !value)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium border ${
+                recentOnly
+                  ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-950/20 dark:text-primary-300'
+                  : 'border-secondary-200 dark:border-secondary-700 text-secondary-600 dark:text-secondary-300'
+              }`}
+            >
+              24 giờ gần nhất
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            const count = tab.summaryKey ? summary[tab.summaryKey] : 0;
+            const isActive = activeTab === tab.id;
+
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-secondary-900 text-white shadow-sm dark:bg-white dark:text-secondary-900'
+                    : 'bg-secondary-100 dark:bg-secondary-900 text-secondary-600 dark:text-secondary-300 hover:bg-secondary-200 dark:hover:bg-secondary-950'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+                <span
+                  className={`inline-flex min-w-6 justify-center rounded-full px-1.5 py-0.5 text-[11px] ${
+                    isActive
+                      ? 'bg-white/15 text-white dark:bg-secondary-200 dark:text-secondary-900'
+                      : 'bg-white dark:bg-secondary-800 text-secondary-700 dark:text-secondary-200'
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="h-24 rounded-2xl border border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 animate-pulse"
+              />
+            ))}
+          </div>
+        ) : notifications.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 py-20 text-center">
+            <Bell className="w-12 h-12 mx-auto text-secondary-300 dark:text-secondary-600 mb-4" />
+            <h2 className="text-xl font-semibold text-secondary-900 dark:text-white">Không có thông báo phù hợp</h2>
+            <p className="mt-2 text-secondary-500 dark:text-secondary-400">
+              Thử đổi bộ lọc hoặc đợi hệ thống phát sinh thông báo mới.
+            </p>
+          </div>
+        ) : (
+          notifications.map((notification) => {
+            const meta = getNotificationMeta(notification.type);
+            const action = getNotificationAction(notification);
+            const Icon = meta.icon;
+            const isUnread = !notification.is_read;
+            const content = (
+              <div className="flex gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${meta.accent}`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-2">
+                      <div className="min-w-0 space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-base font-semibold text-secondary-900 dark:text-white truncate">
+                            {notification.title}
+                          </h3>
+                          {isUnread && <span className="inline-flex h-2 w-2 rounded-full bg-primary-500" />}
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold ${meta.accent}`}>
+                            {meta.badge}
+                          </span>
+                          {isUnread && (
+                            <span className="inline-flex px-2 py-1 rounded-full text-[11px] font-semibold bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+                              Mới
+                            </span>
+                          )}
+                          <span className="inline-flex items-center rounded-full bg-secondary-100 dark:bg-secondary-900 px-2 py-1 text-[11px] font-medium text-secondary-500 dark:text-secondary-400">
+                            {formatNotificationRelativeTime(notification.created_at)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="text-xs text-secondary-400 dark:text-secondary-500 whitespace-nowrap">
+                        #{notification.id.slice(0, 8)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-sm leading-6 text-secondary-600 dark:text-secondary-300">
+                    {notification.message}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    {!notification.is_read && (
+                      <button
+                        onClick={() => handleMarkAsRead(notification.id)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-secondary-200 dark:border-secondary-700 text-xs font-medium text-secondary-700 dark:text-secondary-200 hover:bg-secondary-50 dark:hover:bg-secondary-700"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        Đánh dấu đã đọc
+                      </button>
+                    )}
+
+                    {notification.link ? (
+                      <button
+                        onClick={() => handleOpenNotification(notification)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${action.className}`}
+                      >
+                        {action.label}
+                        <ArrowRight className="w-3.5 h-3.5" />
+                        <ExternalLink className="w-3 h-3 opacity-70" />
+                      </button>
+                    ) : null}
+
+                    <button
+                      onClick={() => handleDelete(notification.id)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-900/40 text-xs font-medium text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/20"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Xóa
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+
+            return (
+              <div
+                key={notification.id}
+                className={`rounded-2xl border p-4 bg-white dark:bg-secondary-800 transition-colors ${
+                  isUnread
+                    ? 'border-primary-200 dark:border-primary-900/30 shadow-sm'
+                    : 'border-secondary-200 dark:border-secondary-700'
+                }`}
+              >
+                {content}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      <div className="flex justify-center">
+        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+      </div>
     </div>
   );
 }
-
-export default NotificationPage;

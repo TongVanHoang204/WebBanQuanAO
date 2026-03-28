@@ -7,10 +7,20 @@ import { Prisma } from '@prisma/client';
 import { logActivity } from '../../services/logger.service.js';
 import { deepDiff, createDeleteSnapshot } from '../../utils/deepDiff.js';
 import { getIO } from '../../socket.js';
+import { enrichOrderWorkflowState } from '../../services/order-workflow.service.js';
+import { assertCanManageTargetUser, assertCanReadTargetUser, canAssignRole, getReadableRoles } from '../../utils/access-control.js';
 
 // Helper to convert BigInt to string for JSON serialization
 const serialize = (data: any) => {
-  return JSON.parse(JSON.stringify(data, (key, value) =>
+  const enrich = (value: any): any => {
+    if (Array.isArray(value)) return value.map(enrich);
+    if (!value || typeof value !== 'object') return value;
+
+    const next = { ...value };
+    return 'admin_note' in next ? enrichOrderWorkflowState(next) : next;
+  };
+
+  return JSON.parse(JSON.stringify(enrich(data), (key, value) =>
     typeof value === 'bigint' ? value.toString() : value
   ));
 };
@@ -746,6 +756,9 @@ export const getAdminOrders = async (
         where.status = 'shipped'; // Map 'delivering' UI term to 'shipped' DB enum
       } else if (status === 'new') {
          where.status = 'pending';
+      } else if (status === 'refund_requested') {
+        where.status = 'completed';
+        where.admin_note = { contains: '[REFUND_REQUESTED]' };
       } else {
         where.status = status;
         // Handle confirmed status if matches DB enum
@@ -1024,11 +1037,56 @@ export const getUsers = async (
     const { page = '1', limit = '20', role, search } = req.query;
     const pageNum = Math.max(1, parseInt(page as string));
     const limitNum = Math.min(100, Math.max(1, parseInt(limit as string)));
+    const readableRoles = getReadableRoles(req.user || {});
 
     const where: any = {};
+
+    if (readableRoles.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          users: [],
+          stats: {
+            total: 0,
+            active: 0,
+            new_this_week: 0
+          },
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total: 0,
+            totalPages: 0
+          }
+        }
+      });
+    }
     
     // Filters
-    if (role) where.role = role;
+    if (role) {
+      if (!readableRoles.includes(role as any)) {
+        return res.json({
+          success: true,
+          data: {
+            users: [],
+            stats: {
+              total: 0,
+              active: 0,
+              new_this_week: 0
+            },
+            pagination: {
+              page: pageNum,
+              limit: limitNum,
+              total: 0,
+              totalPages: 0
+            }
+          }
+        });
+      }
+
+      where.role = role;
+    } else {
+      where.role = { in: readableRoles };
+    }
     if (search) {
       where.OR = [
         { full_name: { contains: search as string } }, // Removed mode: 'insensitive' for compatibility if mysql/prisma config varies, but okay for default
@@ -1149,6 +1207,13 @@ export const createUser = async (
       });
     }
 
+    if (role && !canAssignRole(req.user || {}, role)) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Bạn không có quyền tạo người dùng với vai trò này' }
+      });
+    }
+
     // Hash password (assuming bcrypt imported or handle in model/service)
     // For simplicity, using simple hash or assuming pre-hashed. 
     // Wait, we need bcrypt. Let's assume auth service has it or use placeholder.
@@ -1220,6 +1285,26 @@ export const updateUser = async (
       }
     });
 
+    if (!oldUser) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Không tìm thấy người dùng' }
+      });
+    }
+
+    try {
+      assertCanManageTargetUser(req.user || {}, oldUser);
+    } catch (error) {
+      return next(error);
+    }
+
+    if (role !== undefined && role !== oldUser.role && !canAssignRole(req.user || {}, role)) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Bạn không có quyền gán vai trò này' }
+      });
+    }
+
 // ... inside updateUser ...
     const user = await prisma.users.update({
       where: { id: BigInt(id as string) },
@@ -1270,6 +1355,7 @@ export const updateUser = async (
         console.error('Error forcing logout:', e);
       }
     }
+
 
     res.json({
       success: true,
@@ -1324,6 +1410,12 @@ export const getUserById = async (
         success: false,
         error: { message: 'Không tìm thấy người dùng' }
       });
+    }
+
+    try {
+      assertCanReadTargetUser(req.user || {}, user);
+    } catch (error) {
+      return next(error);
     }
 
     res.json({
@@ -1395,6 +1487,16 @@ export const getAnalytics = async (
         FROM orders
         WHERE created_at >= ${start} AND created_at <= ${end}
         AND status IN ('paid', 'completed')
+        GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+        ORDER BY date ASC
+    `;
+
+    const customerRegistrationsOverTime: any[] = await prisma.$queryRaw`
+        SELECT DATE_FORMAT(created_at, '%Y-%m-%d') as date,
+               COUNT(id) as customers
+        FROM users
+        WHERE created_at >= ${start} AND created_at <= ${end}
+        AND role = 'customer'
         GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
         ORDER BY date ASC
     `;
@@ -1548,6 +1650,10 @@ export const getAnalytics = async (
                 revenue: Number(r.revenue),
                 orders: Number(r.orders) // Orders count in graph matches strict filtering
             })),
+            customerRegistrations: customerRegistrationsOverTime.map((row) => ({
+                date: row.date,
+                customers: Number(row.customers)
+            })),
             status: statusDistribution.map(s => ({
                 status: s.status,
                 count: s._count.id
@@ -1581,18 +1687,9 @@ export const deleteUser = async (
       });
     }
 
-    // PROTECT SUPER ADMIN (ID 1)
-    if (userId === BigInt(1)) {
-        return res.status(403).json({
-            success: false,
-            error: { message: 'Không thể xóa Tài khoản Gốc (Super Admin)' }
-        });
-    }
-
-    // Get target user info for role check
     const targetUser = await prisma.users.findUnique({
       where: { id: userId },
-      select: { role: true }
+      select: { id: true, role: true }
     });
 
     if (!targetUser) {
@@ -1602,16 +1699,10 @@ export const deleteUser = async (
       });
     }
 
-    // SAME-ROLE PROTECTION: Admin cannot delete another admin
-    // Only Super Admin (ID 1 or 6) can delete users of equal/higher role
-    const currentUserRole = req.user?.role;
-    const isSuperAdmin = req.user?.id && (BigInt(req.user.id) === BigInt(1) || BigInt(req.user.id) === BigInt(6));
-    
-    if (!isSuperAdmin && currentUserRole === targetUser.role) {
-      return res.status(403).json({
-        success: false,
-        error: { message: `Bạn không thể xóa người dùng cùng cấp (${targetUser.role}). Chỉ Super Admin mới có quyền này.` }
-      });
+    try {
+      assertCanManageTargetUser(req.user || {}, targetUser);
+    } catch (error) {
+      return next(error);
     }
 
     // Check for related data
@@ -1671,5 +1762,7 @@ export const deleteUser = async (
     next(error);
   }
 };
+
+
 
 

@@ -66,3 +66,44 @@ export function rateLimit(name: string, max: number, windowMs: number) {
     next();
   };
 }
+
+export function authAccountThrottle(
+  name: string,
+  max: number,
+  windowMs: number,
+  getAccountKey: (req: Request) => string | null
+) {
+  if (!stores.has(name)) stores.set(name, new Map());
+  const store = stores.get(name)!;
+
+  return (req: Request, res: Response, next: NextFunction) => {
+    const rawKey = getAccountKey(req);
+    if (!rawKey) {
+      return next();
+    }
+
+    const key = `account:${rawKey.toLowerCase()}`;
+    const now = Date.now();
+    let entry = store.get(key);
+
+    if (!entry || now > entry.resetAt) {
+      entry = { count: 0, resetAt: now + windowMs };
+      store.set(key, entry);
+    }
+
+    entry.count++;
+
+    if (entry.count > max) {
+      const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
+      res.setHeader('Retry-After', retryAfter);
+      return res.status(429).json({
+        success: false,
+        error: {
+          message: `Tài khoản này đang bị giới hạn tạm thời. Vui lòng thử lại sau ${retryAfter} giây.`
+        }
+      });
+    }
+
+    next();
+  };
+}

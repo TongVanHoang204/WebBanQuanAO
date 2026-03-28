@@ -40,7 +40,7 @@ export default function OrderTrackingPage() {
       const response = await ordersAPI.getByCode(code.trim(), phone.trim());
       setOrder(response.data.data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Khong tim thay don hang');
+      setError(err.response?.data?.message || 'Không tìm thấy đơn hàng');
     } finally {
       setIsLoading(false);
     }

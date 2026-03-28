@@ -3,6 +3,8 @@ import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { prisma } from '../../lib/prisma.js';
 import { ApiError } from '../../middlewares/error.middleware.js';
+import { sendOrderConfirmationForOrder } from '../../services/email.service.js';
+import { transitionOrderStatus } from '../../services/order-workflow.service.js';
 
 /**
  * Middleware: Verify HMAC-SHA256 signature from webhook provider (Casso/Sepay).
@@ -81,30 +83,34 @@ export const handleBankWebhook = async (req: Request, res: Response) => {
                     include: { payments: true }
                 });
 
-                // Check if order exists and is pending/processing
-                if (order && (order.status === 'pending' || order.status === 'processing')) {
+                // Only pending/confirmed orders can be marked paid by webhook.
+                if (order && (order.status === 'pending' || order.status === 'confirmed')) {
                     // Check amount (allow small diff for fees if needed, but usually exact)
                     const orderTotal = parseFloat(order.grand_total.toString());
                     
                     if (amount >= orderTotal) {
                         // Success! Update Order
-                        await prisma.$transaction([
-                           prisma.orders.update({
-                               where: { id: order.id },
-                               data: { 
-                                   status: 'processing', // or 'paid' depending on workflow
-                                   updated_at: new Date()
-                               }
-                           }),
-                           prisma.payments.updateMany({
+                        const updatedOrder = await prisma.$transaction(async (tx) => {
+                           await transitionOrderStatus(tx as any, order.id, 'paid');
+                           await tx.payments.updateMany({
                                where: { order_id: order.id },
                                data: {
-                                   status: 'paid',
-                                   paid_at: new Date(),
                                    transaction_ref: trans.tid || trans.id?.toString() || 'WEBHOOK'
                                }
-                           })
-                        ]);
+                           });
+                           return tx.orders.findUnique({
+                             where: { id: order.id },
+                             include: {
+                               user: {
+                                 select: { email: true }
+                               }
+                             }
+                           });
+                        });
+
+                        if (updatedOrder) {
+                          sendOrderConfirmationForOrder(updatedOrder).catch(console.error);
+                        }
                         
                         // Log notification
                         await prisma.notifications.create({

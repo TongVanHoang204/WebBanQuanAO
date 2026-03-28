@@ -42,7 +42,6 @@ import { toast } from 'react-hot-toast';
 import { resolveApiUrl } from '../../../services/api';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmModal from '../../../components/common/ConfirmModal';
-import { useVirtualizer } from '@tanstack/react-virtual';
 
 interface UserOption {
   id: string;
@@ -136,6 +135,22 @@ const parseUserAgent = (ua: string): { browser: string; os: string; icon: any } 
   return result;
 };
 
+const LogSkeleton = () => (
+  <div className="space-y-3 p-4">
+    {Array.from({ length: 7 }).map((_, index) => (
+      <div key={index} className="rounded-xl border border-secondary-100 bg-white p-4 dark:border-secondary-700 dark:bg-secondary-800">
+        <div className="mb-3 h-5 w-40 animate-pulse rounded bg-secondary-100 dark:bg-secondary-700" />
+        <div className="mb-2 h-4 w-64 animate-pulse rounded bg-secondary-100 dark:bg-secondary-700" />
+        <div className="flex gap-2">
+          <div className="h-3 w-24 animate-pulse rounded bg-secondary-100 dark:bg-secondary-700" />
+          <div className="h-3 w-28 animate-pulse rounded bg-secondary-100 dark:bg-secondary-700" />
+          <div className="h-3 w-20 animate-pulse rounded bg-secondary-100 dark:bg-secondary-700" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 export default function ActivityLogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialAction = searchParams.get('action') || '';
@@ -178,6 +193,8 @@ export default function ActivityLogPage() {
     isBulk: false,
     idToDelete: null
   });
+  const [deleteOldModalOpen, setDeleteOldModalOpen] = useState(false);
+  const [deletingOld, setDeletingOld] = useState(false);
 
   // Rollback state
   const [rollbackModal, setRollbackModal] = useState<{ isOpen: boolean; logId: string | null; action: string }>({ isOpen: false, logId: null, action: '' });
@@ -362,6 +379,33 @@ export default function ActivityLogPage() {
     }
   };
 
+  const handleDeleteOldLogs = async () => {
+    try {
+      setDeletingOld(true);
+      const res = await fetch(resolveApiUrl('/api/admin/logs/delete-old'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ days: 90 })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(data.message || 'Đã xóa log cũ');
+        fetchLogs();
+        fetchStats();
+      } else {
+        toast.error(data.error?.message || data.message || 'Không thể xóa log cũ');
+      }
+    } catch {
+      toast.error('Không thể xóa log cũ');
+    } finally {
+      setDeletingOld(false);
+      setDeleteOldModalOpen(false);
+    }
+  };
+
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
       const next = new Set(prev);
@@ -382,6 +426,14 @@ export default function ActivityLogPage() {
   useEffect(() => {
     setSelectedIds(new Set());
   }, [page, actionFilter, entityFilter, roleFilter, userFilter, datePreset, searchQuery]);
+
+  useEffect(() => {
+    const visibleLogIds = new Set(logs.map((log) => log.id));
+    setExpandedIds((prev) => {
+      const next = [...prev].filter((id) => visibleLogIds.has(id));
+      return next.length === prev.size ? prev : new Set(next);
+    });
+  }, [logs]);
 
   useEffect(() => {
     const timer = setTimeout(() => { fetchLogs(); }, 300);
@@ -538,6 +590,429 @@ export default function ActivityLogPage() {
     return date.toLocaleDateString('vi-VN');
   };
 
+  const DETAIL_LABELS: Record<string, string> = {
+    product_name: 'Tên sản phẩm',
+    variant_sku: 'SKU biến thể',
+    old_stock: 'Tồn trước',
+    new_stock: 'Tồn sau',
+    stock_qty: 'Số lượng tồn',
+    movement_qty: 'Số lượng thay đổi',
+    type: 'Loại thay đổi',
+    note: 'Ghi chú',
+    before: 'Trước khi thay đổi',
+    after: 'Sau khi thay đổi',
+    diff: 'Thay đổi',
+    name: 'Tên',
+    slug: 'Đường dẫn',
+    title: 'Tiêu đề',
+    subtitle: 'Tiêu đề phụ',
+    image_url: 'Ảnh đại diện',
+    link_url: 'Liên kết',
+    button_text: 'Nút bấm',
+    position: 'Vị trí hiển thị',
+    sort_order: 'Thứ tự',
+    is_active: 'Đang hoạt động',
+    is_featured: 'Bộ sưu tập nổi bật',
+    featured_sort_order: 'Thứ tự nổi bật',
+    description: 'Mô tả',
+    code: 'Mã',
+    value: 'Giá trị',
+    min_subtotal: 'Đơn tối thiểu',
+    max_discount: 'Giảm tối đa',
+    start_at: 'Bắt đầu',
+    end_at: 'Kết thúc',
+    usage_limit: 'Giới hạn sử dụng',
+    usage_per_user: 'Giới hạn mỗi khách',
+    base_fee: 'Phí cơ bản',
+    fee_per_kg: 'Phí mỗi kg',
+    min_days: 'Ngày giao tối thiểu',
+    max_days: 'Ngày giao tối đa',
+    provinces: 'Khu vực áp dụng',
+    keys: 'Các khóa cài đặt',
+    deleted_count: 'Số log đã xóa',
+    cutoff_days: 'Số ngày lưu trữ',
+    cutoff_date: 'Mốc xóa',
+    store_logo: 'Logo cửa hàng'
+  };
+
+  const DETAIL_VALUE_LABELS: Record<string, Record<string, string>> = {
+    type: {
+      in: 'Nhập thêm',
+      out: 'Xuất bớt',
+      adjust: 'Điều chỉnh trực tiếp'
+    },
+    position: {
+      home_hero: 'Banner trang chủ',
+      home_promo: 'Khối khuyến mãi trang chủ',
+      category_top: 'Đầu trang danh mục'
+    }
+  };
+
+  const CURRENCY_FIELDS = new Set(['value', 'min_subtotal', 'max_discount', 'base_fee', 'fee_per_kg']);
+  const LONG_DETAIL_TEXT_THRESHOLD = 180;
+
+  const formatDetailLabel = (field: string) => {
+    if (DETAIL_LABELS[field]) return DETAIL_LABELS[field];
+    return field
+      .replace(/\[id=.*?\]/g, '')
+      .replace(/\[\d+\]/g, '')
+      .split('.')
+      .pop()
+      ?.replace(/_/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase()) || field;
+  };
+
+  const formatDetailPrimitive = (value: any, field?: string): string => {
+    if (value === null || value === undefined || value === '') return 'Không có';
+    if (typeof value === 'boolean') return value ? 'Có' : 'Không';
+    if (typeof value === 'number') {
+      if (field && CURRENCY_FIELDS.has(field)) {
+        return `${value.toLocaleString('vi-VN')} đ`;
+      }
+      return value.toLocaleString('vi-VN');
+    }
+    if (typeof value === 'string') {
+      if (field && DETAIL_VALUE_LABELS[field]?.[value]) {
+        return DETAIL_VALUE_LABELS[field][value];
+      }
+      if (/^\d{4}-\d{2}-\d{2}T/.test(value) || /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const date = new Date(value);
+        if (!Number.isNaN(date.getTime())) {
+          return date.toLocaleString('vi-VN');
+        }
+      }
+      return value;
+    }
+    return String(value);
+  };
+
+  const renderOverflowAwareValue = (value: any, field?: string) => {
+    if (typeof value === 'string') {
+      const displayValue = formatDetailPrimitive(value, field);
+
+      if (displayValue.length > LONG_DETAIL_TEXT_THRESHOLD) {
+        return (
+          <div className="max-h-56 overflow-auto whitespace-pre-wrap break-words pr-1 leading-6 custom-scrollbar">
+            {displayValue}
+          </div>
+        );
+      }
+
+      return <div className="whitespace-pre-wrap break-words">{displayValue}</div>;
+    }
+
+    return renderValue(value, 0, field);
+  };
+
+  const isPrimitiveDetail = (value: any) =>
+    value === null ||
+    value === undefined ||
+    value === '' ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean';
+
+  const isObjectDetail = (value: unknown): value is Record<string, any> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+
+  const DETAIL_META_FIELDS = new Set([
+    'before',
+    'after',
+    'diff',
+    'deleted_data',
+    'restored_values',
+    'rolled_back_from_log_id',
+    'original_action',
+    'entity_type',
+    'entity_id',
+    'updates'
+  ]);
+
+  const parseLogDetails = (details: string | null) => {
+    if (!details) return null;
+
+    try {
+      return JSON.parse(details);
+    } catch {
+      return null;
+    }
+  };
+
+  const getPrimitiveEntriesFromRecord = (value: Record<string, any>) =>
+    Object.entries(value).filter(([, entryValue]) => isPrimitiveDetail(entryValue));
+
+  const getStructuredDetailEntries = (parsed: Record<string, any>) => {
+    const primitiveEntries: [string, any][] = [];
+    const nestedEntries: [string, any][] = [];
+
+    Object.entries(parsed).forEach(([field, value]) => {
+      if (DETAIL_META_FIELDS.has(field)) return;
+      if (isPrimitiveDetail(value)) primitiveEntries.push([field, value]);
+      else nestedEntries.push([field, value]);
+    });
+
+    return { primitiveEntries, nestedEntries };
+  };
+
+  const summarizeFilterMap = (value: string) => {
+    const parsed = parseLogDetails(value);
+    if (!isObjectDetail(parsed)) return '';
+
+    return Object.entries(parsed)
+      .filter(([, filterValue]) => filterValue !== '' && filterValue !== null && filterValue !== undefined)
+      .slice(0, 3)
+      .map(([field, filterValue]) => `${formatDetailLabel(field)}: ${formatDetailPrimitive(filterValue, field)}`)
+      .join(' · ');
+  };
+
+  const getFriendlyTextDetailSummary = (log: Log, detailText: string) => {
+    const normalized = detailText.replace(/\s+/g, ' ').trim();
+    if (!normalized) {
+      return `Không có thêm chi tiết cho ${formatEntity(log.entity_type || 'system').toLowerCase()}.`;
+    }
+
+    const createdOrderMatch = normalized.match(/^Created order\s+(.+)$/i);
+    if (createdOrderMatch) return `Đã tạo đơn hàng ${createdOrderMatch[1]}.`;
+
+    const updatedStatusMatch = normalized.match(/^Updated order status to\s+(.+)$/i);
+    if (updatedStatusMatch) return `Trạng thái đơn hàng đã được cập nhật thành ${updatedStatusMatch[1]}.`;
+
+    const cancelledOrderMatch = normalized.match(/^Cancelled order\s+(.+)$/i);
+    if (cancelledOrderMatch) return `Đơn hàng ${cancelledOrderMatch[1]} đã bị hủy.`;
+
+    const refundRequestMatch = normalized.match(/^Requested refund for order\s+(.+)$/i);
+    if (refundRequestMatch) return `Đã tạo yêu cầu hoàn tiền cho đơn hàng ${refundRequestMatch[1]}.`;
+
+    const refundRestockMatch = normalized.match(/^Restocked refunded order\s+(.+)$/i);
+    if (refundRestockMatch) return `Đã hoàn tồn kho cho đơn hàng ${refundRestockMatch[1]} sau hoàn tiền.`;
+
+    const exportedWithFilterMatch = normalized.match(/^Exported\s+(.+?)\.\s*Filters:\s*(.+)$/i);
+    if (exportedWithFilterMatch) {
+      const entityMap: Record<string, string> = {
+        orders: 'đơn hàng',
+        products: 'sản phẩm'
+      };
+      const exportedEntity = entityMap[exportedWithFilterMatch[1].toLowerCase()] || exportedWithFilterMatch[1];
+      const filters = summarizeFilterMap(exportedWithFilterMatch[2]);
+      return filters
+        ? `Đã xuất ${exportedEntity} với bộ lọc ${filters}.`
+        : `Đã xuất ${exportedEntity}.`;
+    }
+
+    if (/^Exported customers list$/i.test(normalized)) {
+      return 'Đã xuất danh sách khách hàng.';
+    }
+
+    const importedProductsMatch = normalized.match(/^Imported products:\s*(\d+)\s*created,\s*(\d+)\s*updated,\s*(\d+)\s*errors$/i);
+    if (importedProductsMatch) {
+      return `Đã nhập dữ liệu sản phẩm: ${importedProductsMatch[1]} tạo mới, ${importedProductsMatch[2]} cập nhật, ${importedProductsMatch[3]} lỗi.`;
+    }
+
+    const createdStaffMatch = normalized.match(/^Created staff account:\s*(.+)$/i);
+    if (createdStaffMatch) return `Đã tạo tài khoản nhân viên ${createdStaffMatch[1]}.`;
+
+    const deletedStaffMatch = normalized.match(/^Deleted staff ID:\s*(.+)$/i);
+    if (deletedStaffMatch) return `Đã xóa tài khoản nhân viên có ID ${deletedStaffMatch[1]}.`;
+
+    const vnPaySuccessMatch = normalized.match(/^VNPay Success\.\s*Ref:\s*(.+)$/i);
+    if (vnPaySuccessMatch) return `Thanh toán VNPay thành công. Mã giao dịch: ${vnPaySuccessMatch[1]}.`;
+
+    return normalized;
+  };
+
+  const getDetailSummaryTone = (
+    log: Log,
+    parsed?: Record<string, any> | null,
+    rawDetails?: string
+  ): 'default' | 'warning' | 'danger' | 'success' => {
+    if (parsed?.deleted_data) return 'danger';
+    if (parsed?.restored_values) return 'success';
+    if (parsed?.diff || parsed?.before || parsed?.after) return 'warning';
+
+    const action = log.action.toLowerCase();
+    if (action.includes('xóa') || action.includes('delete')) return 'danger';
+    if (
+      action.includes('tạo') ||
+      action.includes('create') ||
+      action.includes('login') ||
+      action.includes('đăng nhập')
+    ) {
+      return 'success';
+    }
+
+    if (rawDetails) {
+      const normalized = rawDetails.toLowerCase();
+      if (normalized.includes('error') || normalized.includes('fail')) return 'danger';
+    }
+
+    return 'default';
+  };
+
+  const getFriendlyDetailSummary = (log: Log, parsed: Record<string, any>) => {
+    const entityLabel = formatEntity(log.entity_type || 'system').toLowerCase();
+
+    if (parsed.product_name && parsed.old_stock !== undefined && parsed.new_stock !== undefined) {
+      const direction = Number(parsed.new_stock) >= Number(parsed.old_stock) ? 'tăng' : 'giảm';
+      return `Tồn kho của "${parsed.product_name}" đã ${direction} từ ${formatDetailPrimitive(parsed.old_stock, 'old_stock')} lên ${formatDetailPrimitive(parsed.new_stock, 'new_stock')}.`;
+    }
+
+    if (isObjectDetail(parsed.restored_values)) {
+      return `Đã khôi phục ${Object.keys(parsed.restored_values).length} trường dữ liệu của ${entityLabel}.`;
+    }
+
+    if (isObjectDetail(parsed.deleted_data)) {
+      return `Bản ghi ${entityLabel} này đã bị xóa. Hệ thống vẫn lưu lại dữ liệu cũ để đối chiếu hoặc khôi phục.`;
+    }
+
+    if (isObjectDetail(parsed.diff)) {
+      return `Bản ghi ${entityLabel} này đã được cập nhật ${Object.keys(parsed.diff).length} trường thông tin.`;
+    }
+
+    if (parsed.deleted_count && parsed.cutoff_days) {
+      return `Hệ thống đã xóa ${formatDetailPrimitive(parsed.deleted_count, 'deleted_count')} log cũ hơn ${formatDetailPrimitive(parsed.cutoff_days, 'cutoff_days')} ngày.`;
+    }
+
+    if (Array.isArray(parsed.keys) && parsed.keys.length > 0) {
+      return `Đã cập nhật ${parsed.keys.length} thiết lập hệ thống: ${parsed.keys.map((key: string) => formatDetailLabel(key)).join(', ')}.`;
+    }
+
+    const { primitiveEntries } = getStructuredDetailEntries(parsed);
+    if (primitiveEntries.length > 0) {
+      return primitiveEntries
+        .slice(0, 3)
+        .map(([field, value]) => `${formatDetailLabel(field)}: ${formatDetailPrimitive(value, field)}`)
+        .join(' · ');
+    }
+
+    return `Chi tiết thao tác của ${entityLabel} đã được lưu lại để đối chiếu.`;
+  };
+
+  const renderQuickSummary = (
+    summary: string,
+    tone: 'default' | 'warning' | 'danger' | 'success' = 'default'
+  ) => {
+    const styles = {
+      default:
+        'border-secondary-200 bg-secondary-50/80 text-secondary-700 dark:border-secondary-700 dark:bg-secondary-900/40 dark:text-secondary-200',
+      warning: 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200',
+      danger: 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200',
+      success:
+        'border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-200'
+    };
+
+    return (
+      <div className={`mb-3 rounded-xl border px-3 py-2.5 text-sm leading-6 ${styles[tone]}`}>
+        <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] opacity-70">Tóm tắt nhanh</div>
+        <div>{summary}</div>
+      </div>
+    );
+  };
+
+  const renderPrimitiveFieldCards = (entries: [string, any][]) => {
+    if (entries.length === 0) return null;
+
+    return (
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {entries.map(([field, value]) => (
+          <div
+            key={field}
+            className="rounded-xl border border-secondary-200 bg-white px-3 py-2.5 dark:border-secondary-700 dark:bg-secondary-800/80"
+          >
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-secondary-500 dark:text-secondary-400">
+              {formatDetailLabel(field)}
+            </div>
+            <div className="mt-1 break-words text-sm font-medium text-secondary-900 dark:text-white">
+              {renderOverflowAwareValue(value, field)}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderDiffPreviewCards = (entries: [string, any][]) => {
+    if (entries.length === 0) return null;
+
+    return (
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {entries.slice(0, 3).map(([field, change]) => (
+          <div
+            key={field}
+            className="rounded-xl border border-secondary-200 bg-white px-3 py-3 dark:border-secondary-700 dark:bg-secondary-800/80"
+          >
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-secondary-500 dark:text-secondary-400">
+              {formatDetailLabel(field)}
+            </div>
+            <div className="mt-2 space-y-2">
+              <div className="rounded-lg bg-red-50 px-2 py-1.5 text-xs text-red-700 dark:bg-red-900/20 dark:text-red-300">
+                <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] opacity-80">Cũ</div>
+                <div className="break-words">{renderOverflowAwareValue(change?.from, field)}</div>
+              </div>
+              <div className="rounded-lg bg-green-50 px-2 py-1.5 text-xs text-green-700 dark:bg-green-900/20 dark:text-green-300">
+                <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] opacity-80">Mới</div>
+                <div className="break-words">{renderOverflowAwareValue(change?.to, field)}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderNestedDetailBlocks = (entries: [string, any][]) => {
+    if (entries.length === 0) return null;
+
+    return (
+      <div className="mt-3 space-y-3">
+        {entries.map(([field, value]) => (
+          <div
+            key={field}
+            className="rounded-xl border border-secondary-200 bg-white px-3 py-3 dark:border-secondary-700 dark:bg-secondary-800/80"
+          >
+            <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-secondary-500 dark:text-secondary-400">
+              {formatDetailLabel(field)}
+            </div>
+            <div className="text-xs text-secondary-700 dark:text-secondary-200">{renderOverflowAwareValue(value, field)}</div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderDetailToggle = ({
+    logId,
+    label,
+    icon,
+    className = 'text-secondary-500 hover:text-secondary-700 dark:text-secondary-400 dark:hover:text-secondary-200'
+  }: {
+    logId: string;
+    label: string;
+    icon: JSX.Element;
+    className?: string;
+  }) => (
+    <button
+      onClick={() => toggleExpand(logId)}
+      className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${className}`}
+    >
+      {icon}
+      <span>{label}</span>
+      <ChevronDown
+        className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedIds.has(logId) ? 'rotate-180' : ''}`}
+      />
+    </button>
+  );
+
+  const renderRawDetailBlock = (value: string) => (
+    <div className="mt-2 rounded-xl border border-secondary-200 bg-secondary-50/80 px-3 py-3 dark:border-secondary-700 dark:bg-secondary-900/40">
+      <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-secondary-500 dark:text-secondary-400">
+        Chi tiết gốc
+      </div>
+      <div className="whitespace-pre-wrap break-words text-sm leading-6 text-secondary-700 dark:text-secondary-200">
+        {value}
+      </div>
+    </div>
+  );
+
   // --- Group logs by date ---
   const groupLogsByDate = useCallback((logsArray: Log[]) => {
     const groups: { date: string; label: string; logs: Log[] }[] = [];
@@ -562,22 +1037,21 @@ export default function ActivityLogPage() {
   }, []);
 
   // --- Recursive Value Renderer for deep objects/arrays ---
-  const renderValue = (val: any, depth: number = 0): JSX.Element => {
-    if (val === null || val === undefined) return <span className="text-secondary-400 italic">null</span>;
-    if (typeof val === 'boolean') return <span className={val ? 'text-green-600' : 'text-red-500'}>{val ? 'true' : 'false'}</span>;
-    if (typeof val === 'number') return <span className="text-blue-600 dark:text-blue-400">{val.toLocaleString('vi-VN')}</span>;
+  const renderValue = (val: any, depth: number = 0, field?: string): JSX.Element => {
+    if (val === null || val === undefined || val === '') return <span className="text-secondary-400 italic">Không có</span>;
+    if (typeof val === 'boolean') return <span className={val ? 'text-green-600' : 'text-red-500'}>{formatDetailPrimitive(val, field)}</span>;
+    if (typeof val === 'number') return <span className="text-blue-600 dark:text-blue-400">{formatDetailPrimitive(val, field)}</span>;
     if (typeof val === 'string') {
-      if (val.length > 200) return <span className="break-all">{val.slice(0, 200)}…</span>;
-      return <span>{val}</span>;
+      return <>{renderOverflowAwareValue(val, field)}</>;
     }
     if (Array.isArray(val)) {
-      if (val.length === 0) return <span className="text-secondary-400 italic">[ ]</span>;
+      if (val.length === 0) return <span className="text-secondary-400 italic">Không có</span>;
       return (
         <div className={`${depth > 0 ? 'ml-3 pl-2 border-l-2 border-secondary-200 dark:border-secondary-700' : ''}`}>
           {val.map((item, i) => (
             <div key={i} className="flex items-start gap-1 py-0.5">
               <span className="text-secondary-400 select-none text-[10px] mt-0.5">{i}:</span>
-              {renderValue(item, depth + 1)}
+              {renderValue(item, depth + 1, field)}
             </div>
           ))}
         </div>
@@ -590,8 +1064,8 @@ export default function ActivityLogPage() {
         <div className={`${depth > 0 ? 'ml-3 pl-2 border-l-2 border-secondary-200 dark:border-secondary-700' : ''}`}>
           {entries.map(([k, v]) => (
             <div key={k} className="flex items-start gap-1 py-0.5">
-              <span className="text-secondary-500 dark:text-secondary-400 font-medium text-[10px] shrink-0">{k}:</span>
-              <div className="min-w-0">{renderValue(v, depth + 1)}</div>
+              <span className="text-secondary-500 dark:text-secondary-400 font-medium text-[10px] shrink-0">{formatDetailLabel(k)}:</span>
+              <div className="min-w-0">{renderValue(v, depth + 1, k)}</div>
             </div>
           ))}
         </div>
@@ -603,14 +1077,17 @@ export default function ActivityLogPage() {
   // --- Rollback Helpers ---
   // Returns true if the log HAS rollback-able data (regardless of whether it was already rolled back)
   const hasRollbackData = (log: Log): boolean => {
-    const isUpdateOrDelete = log.action.includes('Cập nhật') || log.action.includes('Xóa');
-    if (!isUpdateOrDelete) return false;
-    const supported = ['brand', 'category', 'product', 'user'];
+    const supported = ['brand', 'category', 'product', 'user', 'collection', 'inventory', 'shipping_method', 'coupon', 'banner', 'settings'];
     if (!supported.includes(log.entity_type)) return false;
     if (!log.details) return false;
     try {
       const parsed = JSON.parse(log.details);
-      return !!(parsed.before || (parsed.diff && Object.keys(parsed.diff).length > 0) || parsed.deleted_data);
+      return !!(
+        parsed.before ||
+        (parsed.diff && Object.keys(parsed.diff).length > 0) ||
+        parsed.deleted_data ||
+        (log.entity_type === 'inventory' && parsed.old_stock !== undefined && parsed.new_stock !== undefined)
+      );
     } catch { return false; }
   };
 
@@ -642,7 +1119,8 @@ export default function ActivityLogPage() {
   };
 
   // --- Copy Log to Clipboard ---
-  const copyLog = async (log: Log) => {    const lines: string[] = [
+  const copyLog = async (log: Log) => {
+    const lines: string[] = [
       `📝 Nhật ký #${log.id}`,
       `Hành động: ${formatAction(log.action)}`,
       `Đối tượng: ${formatEntity(log.entity_type)} ${log.entity_id ? '#' + log.entity_id : ''}`,
@@ -668,13 +1146,62 @@ export default function ActivityLogPage() {
     }
   };
 
+  const renderInventorySummary = (details: any) => {
+    const cards = [
+      { label: 'Tên sản phẩm', value: details.product_name },
+      { label: 'SKU biến thể', value: details.variant_sku },
+      { label: 'Tồn trước', value: formatDetailPrimitive(details.old_stock, 'old_stock') },
+      { label: 'Tồn sau', value: formatDetailPrimitive(details.new_stock, 'new_stock') },
+      { label: 'Số lượng thay đổi', value: formatDetailPrimitive(details.movement_qty, 'movement_qty') },
+      { label: 'Loại thay đổi', value: formatDetailPrimitive(details.type, 'type') },
+      { label: 'Ghi chú', value: formatDetailPrimitive(details.note, 'note') }
+    ];
+
+    return (
+      <div className="mt-2 rounded-lg border border-secondary-200 bg-secondary-50/80 p-3 dark:border-secondary-700 dark:bg-secondary-900/40">
+        <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500 dark:text-secondary-400">
+          <Settings className="h-3.5 w-3.5" />
+          Chi tiết biến động kho
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {cards.map((card) => (
+            <div key={card.label} className="rounded-xl border border-secondary-200 bg-white px-3 py-2.5 dark:border-secondary-700 dark:bg-secondary-800/80">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-secondary-500 dark:text-secondary-400">
+                {card.label}
+              </div>
+              <div className="mt-1 text-sm font-medium text-secondary-900 dark:text-white break-words">
+                {card.value || 'Không có'}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   // --- Render Details ---
-  const renderDetails = (log: Log) => {
+  const renderLegacyDetails = (log: Log) => {
     if (!log.details) return null;
     const isExpanded = expandedIds.has(log.id);
 
     try {
       const parsed = JSON.parse(log.details);
+
+      if (parsed.product_name && parsed.old_stock !== undefined && parsed.new_stock !== undefined) {
+        return (
+          <div className="mt-3">
+            <button
+              onClick={() => toggleExpand(log.id)}
+              className="flex items-center gap-1.5 text-xs font-medium text-secondary-500 hover:text-secondary-700 dark:text-secondary-400 dark:hover:text-secondary-200 transition-colors"
+            >
+              <Eye className="w-3 h-3" />
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+              Xem chi tiết kho
+            </button>
+            {isExpanded && renderInventorySummary(parsed)}
+          </div>
+        );
+      }
 
       // --- Rollback detail view ---
       if (parsed.restored_values && typeof parsed.restored_values === 'object') {
@@ -715,10 +1242,10 @@ export default function ActivityLogPage() {
                   <tbody className="divide-y divide-secondary-100 dark:divide-secondary-700">
                     {restoredEntries.map(([field, value]) => (
                       <tr key={field} className="hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors">
-                        <td className="px-3 py-2 font-medium text-secondary-700 dark:text-secondary-300">{field}</td>
+                        <td className="px-3 py-2 font-medium text-secondary-700 dark:text-secondary-300">{formatDetailLabel(field)}</td>
                         <td className="px-3 py-2 break-all">
                           <div className="bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded font-medium text-amber-800 dark:text-amber-200">
-                            {renderValue(value)}
+                            {renderValue(value, 0, field)}
                           </div>
                         </td>
                       </tr>
@@ -758,10 +1285,10 @@ export default function ActivityLogPage() {
                   <tbody className="divide-y divide-secondary-100 dark:divide-secondary-700">
                     {deletedEntries.map(([field, value]) => (
                       <tr key={field} className="hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors">
-                        <td className="px-3 py-2 font-medium text-secondary-700 dark:text-secondary-300">{field}</td>
+                        <td className="px-3 py-2 font-medium text-secondary-700 dark:text-secondary-300">{formatDetailLabel(field)}</td>
                         <td className="px-3 py-2 break-all">
                           <div className="bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded line-through text-red-700 dark:text-red-300">
-                            {renderValue(value)}
+                            {renderValue(value, 0, field)}
                           </div>
                         </td>
                       </tr>
@@ -798,15 +1325,15 @@ export default function ActivityLogPage() {
                   <tbody className="divide-y divide-secondary-100 dark:divide-secondary-700">
                     {Object.entries(parsed.diff).map(([field, change]: [string, any]) => (
                       <tr key={field} className="hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors">
-                        <td className="px-3 py-2 font-medium text-secondary-700 dark:text-secondary-300">{field}</td>
+                        <td className="px-3 py-2 font-medium text-secondary-700 dark:text-secondary-300">{formatDetailLabel(field)}</td>
                         <td className="px-3 py-2 text-red-600 dark:text-red-400 break-all">
                           <div className="bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded line-through">
-                            {renderValue(change.from)}
+                            {renderValue(change.from, 0, field)}
                           </div>
                         </td>
                         <td className="px-3 py-2 text-green-600 dark:text-green-400 break-all">
                           <div className="bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded font-medium">
-                            {renderValue(change.to)}
+                            {renderValue(change.to, 0, field)}
                           </div>
                         </td>
                       </tr>
@@ -858,36 +1385,462 @@ export default function ActivityLogPage() {
     }
   };
 
-  const logGroups = useMemo(() => groupLogsByDate(logs), [logs, groupLogsByDate]);
-  const parentRef = useRef<HTMLDivElement>(null);
+  const renderDetails = (log: Log) => {
+    if (!log.details) return null;
 
-  // Flatten the groups for virtualization while keeping track of headers vs items
-  const flatItems = useMemo(() => {
-    const items: { type: 'header' | 'log', data: any, id: string }[] = [];
-    logGroups.forEach(group => {
-      items.push({ type: 'header', data: group, id: `header-${group.date}` });
-      group.logs.forEach(log => {
-        items.push({ type: 'log', data: log, id: `log-${log.id}` });
-      });
-    });
-    return items;
-  }, [logGroups]);
+    const isExpanded = expandedIds.has(log.id);
+    const parsed = parseLogDetails(log.details);
 
-  const virtualizer = useVirtualizer({
-    count: flatItems.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: useCallback((index: number) => {
-      const item = flatItems[index];
-      if (item.type === 'header') return 45; // specific header height
-      
-      const log = item.data;
-      if (expandedIds.has(log.id)) {
-        return 300; // estimated expanded height
+    if (Array.isArray(parsed)) {
+      return (
+        <div className="mt-3">
+          {renderQuickSummary(`Log này chứa ${parsed.length} mục dữ liệu liên quan.`)}
+          <div className="mt-3">
+            {renderDetailToggle({
+              logId: log.id,
+              label: 'Xem toàn bộ danh sách',
+              icon: <Eye className="w-3 h-3" />
+            })}
+            {isExpanded && (
+              <div className="mt-2 rounded-lg border border-secondary-200 bg-secondary-50/80 p-3 text-xs animate-fadeIn overflow-x-auto dark:border-secondary-700 dark:bg-secondary-900/40">
+                {renderValue(parsed)}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (isObjectDetail(parsed)) {
+      const summary = getFriendlyDetailSummary(log, parsed);
+      const tone = getDetailSummaryTone(log, parsed);
+      const { primitiveEntries, nestedEntries } = getStructuredDetailEntries(parsed);
+
+      if (parsed.product_name && parsed.old_stock !== undefined && parsed.new_stock !== undefined) {
+        return (
+          <div className="mt-3">
+            {renderQuickSummary(summary, tone)}
+            {renderInventorySummary(parsed)}
+          </div>
+        );
       }
-      return 100; // estimated collapsed height
-    }, [flatItems, expandedIds]),
-    overscan: 5,
-  });
+
+      if (isObjectDetail(parsed.restored_values)) {
+        const restoredEntries = Object.entries(parsed.restored_values);
+        const entityLabel = ENTITY_MAP[parsed.entity_type] || parsed.entity_type || '';
+        const previewEntries = getPrimitiveEntriesFromRecord(parsed.restored_values).slice(0, 3);
+
+        return (
+          <div className="mt-3">
+            {renderQuickSummary(summary, tone)}
+            {previewEntries.length > 0 && renderPrimitiveFieldCards(previewEntries)}
+            <div className="mt-3">
+              {renderDetailToggle({
+                logId: log.id,
+                label: `Xem chi tiết khôi phục · ${restoredEntries.length} trường`,
+                icon: <RotateCcw className="w-3 h-3" />,
+                className: 'text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-200'
+              })}
+              {isExpanded && (
+                <div className="mt-2 rounded-lg border border-amber-200 dark:border-amber-800 overflow-hidden animate-fadeIn">
+                  <div className="px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-amber-700 dark:text-amber-300">
+                    {parsed.original_action && (
+                      <span>Hoàn tác: <strong>{parsed.original_action}</strong></span>
+                    )}
+                    {entityLabel && parsed.entity_id && (
+                      <span>{entityLabel} <strong>#{parsed.entity_id}</strong></span>
+                    )}
+                    {parsed.rolled_back_from_log_id && (
+                      <span className="font-mono opacity-70">Log #{parsed.rolled_back_from_log_id}</span>
+                    )}
+                  </div>
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-secondary-50 dark:bg-secondary-900">
+                        <th className="px-3 py-2 text-left font-semibold text-secondary-500 dark:text-secondary-400 w-1/3">Trường</th>
+                        <th className="px-3 py-2 text-left font-semibold text-amber-600 dark:text-amber-400">Giá trị được khôi phục</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-secondary-100 dark:divide-secondary-700">
+                      {restoredEntries.map(([field, value]) => (
+                        <tr key={field} className="hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors">
+                          <td className="px-3 py-2 font-medium text-secondary-700 dark:text-secondary-300">{formatDetailLabel(field)}</td>
+                          <td className="px-3 py-2 break-all">
+                            <div className="bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded font-medium text-amber-800 dark:text-amber-200">
+                              {renderOverflowAwareValue(value, field)}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      if (isObjectDetail(parsed.deleted_data) && Object.keys(parsed.deleted_data).length > 0) {
+        const deletedEntries = Object.entries(parsed.deleted_data);
+        const previewEntries = getPrimitiveEntriesFromRecord(parsed.deleted_data).slice(0, 3);
+
+        return (
+          <div className="mt-3">
+            {renderQuickSummary(summary, tone)}
+            {previewEntries.length > 0 && renderPrimitiveFieldCards(previewEntries)}
+            <div className="mt-3">
+              {renderDetailToggle({
+                logId: log.id,
+                label: `Dữ liệu đã xóa · ${deletedEntries.length} trường`,
+                icon: <Trash2 className="w-3 h-3" />,
+                className: 'text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200'
+              })}
+              {isExpanded && (
+                <div className="mt-2 rounded-lg border border-red-200 dark:border-red-800 overflow-hidden animate-fadeIn">
+                  <div className="px-3 py-2 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 text-[11px] text-red-700 dark:text-red-300 font-medium">
+                    Bản ghi đã bị xóa vĩnh viễn
+                  </div>
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-secondary-50 dark:bg-secondary-900">
+                        <th className="px-3 py-2 text-left font-semibold text-secondary-500 dark:text-secondary-400 w-1/3">Trường</th>
+                        <th className="px-3 py-2 text-left font-semibold text-red-500 dark:text-red-400">Giá trị</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-secondary-100 dark:divide-secondary-700">
+                      {deletedEntries.map(([field, value]) => (
+                        <tr key={field} className="hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors">
+                          <td className="px-3 py-2 font-medium text-secondary-700 dark:text-secondary-300">{formatDetailLabel(field)}</td>
+                          <td className="px-3 py-2 break-all">
+                            <div className="bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded line-through text-red-700 dark:text-red-300">
+                              {renderOverflowAwareValue(value, field)}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      if (isObjectDetail(parsed.diff) && Object.keys(parsed.diff).length > 0) {
+        const diffEntries = Object.entries(parsed.diff) as [string, any][];
+        const shouldShowDiffTable = diffEntries.length > 4;
+
+        return (
+          <div className="mt-3">
+            {renderQuickSummary(summary, tone)}
+            {renderDiffPreviewCards(diffEntries)}
+            {shouldShowDiffTable && (
+              <div className="mt-3">
+                {renderDetailToggle({
+                  logId: log.id,
+                  label: `Xem đầy đủ ${diffEntries.length} thay đổi`,
+                  icon: <ArrowRightLeft className="w-3 h-3" />
+                })}
+                {isExpanded && (
+                  <div className="mt-2 rounded-lg border border-secondary-200 dark:border-secondary-700 overflow-hidden animate-fadeIn">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-secondary-50 dark:bg-secondary-900">
+                          <th className="px-3 py-2 text-left font-semibold text-secondary-500 dark:text-secondary-400 w-1/4">Trường</th>
+                          <th className="px-3 py-2 text-left font-semibold text-red-500 dark:text-red-400 w-[37.5%]">Giá trị cũ</th>
+                          <th className="px-3 py-2 text-left font-semibold text-green-600 dark:text-green-400 w-[37.5%]">Giá trị mới</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-secondary-100 dark:divide-secondary-700">
+                        {diffEntries.map(([field, change]) => (
+                          <tr key={field} className="hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors">
+                            <td className="px-3 py-2 font-medium text-secondary-700 dark:text-secondary-300">{formatDetailLabel(field)}</td>
+                            <td className="px-3 py-2 text-red-600 dark:text-red-400 break-all">
+                              <div className="bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded line-through">
+                                {renderOverflowAwareValue(change.from, field)}
+                              </div>
+                            </td>
+                            <td className="px-3 py-2 text-green-600 dark:text-green-400 break-all">
+                              <div className="bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded font-medium">
+                                {renderOverflowAwareValue(change.to, field)}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      const shouldShowRawObject = nestedEntries.length > 0 || primitiveEntries.length === 0;
+      const objectToggleLabel =
+        nestedEntries.length > 1
+          ? `Xem thêm ${nestedEntries.length} nhóm dữ liệu`
+          : nestedEntries.length === 1
+            ? `Xem ${formatDetailLabel(nestedEntries[0][0]).toLowerCase()}`
+            : 'Xem toàn bộ chi tiết';
+
+      return (
+        <div className="mt-3">
+          {renderQuickSummary(summary, tone)}
+          {primitiveEntries.length > 0 && renderPrimitiveFieldCards(primitiveEntries.slice(0, 6))}
+          {shouldShowRawObject && (
+            <div className="mt-3">
+              {renderDetailToggle({
+                logId: log.id,
+                label: objectToggleLabel,
+                icon: <Eye className="w-3 h-3" />
+              })}
+              {isExpanded &&
+                (nestedEntries.length > 0 ? (
+                  renderNestedDetailBlocks(nestedEntries)
+                ) : (
+                  <div className="mt-2 rounded-lg border border-secondary-200 bg-secondary-50/80 p-3 text-xs animate-fadeIn overflow-x-auto dark:border-secondary-700 dark:bg-secondary-900/40">
+                    {renderValue(parsed)}
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const summary = getFriendlyTextDetailSummary(log, log.details);
+    const shouldShowRawText = summary !== log.details.trim() || log.details.trim().length > 140;
+
+    return (
+      <div className="mt-3">
+        {renderQuickSummary(summary, getDetailSummaryTone(log, null, log.details))}
+        {shouldShowRawText && (
+          <div className="mt-3">
+            {renderDetailToggle({
+              logId: log.id,
+              label: 'Xem nội dung gốc',
+              icon: <Eye className="w-3 h-3" />
+            })}
+            {isExpanded && renderRawDetailBlock(log.details)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const hasExpandableDetails = (log: Log) => {
+    if (!log.details) return false;
+
+    const parsed = parseLogDetails(log.details);
+    if (Array.isArray(parsed)) return true;
+
+    if (isObjectDetail(parsed)) {
+      if (parsed.product_name && parsed.old_stock !== undefined && parsed.new_stock !== undefined) {
+        return false;
+      }
+
+      if (isObjectDetail(parsed.restored_values)) return true;
+      if (isObjectDetail(parsed.deleted_data) && Object.keys(parsed.deleted_data).length > 0) return true;
+      if (isObjectDetail(parsed.diff) && Object.keys(parsed.diff).length > 0) {
+        return Object.keys(parsed.diff).length > 4;
+      }
+
+      const { primitiveEntries, nestedEntries } = getStructuredDetailEntries(parsed);
+      return nestedEntries.length > 0 || primitiveEntries.length === 0;
+    }
+
+    const summary = getFriendlyTextDetailSummary(log, log.details);
+    return summary !== log.details.trim() || log.details.trim().length > 140;
+  };
+
+  const expandableLogIds = useMemo(
+    () => logs.filter((log) => hasExpandableDetails(log)).map((log) => log.id),
+    [logs]
+  );
+
+  const areAllExpandableDetailsExpanded =
+    expandableLogIds.length > 0 && expandableLogIds.every((id) => expandedIds.has(id));
+
+  const toggleExpandAllVisibleDetails = () => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+
+      if (expandableLogIds.every((id) => next.has(id))) {
+        expandableLogIds.forEach((id) => next.delete(id));
+      } else {
+        expandableLogIds.forEach((id) => next.add(id));
+      }
+
+      return next;
+    });
+  };
+
+  const logGroups = useMemo(() => groupLogsByDate(logs), [logs, groupLogsByDate]);
+
+  const renderLogItem = (log: Log) => (
+    <div
+      key={log.id}
+      className="relative border-b border-secondary-100 p-4 pl-12 transition-colors last:border-b-0 hover:bg-secondary-50/50 dark:border-secondary-800/50 dark:hover:bg-secondary-900/30 group"
+    >
+      <div className="absolute bottom-0 left-[24px] top-0 w-px bg-secondary-200 dark:bg-secondary-700" />
+      <div className={`absolute left-[20px] top-6 z-[1] h-2.5 w-2.5 rounded-full border-2 border-white dark:border-secondary-800 ${getTimelineDotColor(log.action)}`} />
+
+      <div className="min-w-0">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex flex-wrap items-center gap-2">
+              <span className={`inline-flex items-center gap-1 rounded-md border border-transparent px-2 py-0.5 text-xs font-semibold shadow-sm dark:border-secondary-700/50 ${getActionColor(log.action)}`}>
+                {getActionIcon(log.action)}
+                {formatAction(log.action)}
+              </span>
+              {log.entity_type && (
+                <button
+                  onClick={() => {
+                    setEntityFilter(log.entity_type);
+                    if (log.entity_id) setSearchQuery(log.entity_id);
+                    setPage(1);
+                  }}
+                  className="rounded bg-secondary-100 px-2 py-0.5 text-sm font-medium text-secondary-900 transition hover:bg-primary-50 hover:text-primary-700 dark:bg-secondary-800 dark:text-secondary-200 dark:hover:bg-primary-900/20 dark:hover:text-primary-300"
+                  title="Xem lịch sử của đối tượng này"
+                >
+                  {formatEntity(log.entity_type)}
+                </button>
+              )}
+              {log.entity_id && (
+                <span className="rounded border border-secondary-200 bg-secondary-100 px-1.5 py-0.5 font-mono text-[10px] text-secondary-500 dark:border-secondary-700 dark:bg-secondary-800 dark:text-secondary-400">
+                  #{log.entity_id.length > 8 ? log.entity_id.slice(0, 8) : log.entity_id}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="flex items-center gap-1 text-xs font-medium text-secondary-600 dark:text-secondary-400">
+                <User className="h-3.5 w-3.5" />
+                {log.user?.full_name || log.user?.username || 'System'}
+              </span>
+              {log.user?.role && getRoleBadge(log.user.role)}
+              <span className="flex items-center gap-1 text-xs text-secondary-400 dark:text-secondary-500" title={new Date(log.created_at).toLocaleString('vi-VN')}>
+                <Clock className="h-3.5 w-3.5" />
+                {formatRelativeTime(log.created_at)}
+              </span>
+              {log.user_agent && (() => {
+                const ua = parseUserAgent(log.user_agent);
+                const UAIcon = ua.icon;
+                return (
+                  <span className="flex items-center gap-1 rounded bg-secondary-50 px-1.5 py-0.5 text-[10px] text-secondary-400 dark:bg-secondary-900/50 dark:text-secondary-500" title={log.user_agent}>
+                    <UAIcon className="h-3 w-3" />
+                    {ua.browser} {ua.os && `· ${ua.os}`}
+                  </span>
+                );
+              })()}
+              {log.ip_address && (
+                <button
+                  onClick={() => {
+                    setSearchQuery(log.ip_address || '');
+                    setPage(1);
+                  }}
+                  className="flex items-center gap-1 rounded bg-secondary-50 px-1.5 py-0.5 font-mono text-[10px] text-secondary-400 transition hover:bg-primary-50 hover:text-primary-700 dark:bg-secondary-900/50 dark:text-secondary-500 dark:hover:bg-primary-900/20 dark:hover:text-primary-300"
+                  title="Lọc theo địa chỉ IP"
+                >
+                  <Globe className="h-3 w-3 shrink-0" />
+                  {log.ip_address}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2 self-start">
+            <input
+              type="checkbox"
+              checked={selectedIds.has(log.id)}
+              onChange={() => toggleSelect(log.id)}
+              className="h-4 w-4 cursor-pointer rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
+            />
+            {hasRollbackData(log) && (
+              log.is_rolled_back ? (
+                <span
+                  className="inline-flex cursor-not-allowed items-center gap-1 rounded-md border border-secondary-200 bg-secondary-50 px-2 py-1 text-[11px] text-secondary-300 dark:border-secondary-700 dark:bg-secondary-900/40 dark:text-secondary-600"
+                  title="Đã khôi phục trước đó"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                </span>
+              ) : (
+                <button
+                  onClick={() => setRollbackModal({ isOpen: true, logId: log.id, action: log.action })}
+                  disabled={rollbackingIds.has(log.id)}
+                  className="inline-flex items-center gap-1 rounded-md border border-secondary-200 bg-white px-2 py-1 text-[11px] text-secondary-500 transition hover:border-amber-300 hover:bg-amber-50 hover:text-amber-600 disabled:opacity-50 dark:border-secondary-700 dark:bg-secondary-900 dark:text-secondary-300 dark:hover:border-amber-700 dark:hover:bg-amber-900/20 dark:hover:text-amber-400"
+                  title="Khôi phục về trạng thái trước"
+                >
+                  {rollbackingIds.has(log.id) ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
+                </button>
+              )
+            )}
+            <button
+              onClick={() => copyLog(log)}
+              className="inline-flex items-center gap-1 rounded-md border border-secondary-200 bg-white px-2 py-1 text-[11px] text-secondary-500 transition hover:border-primary-300 hover:bg-primary-50 hover:text-primary-600 dark:border-secondary-700 dark:bg-secondary-900 dark:text-secondary-300 dark:hover:border-primary-700 dark:hover:bg-primary-900/20 dark:hover:text-primary-400"
+              title="Sao chép nhật ký"
+            >
+              {copiedId === log.id ? (
+                <Check className="h-3 w-3 text-green-500" />
+              ) : (
+                <Copy className="h-3 w-3" />
+              )}
+            </button>
+            <button
+              onClick={() =>
+                setDeleteModal({
+                  isOpen: true,
+                  isBulk: false,
+                  idToDelete: log.id,
+                })
+              }
+              className="inline-flex items-center gap-1 rounded-md border border-secondary-200 bg-white px-2 py-1 text-[11px] text-secondary-500 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:border-secondary-700 dark:bg-secondary-900 dark:text-secondary-300 dark:hover:border-red-700 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+              title="Xóa nhật ký"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+            <span className="hidden whitespace-nowrap font-mono text-[10px] text-secondary-400 dark:text-secondary-500 xl:block">
+              {new Date(log.created_at).toLocaleTimeString('vi-VN')}
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          {log.entity_type && log.entity_id && (
+            <button
+              onClick={() => {
+                setEntityFilter(log.entity_type || '');
+                setSearchQuery(log.entity_id || '');
+                setPage(1);
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-secondary-200 bg-white px-2.5 py-1.5 text-xs font-medium text-secondary-700 transition hover:border-primary-300 hover:text-primary-700 dark:border-secondary-700 dark:bg-secondary-900 dark:text-secondary-300 dark:hover:border-primary-700 dark:hover:text-primary-300"
+            >
+              <ArrowRightLeft className="h-3.5 w-3.5" />
+              Xem lịch sử của đối tượng này
+            </button>
+          )}
+          {log.ip_address && (
+            <button
+              onClick={() => {
+                setSearchQuery(log.ip_address || '');
+                setPage(1);
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-secondary-200 bg-white px-2.5 py-1.5 text-xs font-medium text-secondary-700 transition hover:border-primary-300 hover:text-primary-700 dark:border-secondary-700 dark:bg-secondary-900 dark:text-secondary-300 dark:hover:border-primary-700 dark:hover:text-primary-300"
+            >
+              <Shield className="h-3.5 w-3.5" />
+              Lọc theo IP này
+            </button>
+          )}
+        </div>
+
+        {renderDetails(log)}
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -924,6 +1877,14 @@ export default function ActivityLogPage() {
           >
             {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
             Xuất CSV
+          </button>
+          <button
+            onClick={() => setDeleteOldModalOpen(true)}
+            disabled={deletingOld}
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-secondary-800 border border-red-200 dark:border-red-900/40 rounded-lg text-red-600 dark:text-red-300 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+          >
+            {deletingOld ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+            Xóa log cũ hơn 90 ngày
           </button>
           <button
             onClick={() => { fetchLogs(); fetchStats(); }}
@@ -1160,7 +2121,7 @@ export default function ActivityLogPage() {
           if (stats) {
             lines.push(`Hoạt động hôm nay: ${stats.totalToday}, tuần này: ${stats.totalWeek}, tổng cộng: ${stats.totalAll}`);
             if (stats.actionDistribution.length > 0) {
-              lines.push(`Phân bổ hành động: ${stats.actionDistribution.map(a => `${a.action}: ${a.count}`).join(', ')}`);
+              lines.push(`Phân bố hành động: ${stats.actionDistribution.map(a => `${a.action}: ${a.count}`).join(', ')}`);
             }
             if (stats.topUsers.length > 0) {
               lines.push(`Top người dùng: ${stats.topUsers.map(u => `${u.full_name || u.username}: ${u.count} lần`).join(', ')}`);
@@ -1176,10 +2137,7 @@ export default function ActivityLogPage() {
       {/* Timeline Log List */}
       <div className="bg-white dark:bg-secondary-800 rounded-xl shadow-sm border border-secondary-200 dark:border-secondary-700 overflow-hidden">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-primary-600 mb-3" />
-            <p className="text-sm text-secondary-500 dark:text-secondary-400">Đang tải nhật ký...</p>
-          </div>
+          <LogSkeleton />
         ) : logs.length === 0 ? (
           <div className="py-16 text-center">
             <Activity className="w-12 h-12 mx-auto text-secondary-300 dark:text-secondary-600 mb-4" />
@@ -1214,6 +2172,15 @@ export default function ActivityLogPage() {
                 )}
               </div>
               <div className="flex items-center gap-3">
+                {expandableLogIds.length > 0 && (
+                  <button
+                    onClick={toggleExpandAllVisibleDetails}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-secondary-200 bg-white px-2.5 py-1.5 text-xs font-medium text-secondary-700 transition hover:border-primary-300 hover:text-primary-700 dark:border-secondary-700 dark:bg-secondary-800 dark:text-secondary-300 dark:hover:border-primary-700 dark:hover:text-primary-300"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    {areAllExpandableDetailsExpanded ? 'Thu gọn chi tiết' : 'Mở tất cả chi tiết'}
+                  </button>
+                )}
                 {autoRefresh && (
                   <span className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -1226,181 +2193,23 @@ export default function ActivityLogPage() {
               </div>
             </div>
 
-            <div 
-              ref={parentRef}
-              className="overflow-auto pr-2 custom-scrollbar"
-              style={{ height: '70vh', minHeight: '600px' }}
-            >
-              <div
-                style={{
-                  height: `${virtualizer.getTotalSize()}px`,
-                  width: '100%',
-                  position: 'relative',
-                }}
-              >
-                {virtualizer.getVirtualItems().map((virtualItem) => {
-                  const item = flatItems[virtualItem.index];
-
-                  if (item.type === 'header') {
-                    const group = item.data;
-                    return (
-                      <div
-                        key={virtualItem.key}
-                        data-index={virtualItem.index}
-                        ref={virtualizer.measureElement}
-                        className="absolute top-0 left-0 w-full"
-                        style={{
-                          transform: `translateY(${virtualItem.start}px)`,
-                        }}
-                      >
-                        <div className="sticky top-0 z-10 px-4 py-2.5 bg-secondary-50/95 dark:bg-secondary-900/95 backdrop-blur-md border-y border-secondary-200 dark:border-secondary-700">
-                          <div className="flex items-center gap-2">
-                            <CalendarDays className="w-4 h-4 text-primary-500" />
-                            <span className="text-xs font-bold text-secondary-700 dark:text-secondary-300 uppercase tracking-wider">{group.label}</span>
-                            <span className="text-[10px] text-secondary-400 dark:text-secondary-500 font-medium">{group.date !== group.label ? `· ${group.date}` : ''}</span>
-                            <span className="ml-auto text-[10px] bg-white dark:bg-secondary-800 text-secondary-600 dark:text-secondary-400 px-2 py-0.5 rounded-full font-medium shadow-sm border border-secondary-100 dark:border-secondary-700">
-                              {group.logs.length} hoạt động
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  // Render Log Item
-                  const log = item.data;
-                  return (
-                      <div
-                        key={virtualItem.key}
-                        data-index={virtualItem.index}
-                        ref={virtualizer.measureElement}
-                        className="absolute top-0 left-0 w-full"
-                        style={{
-                          transform: `translateY(${virtualItem.start}px)`,
-                        }}
-                      >
-                         <div className="relative p-4 pl-12 hover:bg-secondary-50/50 dark:hover:bg-secondary-900/30 transition-colors group border-b border-secondary-100 dark:border-secondary-800/50">
-                            {/* Vertical line connecting dots */}
-                            <div className="absolute left-[24px] top-0 bottom-0 w-px bg-secondary-200 dark:bg-secondary-700" />
-                            {/* Timeline dot */}
-                            <div className={`absolute left-[20px] top-6 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-secondary-800 ${getTimelineDotColor(log.action)} z-[1]`} />
-                            
-                            <div className="min-w-0">
-                                <div className="flex items-start justify-between gap-4">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold shadow-sm border border-transparent dark:border-secondary-700/50 ${getActionColor(log.action)}`}>
-                                        {getActionIcon(log.action)}
-                                        {formatAction(log.action)}
-                                      </span>
-                                      {log.entity_type && (
-                                        <span className="text-sm font-medium text-secondary-900 dark:text-secondary-200">
-                                          {formatEntity(log.entity_type)}
-                                        </span>
-                                      )}
-                                      {log.entity_id && (
-                                        <span className="text-[10px] font-mono text-secondary-500 dark:text-secondary-400 bg-secondary-100 dark:bg-secondary-800 px-1.5 py-0.5 rounded border border-secondary-200 dark:border-secondary-700">
-                                          #{log.entity_id.length > 8 ? log.entity_id.slice(0, 8) : log.entity_id}
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                      <span className="flex items-center gap-1 text-xs text-secondary-600 dark:text-secondary-400 font-medium">
-                                        <User className="w-3.5 h-3.5" />
-                                        {log.user?.full_name || log.user?.username || 'System'}
-                                      </span>
-                                      {log.user?.role && getRoleBadge(log.user.role)}
-                                      <span className="flex items-center gap-1 text-xs text-secondary-400 dark:text-secondary-500" title={new Date(log.created_at).toLocaleString('vi-VN')}>
-                                        <Clock className="w-3.5 h-3.5" />
-                                        {formatRelativeTime(log.created_at)}
-                                      </span>
-                                      {log.user_agent && (() => {
-                                        const ua = parseUserAgent(log.user_agent);
-                                        const UAIcon = ua.icon;
-                                        return (
-                                          <span className="flex items-center gap-1 text-[10px] text-secondary-400 dark:text-secondary-500 bg-secondary-50 dark:bg-secondary-900/50 px-1.5 py-0.5 rounded" title={log.user_agent}>
-                                            <UAIcon className="w-3 h-3" />
-                                            {ua.browser} {ua.os && `· ${ua.os}`}
-                                          </span>
-                                        );
-                                      })()}
-                                      {log.ip_address && (
-                                        <span className="flex items-center gap-1 text-[10px] text-secondary-400 dark:text-secondary-500 bg-secondary-50 dark:bg-secondary-900/50 px-1.5 py-0.5 rounded font-mono" title="Địa chỉ IP">
-                                          <Globe className="w-3 h-3 shrink-0" />
-                                          {log.ip_address}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <div className="flex items-center gap-3 shrink-0">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedIds.has(log.id)}
-                                      onChange={() => toggleSelect(log.id)}
-                                      className="w-4 h-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
-                                    />
-                                    {hasRollbackData(log) && (
-                                      log.is_rolled_back ? (
-                                        <span
-                                          className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-secondary-300 dark:text-secondary-600 opacity-0 group-hover:opacity-100 cursor-not-allowed"
-                                          title="Đã khôi phục trước đó"
-                                        >
-                                          <RotateCcw className="w-3 h-3" />
-                                        </span>
-                                      ) : (
-                                        <button
-                                          onClick={() => setRollbackModal({ isOpen: true, logId: log.id, action: log.action })}
-                                          disabled={rollbackingIds.has(log.id)}
-                                          className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-secondary-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 dark:hover:text-amber-400 opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
-                                          title="Khôi phục về trạng thái trước"
-                                        >
-                                          {rollbackingIds.has(log.id) ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3" />}
-                                        </button>
-                                      )
-                                    )}
-                                    <button
-                                      onClick={() => copyLog(log)}
-                                      className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-secondary-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 dark:hover:text-primary-400 opacity-0 group-hover:opacity-100 transition-all"
-                                      title="Sao chép nhật ký"
-                                    >
-                                      {copiedId === log.id ? (
-                                        <Check className="w-3 h-3 text-green-500" />
-                                      ) : (
-                                        <Copy className="w-3 h-3" />
-                                      )}
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        setDeleteModal({
-                                          isOpen: true,
-                                          isBulk: false,
-                                          idToDelete: log.id,
-                                        })
-                                      }
-                                      className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-secondary-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-                                      title="Xóa nhật ký"
-                                    >
-                                      <Trash2 className="w-3 h-3" />
-                                    </button>
-                                    <span className="hidden lg:block text-[10px] text-secondary-400 dark:text-secondary-500 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity font-mono">
-                                      {new Date(log.created_at).toLocaleTimeString(
-                                        "vi-VN",
-                                      )}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Details */}
-                                {renderDetails(log)}
-                              </div>
-                            </div>
-                        </div>
-                    );
-                  })}
-                </div>
-              </div>
+            <div className="overflow-auto pr-2 custom-scrollbar" style={{ height: '70vh', minHeight: '600px' }}>
+              {logGroups.map((group) => (
+                <section key={group.date}>
+                  <div className="sticky top-0 z-10 border-y border-secondary-200 bg-secondary-50/95 px-4 py-2.5 backdrop-blur-md dark:border-secondary-700 dark:bg-secondary-900/95">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4 text-primary-500" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-secondary-700 dark:text-secondary-300">{group.label}</span>
+                      <span className="text-[10px] font-medium text-secondary-400 dark:text-secondary-500">{group.date !== group.label ? `· ${group.date}` : ''}</span>
+                      <span className="ml-auto rounded-full border border-secondary-100 bg-white px-2 py-0.5 text-[10px] font-medium text-secondary-600 shadow-sm dark:border-secondary-700 dark:bg-secondary-800 dark:text-secondary-400">
+                        {group.logs.length} hoạt động
+                      </span>
+                    </div>
+                  </div>
+                  {group.logs.map(renderLogItem)}
+                </section>
+              ))}
+            </div>
 
               {/* Pagination */}
               {!loading && totalPages > 0 && (
@@ -1431,6 +2240,16 @@ export default function ActivityLogPage() {
           ? `Bạn có chắc chắn muốn xóa ${selectedIds.size} nhật ký đã chọn? Hành động này không thể hoàn tác.` 
           : "Bạn có chắc chắn muốn xóa nhật ký này? Hành động này không thể hoàn tác."}
         confirmText="Xóa nhật ký"
+        cancelText="Hủy"
+        isDestructive={true}
+      />
+    <ConfirmModal
+        isOpen={deleteOldModalOpen}
+        onClose={() => setDeleteOldModalOpen(false)}
+        onConfirm={handleDeleteOldLogs}
+        title="Xác nhận xóa log cũ"
+        message="Hệ thống sẽ xóa toàn bộ nhật ký cũ hơn 90 ngày. Hành động này không thể hoàn tác."
+        confirmText={deletingOld ? "Đang xóa..." : "Xóa log cũ"}
         cancelText="Hủy"
         isDestructive={true}
       />

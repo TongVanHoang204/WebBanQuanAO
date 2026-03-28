@@ -184,7 +184,13 @@ export default function CheckoutPage() {
           navigate(`/checkout/payment/${orderResponse.id}`);
       } else {
           toast.success('Đặt hàng thành công!');
-          navigate(`/order-success/${orderResponse.order_code}`);
+          sessionStorage.setItem(`order_lookup_phone_${orderResponse.order_code}`, formData.customer_phone);
+          navigate(`/order-success/${orderResponse.order_code}`, {
+            state: {
+              order: orderResponse,
+              orderPhone: formData.customer_phone
+            }
+          });
       }
     } catch (err: any) {
       // Only handle checkout errors here

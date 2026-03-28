@@ -126,9 +126,9 @@ export default function ProductListPage() {
   };
 
   const handleExport = () => {
-    const token = localStorage.getItem('token');
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
-    window.open(`${apiUrl}/admin/export/products?token=${token}`, '_blank');
+    adminAPI.exportProducts().catch(() => {
+      toast.error('Không thể xuất danh sách sản phẩm');
+    });
   };
 
   const currentQueryString = searchParams.toString();

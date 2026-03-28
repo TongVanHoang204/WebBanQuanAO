@@ -123,6 +123,9 @@ export interface Order {
   ship_postal_code: string | null;
   ship_country: string;
   note: string | null;
+  refund_requested?: boolean;
+  refund_processed?: boolean;
+  refund_restocked?: boolean;
   created_at: string;
   updated_at: string | null;
   order_items?: OrderItem[];
@@ -132,6 +135,7 @@ export interface Order {
 
 export type OrderStatus = 
   | 'pending' 
+  | 'confirmed'
   | 'paid' 
   | 'processing' 
   | 'shipped' 
@@ -184,7 +188,7 @@ export interface User {
   city: string | null;
   province: string | null;
   avatar_url: string | null;
-  role: 'customer' | 'admin';
+  role: 'customer' | 'staff' | 'manager' | 'admin';
   status: 'active' | 'blocked';
   two_factor_enabled?: boolean;
   created_at: string;
@@ -255,4 +259,18 @@ export interface Banner {
   position: string;
   sort_order: number;
   banner_images?: { image_url: string; sort_order: number }[];
+}
+
+export interface Collection {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  image?: string | null;
+  is_active?: boolean;
+  is_featured?: boolean;
+  featured_sort_order?: number;
+  product_count?: number;
+  preview_images?: string[];
+  products?: Product[];
 }

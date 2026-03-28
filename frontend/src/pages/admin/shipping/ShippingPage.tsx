@@ -62,9 +62,8 @@ export default function ShippingPage() {
   const fetchMethods = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       const res = await fetch(resolveApiUrl('/api/admin/shipping?include_inactive=true'), {
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: 'include'
       });
       const data = await res.json();
       if (data.success) {
@@ -119,16 +118,15 @@ export default function ShippingPage() {
 
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
       const url = editingId ? `/api/admin/shipping/${editingId}` : '/api/admin/shipping';
       const method = editingId ? 'PUT' : 'POST';
 
       const res = await fetch(resolveApiUrl(url), {
         method,
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(form)
       });
       
@@ -152,10 +150,9 @@ export default function ShippingPage() {
     if (!confirm(`Xóa phương thức "${name}"?`)) return;
 
     try {
-      const token = localStorage.getItem('token');
       const res = await fetch(resolveApiUrl(`/api/admin/shipping/${id}`), {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: 'include'
       });
       const data = await res.json();
       

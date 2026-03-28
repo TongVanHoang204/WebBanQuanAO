@@ -4,7 +4,8 @@ import {
   getOrders, 
   getOrderById,
   getOrderByCode,
-  cancelOrder
+  cancelOrder,
+  requestRefund
 } from '../../controllers/user/order.controller.js';
 import { verifyToken, optionalAuth } from '../../middlewares/auth.middleware.js';
 
@@ -55,7 +56,8 @@ router.post('/checkout', optionalAuth, checkout);
  */
 router.get('/', verifyToken, getOrders);
 router.get('/code/:code', getOrderByCode);
-router.get('/:id', optionalAuth, getOrderById);
+router.get('/:id', verifyToken, getOrderById);
 router.post('/:id/cancel', verifyToken, cancelOrder);
+router.post('/:id/refund-request', verifyToken, requestRefund);
 
 export default router;

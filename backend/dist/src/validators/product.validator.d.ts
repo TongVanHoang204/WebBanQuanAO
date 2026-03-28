@@ -56,9 +56,9 @@ export declare const createProductSchema: z.ZodObject<{
         is_primary: z.ZodDefault<z.ZodBoolean>;
         sort_order: z.ZodDefault<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
-        url: string;
         sort_order: number;
         is_primary: boolean;
+        url: string;
         alt_text?: string | undefined;
     }, {
         url: string;
@@ -108,9 +108,9 @@ export declare const createProductSchema: z.ZodObject<{
         values: string[];
     }[] | undefined;
     images?: {
-        url: string;
         sort_order: number;
         is_primary: boolean;
+        url: string;
         alt_text?: string | undefined;
     }[] | undefined;
 }, {
@@ -225,9 +225,9 @@ export declare const updateProductSchema: z.ZodObject<{
     } & {
         id: z.ZodOptional<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
-        url: string;
         sort_order: number;
         is_primary: boolean;
+        url: string;
         id?: number | undefined;
         alt_text?: string | undefined;
     }, {
@@ -272,9 +272,9 @@ export declare const updateProductSchema: z.ZodObject<{
         values: string[];
     }[] | undefined;
     images?: {
-        url: string;
         sort_order: number;
         is_primary: boolean;
+        url: string;
         id?: number | undefined;
         alt_text?: string | undefined;
     }[] | undefined;

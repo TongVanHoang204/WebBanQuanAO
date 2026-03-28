@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { prisma } from '../../lib/prisma.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
 import { logActivity } from '../../services/logger.service.js';
+import { deepDiff, createDeleteSnapshot } from '../../utils/deepDiff.js';
 
 // Helper to serialize BigInt
 const serialize = (data: any) => {
@@ -175,12 +176,19 @@ export const updateShippingMethod = async (req: AuthRequest, res: Response, next
       }
     });
 
+    const beforeSnapshot = serialize(existing);
+    const afterSnapshot = serialize(method);
+
     await logActivity({
       user_id: BigInt(req.user?.id || 0),
       action: 'Cập nhật phương thức vận chuyển',
       entity_type: 'shipping_method',
       entity_id: String(id),
-      details: { name: method.name, code: method.code },
+      details: {
+        before: beforeSnapshot,
+        after: afterSnapshot,
+        diff: deepDiff(beforeSnapshot, afterSnapshot)
+      },
       ip_address: req.ip,
       user_agent: req.get('User-Agent')
     });
@@ -235,7 +243,9 @@ export const deleteShippingMethod = async (req: AuthRequest, res: Response, next
       action: 'Xóa phương thức vận chuyển',
       entity_type: 'shipping_method',
       entity_id: String(id),
-      details: { name: method.name, code: method.code },
+      details: {
+        deleted_data: createDeleteSnapshot(serialize(method))
+      },
       ip_address: req.ip,
       user_agent: req.get('User-Agent')
     });

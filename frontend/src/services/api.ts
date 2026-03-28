@@ -55,19 +55,56 @@ export const toMediaUrl = (path?: string | null): string => {
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-// Request interceptor to add auth token
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+const getFilenameFromDisposition = (contentDisposition?: string): string | null => {
+  if (!contentDisposition) {
+    return null;
   }
-  
-  // Add session ID for guest carts
+
+  const utf8Match = contentDisposition.match(/filename\*\s*=\s*UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) {
+    return decodeURIComponent(utf8Match[1]);
+  }
+
+  const basicMatch = contentDisposition.match(/filename\s*=\s*"?([^"]+)"?/i);
+  return basicMatch?.[1] || null;
+};
+
+const triggerBrowserDownload = (blob: Blob, filename: string) => {
+  const objectUrl = window.URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = objectUrl;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(objectUrl);
+};
+
+const downloadFile = async (
+  path: string,
+  params?: Record<string, string | number | boolean | undefined>,
+  fallbackFilename = 'download'
+) => {
+  const response = await api.get(path, {
+    params,
+    responseType: 'blob'
+  });
+
+  const dispositionHeader =
+    response.headers['content-disposition'] || response.headers['Content-Disposition'];
+  const filename = getFilenameFromDisposition(dispositionHeader) || fallbackFilename;
+  triggerBrowserDownload(response.data, filename);
+  return response;
+};
+
+// Request interceptor to add guest session ID
+api.interceptors.request.use((config) => {
   const sessionId = localStorage.getItem('sessionId');
   if (sessionId) {
     config.headers['x-session-id'] = sessionId;
@@ -81,12 +118,13 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    const skipAuthRedirect = Boolean(error.config?.skipAuthRedirect);
+
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
       localStorage.removeItem('user');
       // Only redirect if not already on login page to avoid loops if needed, 
       // but simple redirect is usually fine.
-      if (!window.location.pathname.includes('/login')) {
+      if (!skipAuthRedirect && !window.location.pathname.includes('/login')) {
          window.location.href = '/login';
       }
     } else if (error.response?.status === 403) {
@@ -94,7 +132,6 @@ api.interceptors.response.use(
        // But generally for admin panel, 403 means lost permission or blocked.
        const msg = error.response.data?.message;
        if (msg === 'Account is blocked' || msg === 'User not found') {
-          localStorage.removeItem('token');
           localStorage.removeItem('user');
           window.location.href = '/login?reason=blocked';
        }
@@ -136,7 +173,9 @@ export const authAPI = {
   googleLogin: (credential: string) =>
     api.post('/auth/login/google', { credential }),
   
-  getMe: () => api.get('/auth/me'),
+  logout: () => api.post('/auth/logout'),
+  
+  getMe: (config?: any) => api.get('/auth/me', config),
   
   updateProfile: (data: { full_name?: string; phone?: string; address_line1?: string; city?: string; province?: string; avatar_url?: string }) =>
     api.put('/auth/profile', data),
@@ -257,7 +296,9 @@ export const ordersAPI = {
   
   getByCode: (code: string, phone?: string) => api.get(`/orders/code/${code}`, { params: phone ? { phone } : undefined }),
   
-  cancel: (id: string) => api.post(`/orders/${id}/cancel`)
+  cancel: (id: string) => api.post(`/orders/${id}/cancel`),
+
+  requestRefund: (id: string) => api.post(`/orders/${id}/refund-request`)
 };
 
 // Chat API
@@ -314,6 +355,11 @@ export const collectionsAPI = {
   deleteCollection: (id: string) => api.delete(`/admin/collections/${id}`)
 };
 
+export const publicCollectionsAPI = {
+  getFeatured: () => api.get('/collections'),
+  getBySlug: (slug: string) => api.get(`/collections/${slug}`)
+};
+
 export const adminAPI = {
   getDashboard: (range?: string) => api.get('/admin/dashboard', { params: { range } }),
 
@@ -327,13 +373,18 @@ export const adminAPI = {
     headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress
   }),
+  downloadProductTemplate: () => downloadFile('/admin/import/products/template', undefined, 'product-import-template.xlsx'),
+  exportProducts: () => downloadFile('/admin/export/products', undefined, 'products.xlsx'),
   
   // Orders
   getOrders: (params?: { page?: number; limit?: number; status?: string; search?: string }) =>
     api.get('/admin/orders', { params }),
+  exportOrders: (params?: { status?: string; search?: string }) =>
+    downloadFile('/admin/export/orders', params, 'orders.xlsx'),
   getOrderById: (id: string) => api.get(`/admin/orders/${id}`),
   updateOrderStatus: (id: string, status: string) =>
     api.put(`/admin/orders/${id}/status`, { status }),
+  restockOrder: (id: string) => api.post(`/admin/orders/${id}/restock`),
   
   // Categories
   createCategory: (data: any) => api.post('/admin/categories', data),

@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { prisma } from '../../lib/prisma.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
 import { logActivity } from '../../services/logger.service.js';
+import { deepDiff, createDeleteSnapshot } from '../../utils/deepDiff.js';
 
 // Helper to serialize BigInt
 const serialize = (data: any) => {
@@ -199,7 +200,8 @@ export const updateBanner = async (req: AuthRequest, res: Response, next: NextFu
     const { title, subtitle, image_url, images, link_url, button_text, position, sort_order, is_active, start_date, end_date } = req.body;
 
     const existing = await prisma.banners.findUnique({
-      where: { id: BigInt(id as string) }
+      where: { id: BigInt(id as string) },
+      include: { banner_images: { orderBy: { sort_order: 'asc' } } }
     });
 
     if (!existing) {
@@ -249,12 +251,43 @@ export const updateBanner = async (req: AuthRequest, res: Response, next: NextFu
       include: { banner_images: { orderBy: { sort_order: 'asc' } } }
     });
 
+    const beforeSnapshot = serialize({
+      title: existing.title,
+      subtitle: existing.subtitle,
+      image_url: existing.image_url,
+      link_url: existing.link_url,
+      button_text: existing.button_text,
+      position: existing.position,
+      sort_order: existing.sort_order,
+      is_active: existing.is_active,
+      start_date: existing.start_date,
+      end_date: existing.end_date,
+      images: existing.banner_images.map((image) => image.image_url)
+    });
+    const afterSnapshot = serialize({
+      title: banner.title,
+      subtitle: banner.subtitle,
+      image_url: banner.image_url,
+      link_url: banner.link_url,
+      button_text: banner.button_text,
+      position: banner.position,
+      sort_order: banner.sort_order,
+      is_active: banner.is_active,
+      start_date: banner.start_date,
+      end_date: banner.end_date,
+      images: banner.banner_images.map((image) => image.image_url)
+    });
+
     await logActivity({
       user_id: BigInt(req.user?.id || 0),
       action: 'Cập nhật banner',
       entity_type: 'banner',
       entity_id: String(id),
-      details: { title: banner.title },
+      details: {
+        before: beforeSnapshot,
+        after: afterSnapshot,
+        diff: deepDiff(beforeSnapshot, afterSnapshot)
+      },
       ip_address: req.ip,
       user_agent: req.get('User-Agent')
     });
@@ -320,7 +353,8 @@ export const deleteBanner = async (req: AuthRequest, res: Response, next: NextFu
     const { id } = req.params;
 
     const banner = await prisma.banners.findUnique({
-      where: { id: BigInt(id as string) }
+      where: { id: BigInt(id as string) },
+      include: { banner_images: { orderBy: { sort_order: 'asc' } } }
     });
 
     if (!banner) {
@@ -339,7 +373,12 @@ export const deleteBanner = async (req: AuthRequest, res: Response, next: NextFu
       action: 'Xóa banner',
       entity_type: 'banner',
       entity_id: String(id),
-      details: { title: banner.title },
+      details: {
+        deleted_data: createDeleteSnapshot(serialize({
+          ...banner,
+          images: banner.banner_images.map((image) => image.image_url)
+        }))
+      },
       ip_address: req.ip,
       user_agent: req.get('User-Agent')
     });

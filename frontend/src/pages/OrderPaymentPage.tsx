@@ -18,7 +18,6 @@ import toast from 'react-hot-toast';
 import { ordersAPI, settingsAPI } from '../services/api';
 import { formatPrice } from '../hooks/useShop';
 import { Order } from '../types';
-import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 
 const PAYMENT_TIMEOUT_SECONDS = 5 * 60; // 5 minutes
@@ -30,7 +29,6 @@ export default function OrderPaymentPage() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [paymentSettings, setPaymentSettings] = useState<any>({});
   const [timeLeft, setTimeLeft] = useState(PAYMENT_TIMEOUT_SECONDS);
-  const { isAuthenticated } = useAuth();
   const { refreshCart } = useCart();
   const navigate = useNavigate();
 
@@ -41,8 +39,6 @@ export default function OrderPaymentPage() {
 
   // Initial Fetch
   useEffect(() => {
-    if (!isAuthenticated) return;
-    
     const fetchData = async () => {
       if (!orderId) return;
       try {
@@ -68,7 +64,7 @@ export default function OrderPaymentPage() {
       }
     };
     fetchData();
-  }, [orderId, isAuthenticated]);
+  }, [orderId]);
 
   // Countdown Timer
   useEffect(() => {

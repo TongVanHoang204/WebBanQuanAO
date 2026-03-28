@@ -38,6 +38,12 @@ const statusConfig: Record<string, { label: string; color: string; icon: any }> 
   confirmed: { label: 'Đã xác nhận', color: 'bg-cyan-50 text-cyan-600 border-cyan-100 dark:bg-cyan-900/20 dark:text-cyan-400 dark:border-cyan-900/30', icon: ShieldCheck }
 };
 
+const refundRequestedConfig = {
+  label: 'Yêu cầu hoàn tiền',
+  color: 'bg-orange-50 text-orange-600 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-900/30',
+  icon: RotateCcw
+};
+
 export default function OrderHistoryPage() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -49,19 +55,20 @@ export default function OrderHistoryPage() {
     orderId: null
   });
 
+  const loadOrders = async () => {
+    try {
+      const response = await ordersAPI.getAll();
+      setOrders(response.data.data.orders);
+    } catch (error) {
+      console.error('Failed to load orders:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated) return;
-    
-    const loadOrders = async () => {
-      try {
-        const response = await ordersAPI.getAll();
-        setOrders(response.data.data.orders);
-      } catch (error) {
-        console.error('Failed to load orders:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+
     loadOrders();
   }, [isAuthenticated]);
 
@@ -85,6 +92,24 @@ export default function OrderHistoryPage() {
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Không thể hủy đơn hàng');
     }
+  };
+
+  const handleRequestRefund = async (orderId: string) => {
+    try {
+      await ordersAPI.requestRefund(orderId);
+      toast.success('Đã gửi yêu cầu hoàn tiền tới quản trị viên');
+      await loadOrders();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error?.message || error.response?.data?.message || 'Không thể gửi yêu cầu hoàn tiền');
+    }
+  };
+
+  const getOrderStatusConfig = (order: Order) => {
+    if (order.refund_requested && order.status === 'completed') {
+      return refundRequestedConfig;
+    }
+
+    return statusConfig[order.status];
   };
 
   if (!isAuthenticated) {
@@ -201,12 +226,12 @@ export default function OrderHistoryPage() {
                        </div>
                     </div>
 
-                    <div className={`px-4 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 ${statusConfig[order.status]?.color || ''}`}>
+                    <div className={`px-4 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 ${getOrderStatusConfig(order)?.color || ''}`}>
                        {(() => {
-                         const StatusIcon = statusConfig[order.status]?.icon;
+                         const StatusIcon = getOrderStatusConfig(order)?.icon;
                          return StatusIcon ? <StatusIcon className="w-3.5 h-3.5" /> : null;
                        })()}
-                       {statusConfig[order.status]?.label || order.status}
+                       {getOrderStatusConfig(order)?.label || order.status}
                     </div>
                   </div>
 
@@ -312,8 +337,12 @@ export default function OrderHistoryPage() {
 
                         {order.status === 'completed' && (
                            <>
-                              <button className="px-5 py-2 text-xs font-bold rounded-xl border border-secondary-200 dark:border-secondary-700 hover:bg-white dark:hover:bg-secondary-700 transition-all text-secondary-700 dark:text-secondary-300">
-                                Trả hàng / Hoàn tiền
+                               <button
+                                 onClick={() => handleRequestRefund(order.id)}
+                                 disabled={!!order.refund_requested}
+                                 className="px-5 py-2 text-xs font-bold rounded-xl border border-secondary-200 dark:border-secondary-700 hover:bg-white dark:hover:bg-secondary-700 transition-all text-secondary-700 dark:text-secondary-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                               >
+                                {order.refund_requested ? 'Đã gửi yêu cầu hoàn tiền' : 'Trả hàng / Hoàn tiền'}
                               </button>
                               <button className="px-6 py-2 text-xs font-bold rounded-xl bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-all">
                                 Mua lại sản phẩm

@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { logActivity } from '../../services/logger.service.js';
 import { getIO } from '../../socket.js';
 import { deepDiff } from '../../utils/deepDiff.js';
+import { assertCanManageTargetUser, assertCanReadTargetUser, canAssignRole, getReadableRoles, isKnownRole } from '../../utils/access-control.js';
 
 // Helper to serialize BigInt
 const serialize = (data: any) => {
@@ -20,12 +21,33 @@ const serialize = (data: any) => {
 export const getStaffList = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { role, status, search } = req.query;
+    const readableStaffRoles = getReadableRoles(req.user || {}).filter((item) => item !== 'customer');
 
     const where: any = {
-      role: { not: 'customer' }
+      role: { in: readableStaffRoles }
     };
 
+    if (readableStaffRoles.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          staff: [],
+          roles: []
+        }
+      });
+    }
+
     if (role && role !== 'all') {
+      if (!readableStaffRoles.includes(role as any)) {
+        return res.json({
+          success: true,
+          data: {
+            staff: [],
+            roles: []
+          }
+        });
+      }
+
       where.role = role;
     }
 
@@ -60,7 +82,7 @@ export const getStaffList = async (req: AuthRequest, res: Response, next: NextFu
 
     // Get available roles
     const roles = await prisma.permissions.findMany({
-      where: { name: { not: 'customer' } },
+      where: { name: { in: readableStaffRoles.filter(isKnownRole) as string[] } },
       select: { name: true, description: true }
     });
 
@@ -111,6 +133,12 @@ export const getStaffById = async (req: AuthRequest, res: Response, next: NextFu
       });
     }
 
+    try {
+      assertCanReadTargetUser(req.user || {}, staff);
+    } catch (error) {
+      return next(error);
+    }
+
     res.json({
       success: true,
       data: serialize(staff)
@@ -140,6 +168,13 @@ export const createStaff = async (req: AuthRequest, res: Response, next: NextFun
       return res.status(400).json({
         success: false,
         error: { message: 'Không thể tạo nhân viên với role customer' }
+      });
+    }
+
+    if (role && !canAssignRole(req.user || {}, role)) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Bạn không có quyền tạo tài khoản với vai trò này' }
       });
     }
 
@@ -219,6 +254,12 @@ export const updateStaff = async (req: AuthRequest, res: Response, next: NextFun
       });
     }
 
+    try {
+      assertCanManageTargetUser(req.user || {}, existing);
+    } catch (error) {
+      return next(error);
+    }
+
     // Prevent changing to customer role
     if (role === 'customer') {
       return res.status(400).json({
@@ -243,17 +284,6 @@ export const updateStaff = async (req: AuthRequest, res: Response, next: NextFun
       }
     }
 
-    // PROTECT SUPER ADMIN (ID 1) from external block/role-change
-    // Assuming ID 1 is the Owner/First User
-    if (existing.id === BigInt(6)) {
-      if (status === 'blocked' || (role && role !== 'admin')) {
-         return res.status(403).json({
-           success: false,
-           error: { message: 'Không thể khóa hoặc đổi quyền của Tài khoản Gốc (Super Admin)' }
-         });
-      }
-    }
-
     const updateData: any = {
       full_name: full_name !== undefined ? full_name : existing.full_name,
       phone: phone !== undefined ? phone : existing.phone,
@@ -270,6 +300,13 @@ export const updateStaff = async (req: AuthRequest, res: Response, next: NextFun
            error: { message: 'Chỉ có Admin mới có quyền chặn/mở chặn nhân viên' }
          });
       }
+    }
+
+    if (role && role !== existing.role && !canAssignRole(req.user || {}, role)) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Bạn không có quyền gán vai trò này' }
+      });
     }
 
     // Update password if provided
@@ -363,24 +400,10 @@ export const deleteStaff = async (req: AuthRequest, res: Response, next: NextFun
       });
     }
 
-    // PROTECT SUPER ADMIN (ID 1)
-    if (staff.id === BigInt(1)) {
-      return res.status(403).json({
-        success: false,
-        error: { message: 'Không thể xóa Tài khoản Gốc (Super Admin)' }
-      });
-    }
-
-    // SAME-ROLE PROTECTION: Cannot delete staff with same role
-    // Only Super Admin (ID 1 or 6) can delete users of equal role
-    const currentUserRole = req.user?.role;
-    const isSuperAdmin = req.user?.id && (BigInt(req.user.id) === BigInt(1) || BigInt(req.user.id) === BigInt(6));
-    
-    if (!isSuperAdmin && currentUserRole === staff.role) {
-      return res.status(403).json({
-        success: false,
-        error: { message: `Bạn không thể xóa nhân viên cùng cấp (${staff.role}). Chỉ Super Admin mới có quyền này.` }
-      });
+    try {
+      assertCanManageTargetUser(req.user || {}, staff);
+    } catch (error) {
+      return next(error);
     }
 
     // Check if staff has processed any orders
@@ -424,7 +447,9 @@ export const deleteStaff = async (req: AuthRequest, res: Response, next: NextFun
  */
 export const getRoles = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    const readableRoles = getReadableRoles(req.user || {}).filter(isKnownRole);
     const roles = await prisma.permissions.findMany({
+      where: { name: { in: readableRoles as string[] } },
       orderBy: { name: 'asc' },
       include: {
         _count: { select: { users: true } }
@@ -447,17 +472,24 @@ export const getRoles = async (req: AuthRequest, res: Response, next: NextFuncti
 export const createRole = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { name, description } = req.body;
+    const normalizedName = String(name || '').toLowerCase().trim();
 
-    if (!name || name.trim().length < 2) {
+    if (!isKnownRole(normalizedName)) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Hệ thống chỉ hỗ trợ các vai trò cố định: admin, manager, staff, customer' }
+      });
+    }
+
+    if (!normalizedName || normalizedName.length < 2) {
       return res.status(400).json({
         success: false,
         error: { message: 'Tên vai trò phải có ít nhất 2 ký tự' }
       });
     }
 
-    // Check existing
     const existing = await prisma.permissions.findUnique({
-      where: { name: name.toLowerCase() }
+      where: { name: normalizedName }
     });
 
     if (existing) {
@@ -469,7 +501,7 @@ export const createRole = async (req: AuthRequest, res: Response, next: NextFunc
 
     const role = await prisma.permissions.create({
       data: {
-        name: name.toLowerCase().trim(),
+        name: normalizedName,
         description: description || null
       }
     });
@@ -501,6 +533,24 @@ export const updateRole = async (req: AuthRequest, res: Response, next: NextFunc
   try {
     const { id } = req.params;
     const { description } = req.body;
+
+    const existing = await prisma.permissions.findUnique({
+      where: { id: parseInt(id as string) }
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Không tìm thấy vai trò' }
+      });
+    }
+
+    if (!isKnownRole(existing.name)) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Vai trò tùy chỉnh không còn được hệ thống hỗ trợ. Hãy xóa vai trò này.' }
+      });
+    }
 
     const role = await prisma.permissions.update({
       where: { id: parseInt(id as string) },
@@ -546,9 +596,7 @@ export const deleteRole = async (req: AuthRequest, res: Response, next: NextFunc
       });
     }
 
-    // Prevent deleting protected roles
-    const protectedRoles = ['admin', 'customer', 'staff'];
-    if (protectedRoles.includes(role.name)) {
+    if (isKnownRole(role.name)) {
       return res.status(400).json({
         success: false,
         error: { message: 'Không thể xóa vai trò hệ thống' }
