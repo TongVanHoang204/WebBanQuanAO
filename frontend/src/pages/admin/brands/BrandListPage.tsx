@@ -12,7 +12,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { brandsAPI } from '../../../services/api';
+import { brandsAPI, toMediaUrl } from '../../../services/api';
 
 interface Brand {
   id: string;
@@ -168,7 +168,7 @@ export default function BrandListPage() {
                       <div className="flex items-center gap-3">
                         {brand.logo ? (
                           <img
-                            src={brand.logo}
+                            src={toMediaUrl(brand.logo)}
                             alt={brand.name}
                             className="w-10 h-10 rounded-lg object-contain bg-secondary-100 dark:bg-secondary-700"
                           />

@@ -16,7 +16,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { resolveApiUrl } from '../../../services/api';
+import { resolveApiUrl, toMediaUrl } from '../../../services/api';
 import Pagination from '../../../components/common/Pagination';
 
 interface Banner {
@@ -352,7 +352,7 @@ export default function BannerListPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   {form.images.map((img, idx) => (
                       <div key={idx} className="relative group aspect-video rounded-lg overflow-hidden border border-secondary-200">
-                          <img src={img} alt={`Banner ${idx}`} className="w-full h-full object-cover" />
+                          <img src={toMediaUrl(img)} alt={`Banner ${idx}`} className="w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                               {idx > 0 && <button type="button" onClick={() => moveImage(idx, 'up')} className="p-1 bg-white rounded-full"><ArrowRight className="w-4 h-4 rotate-180" /></button>}
                               <button type="button" onClick={() => removeImage(idx)} className="p-1 bg-red-500 text-white rounded-full"><Trash2 className="w-4 h-4" /></button>
@@ -463,7 +463,7 @@ export default function BannerListPage() {
                 <GripVertical className="w-5 h-5 text-secondary-300 cursor-move" />
                 
                 <img
-                  src={banner.image_url}
+                  src={toMediaUrl(banner.image_url)}
                   alt={banner.title}
                   className="w-32 h-16 rounded-lg object-cover bg-secondary-100 dark:bg-secondary-700"
                 />

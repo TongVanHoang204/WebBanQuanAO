@@ -24,7 +24,7 @@ model users {
   google_id     String?      @unique @db.VarChar(255)
   avatar_url    String?      @db.VarChar(1000)
   role          String       @default("customer") @db.VarChar(100)
-  status        users_status @default(active)
+  status        String       @default("active") @db.Text
 
   // 2FA Fields
   two_factor_enabled Boolean   @default(false)
@@ -58,11 +58,6 @@ model users {
   role_def permissions @relation(fields: [role], references: [name])
 
   @@index([role], map: "idx_users_role")
-}
-
-enum users_status {
-  active
-  blocked
 }
 
 // ==================== SHIPPING ADDRESSES ====================
@@ -218,7 +213,7 @@ model product_attributes {
   option       options       @relation(fields: [option_id], references: [id], onDelete: Cascade)
   option_value option_values @relation(fields: [option_value_id], references: [id], onDelete: Cascade)
 
-  @@id([product_id, option_id])
+  @@id([product_id, option_id, option_value_id])
   @@index([option_id], map: "idx_pa_option")
   @@index([option_value_id], map: "idx_pa_option_value")
 }
@@ -352,7 +347,7 @@ model orders {
   id                 BigInt        @id @default(autoincrement())
   order_code         String        @unique @db.VarChar(30)
   user_id            BigInt?
-  status             orders_status @default(pending)
+  status             String        @default("pending") @db.Text
   subtotal           Decimal       @default(0.00) @db.Decimal(12, 2)
   discount_total     Decimal       @default(0.00) @db.Decimal(12, 2)
   shipping_fee       Decimal       @default(0.00) @db.Decimal(12, 2)
@@ -378,17 +373,6 @@ model orders {
 
   @@index([user_id], map: "idx_orders_user")
   @@index([status], map: "idx_orders_status")
-}
-
-enum orders_status {
-  pending
-  confirmed
-  paid
-  processing
-  shipped
-  completed
-  cancelled
-  refunded
 }
 
 model order_items {
@@ -417,8 +401,8 @@ model order_items {
 model payments {
   id              BigInt          @id @default(autoincrement())
   order_id        BigInt
-  method          payments_method
-  status          payments_status @default(pending)
+  method          String          @db.Text
+  status          String          @default("pending") @db.Text
   amount          Decimal         @db.Decimal(12, 2)
   transaction_ref String?         @db.VarChar(200)
   paid_at         DateTime?
@@ -429,23 +413,6 @@ model payments {
   @@index([order_id], map: "idx_pay_order")
 }
 
-enum payments_method {
-  cod
-  bank_transfer
-  momo
-  zalopay
-  vnpay
-  paypal
-  stripe
-}
-
-enum payments_status {
-  pending
-  paid
-  failed
-  refunded
-}
-
 // ==================== SHIPMENTS ====================
 
 model shipments {
@@ -453,7 +420,7 @@ model shipments {
   order_id      BigInt           @unique
   carrier       String?          @db.VarChar(100)
   tracking_code String?          @db.VarChar(120)
-  status        shipments_status @default(pending)
+  status        String           @default("pending") @db.Text
   shipped_at    DateTime?
   delivered_at  DateTime?
   created_at    DateTime         @default(now())
@@ -461,20 +428,12 @@ model shipments {
   order orders @relation(fields: [order_id], references: [id], onDelete: Cascade)
 }
 
-enum shipments_status {
-  pending
-  shipping
-  delivered
-  returned
-  cancelled
-}
-
 // ==================== COUPONS ====================
 
 model coupons {
   id             BigInt       @id @default(autoincrement())
   code           String       @unique @db.VarChar(50)
-  type           coupons_type
+  type           String       @db.Text
   value          Decimal      @db.Decimal(12, 2)
   min_subtotal   Decimal      @default(0.00) @db.Decimal(12, 2)
   max_discount   Decimal?     @db.Decimal(12, 2)
@@ -486,11 +445,6 @@ model coupons {
   created_at     DateTime     @default(now())
 
   coupon_redemptions coupon_redemptions[]
-}
-
-enum coupons_type {
-  percent
-  fixed
 }
 
 model coupon_redemptions {
@@ -515,7 +469,7 @@ model coupon_redemptions {
 model inventory_movements {
   id         BigInt                   @id @default(autoincrement())
   variant_id BigInt
-  type       inventory_movements_type
+  type       String                   @db.Text
   qty        Int
   note       String?                  @db.VarChar(255)
   created_at DateTime                 @default(now())
@@ -523,12 +477,6 @@ model inventory_movements {
   variant product_variants @relation(fields: [variant_id], references: [id], onDelete: Cascade)
 
   @@index([variant_id], map: "idx_im_variant")
-}
-
-enum inventory_movements_type {
-  in
-  out
-  adjust
 }
 
 // ==================== WISHLISTS ====================
@@ -568,7 +516,7 @@ model settings {
 model notifications {
   id         BigInt             @id @default(autoincrement())
   user_id    BigInt?
-  type       notifications_type
+  type       String             @db.Text
   title      String             @db.VarChar(255)
   message    String             @db.VarChar(500)
   link       String?            @db.VarChar(255) // Admin route to navigate to
@@ -580,14 +528,6 @@ model notifications {
   @@index([user_id], map: "idx_notifications_user")
   @@index([is_read], map: "idx_notifications_read")
   @@index([created_at], map: "idx_notifications_created")
-}
-
-enum notifications_type {
-  order_new
-  order_status
-  product_low_stock
-  product_out_of_stock
-  system
 }
 
 // ==================== PERMISSIONS ====================
@@ -611,7 +551,7 @@ model product_reviews {
   title         String?       @db.VarChar(255)
   content       String?       @db.Text
   author_name   String?       @db.VarChar(200) // For guest reviews
-  status        review_status @default(pending)
+  status        String        @default("pending") @db.Text
   is_verified   Boolean       @default(false) // Verified purchase
   helpful_count Int           @default(0)
   created_at    DateTime      @default(now())
@@ -635,13 +575,6 @@ model review_images {
   review product_reviews @relation(fields: [review_id], references: [id], onDelete: Cascade)
 
   @@index([review_id], map: "idx_ri_review")
-}
-
-enum review_status {
-  pending
-  approved
-  rejected
-  hidden
 }
 
 // ==================== SHIPPING METHODS ====================
@@ -726,7 +659,7 @@ model conversations {
   user_id     BigInt?
   guest_name  String?             @db.VarChar(200) // For guest users
   guest_email String?             @db.VarChar(255)
-  status      conversation_status @default(waiting)
+  status      String              @default("waiting") @db.Text
   assigned_to BigInt? // Admin/Staff handling this
   created_at  DateTime            @default(now())
   updated_at  DateTime?           @updatedAt
@@ -740,16 +673,10 @@ model conversations {
   @@index([assigned_to], map: "idx_conv_assigned")
 }
 
-enum conversation_status {
-  waiting // Waiting for admin
-  active // Admin is chatting
-  closed // Conversation ended
-}
-
 model chat_messages {
   id              BigInt      @id @default(autoincrement())
   conversation_id BigInt
-  sender_type     sender_type @default(user)
+  sender_type     String      @default("user") @db.Text
   sender_id       BigInt? // user_id or admin_id
   content         String      @db.Text
   is_read         Boolean     @default(false)
@@ -759,12 +686,6 @@ model chat_messages {
 
   @@index([conversation_id], map: "idx_msg_conv")
   @@index([sender_id], map: "idx_msg_sender")
-}
-
-enum sender_type {
-  user
-  admin
-  system
 }
 
 // ==================== PERSONALIZATION ====================

@@ -6,7 +6,7 @@ import ProductCard from '../components/common/ProductCard';
 import Pagination from '../components/common/Pagination';
 import { useShop } from '../hooks/useShop';
 import { Category } from '../types';
-import { categoriesAPI } from '../services/api';
+import { categoriesAPI, toMediaUrl } from '../services/api';
 
 import { bannersAPI } from '../services/api';
 import { Banner } from '../types';
@@ -88,7 +88,7 @@ export default function ShopPage() {
         <div className="mb-8 relative group">
           <div className="aspect-[21/9] md:aspect-[4/1] w-full relative overflow-hidden">
             <img 
-              src={banner.image_url} 
+              src={toMediaUrl(banner.image_url)} 
               alt={banner.title} 
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />

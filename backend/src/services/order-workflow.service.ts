@@ -1,4 +1,4 @@
-import type { orders, order_items, payments, payments_status, Prisma, shipments } from '@prisma/client';
+import type { orders, order_items, payments, Prisma, shipments } from '@prisma/client';
 import { ApiError } from '../middlewares/error.middleware.js';
 
 type WorkflowActor = {
@@ -134,7 +134,7 @@ export const transitionOrderStatus = async (
     await tx.payments.updateMany({
       where: { order_id: orderId },
       data: {
-        status: 'paid' satisfies payments_status,
+        status: 'paid',
         paid_at: new Date()
       }
     });
@@ -151,7 +151,7 @@ export const transitionOrderStatus = async (
           status: 'pending'
         },
         data: {
-          status: 'paid' satisfies payments_status,
+          status: 'paid',
           paid_at: new Date()
         }
       });
@@ -163,7 +163,7 @@ export const transitionOrderStatus = async (
         status: 'paid'
       },
       data: {
-        status: 'refunded' satisfies payments_status
+        status: 'refunded'
       }
     });
   }

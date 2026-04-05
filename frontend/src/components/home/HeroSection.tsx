@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Banner } from '../../types';
+import { toMediaUrl } from '../../services/api';
 
 interface HeroSectionProps {
   banner: Banner | null;
@@ -12,8 +13,8 @@ export default function HeroSection({ banner }: HeroSectionProps) {
   
   // Get all images: banner_images (sorted) or fallback to main image_url
   const images = banner?.banner_images?.length 
-    ? banner.banner_images.map(bi => bi.image_url)
-    : (banner?.image_url ? [banner.image_url] : []);
+    ? banner.banner_images.map((bi) => toMediaUrl(bi.image_url))
+    : (banner?.image_url ? [toMediaUrl(banner.image_url)] : []);
     
   useEffect(() => {
     if (images.length <= 1) return;

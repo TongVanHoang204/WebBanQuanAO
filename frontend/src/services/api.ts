@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 const ABSOLUTE_URL_PATTERN = /^https?:\/\//i;
+const LEGACY_MEDIA_HOST_PATTERN = /^https?:\/\/(?:localhost|127\.0\.0\.1|0\.0\.0\.0|10\.0\.2\.2)(?::\d+)?/i;
 
 const stripTrailingSlash = (value: string): string => value.replace(/\/+$/, '');
 const isAbsoluteUrl = (value: string): boolean => ABSOLUTE_URL_PATTERN.test(value);
@@ -44,7 +45,21 @@ export const toMediaUrl = (path?: string | null): string => {
     return '';
   }
 
-  if (isAbsoluteUrl(path) || path.startsWith('data:')) {
+  if (path.startsWith('data:')) {
+    return path;
+  }
+
+  if (isAbsoluteUrl(path)) {
+    if (LEGACY_MEDIA_HOST_PATTERN.test(path)) {
+      try {
+        const parsed = new URL(path);
+        const apiOrigin = getApiOrigin();
+        return apiOrigin ? `${apiOrigin}${parsed.pathname}${parsed.search}` : `${parsed.pathname}${parsed.search}`;
+      } catch {
+        return path;
+      }
+    }
+
     return path;
   }
 

@@ -9,7 +9,7 @@ import {
   Tag
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { brandsAPI, uploadAPI } from '../../../services/api';
+import { brandsAPI, toMediaUrl, uploadAPI } from '../../../services/api';
 
 interface BrandForm {
   name: string;
@@ -175,7 +175,7 @@ export default function BrandDetailPage() {
           <div className="flex items-center gap-4">
             {form.logo ? (
               <img
-                src={form.logo}
+                src={toMediaUrl(form.logo)}
                 alt="Logo"
                 className="w-20 h-20 rounded-xl object-contain bg-secondary-100 dark:bg-secondary-700"
               />
