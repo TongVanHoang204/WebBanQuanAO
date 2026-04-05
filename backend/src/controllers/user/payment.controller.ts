@@ -38,7 +38,13 @@ export const createPaymentUrl = async (req: AuthRequest, res: Response, next: Ne
         const ipAddr = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
         // Fetch Settings
-        const settings = await prisma.$queryRaw<any[]>`SELECT * FROM settings WHERE \`key\` IN ('payment_vnpay_tmn_code', 'payment_vnpay_hash_secret', 'payment_vnpay_url')`;
+        const settings = await prisma.settings.findMany({
+            where: {
+                key: {
+                    in: ['payment_vnpay_tmn_code', 'payment_vnpay_hash_secret', 'payment_vnpay_url']
+                }
+            }
+        });
         const config: any = {};
         settings.forEach(s => config[s.key] = s.value);
 
@@ -129,7 +135,9 @@ export const vnpayReturn = async (req: AuthRequest, res: Response, next: NextFun
         vnp_Params = sortObject(vnp_Params);
 
         // Fetch Hash Secret
-        const settings = await prisma.$queryRaw<any[]>`SELECT * FROM settings WHERE \`key\` = 'payment_vnpay_hash_secret'`;
+        const settings = await prisma.settings.findMany({
+            where: { key: 'payment_vnpay_hash_secret' }
+        });
         const vnp_HashSecret = settings.length > 0 ? settings[0].value : '';
 
         if (!vnp_HashSecret) {
@@ -229,7 +237,9 @@ export const vnpayIpn = async (req: AuthRequest, res: Response, next: NextFuncti
         vnp_Params = sortObject(vnp_Params);
         
         // Fetch Hash Secret
-        const settings = await prisma.$queryRaw<any[]>`SELECT * FROM settings WHERE \`key\` = 'payment_vnpay_hash_secret'`;
+        const settings = await prisma.settings.findMany({
+            where: { key: 'payment_vnpay_hash_secret' }
+        });
         const vnp_HashSecret = settings.length > 0 ? settings[0].value : '';
 
         if (!vnp_HashSecret) {

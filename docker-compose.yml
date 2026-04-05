@@ -1,24 +1,4 @@
 services:
-  db:
-    image: mariadb:10.5
-    container_name: shopfeshen-db
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-shopfeshen_root}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-fashion_store}
-    ports:
-      - "3307:3306"
-    volumes:
-      - db_data:/var/lib/mysql
-      - ./fashion_store.sql:/docker-entrypoint-initdb.d/01-fashion_store.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$$MYSQL_ROOT_PASSWORD --silent"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-    networks:
-      - app-network
-
   backend:
     image: shopfeshen-backend-deploy:local
     build: ./backend
@@ -29,14 +9,10 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      DATABASE_URL: mysql://root:${MYSQL_ROOT_PASSWORD:-shopfeshen_root}@db:3306/${MYSQL_DATABASE:-fashion_store}
       PORT: ${PORT:-4000}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8082}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:8082,http://localhost}
       ENABLE_AI_ROUTES: ${ENABLE_AI_ROUTES:-false}
-    depends_on:
-      db:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 15s
@@ -60,11 +36,6 @@ services:
         condition: service_healthy
     networks:
       - app-network
-
-volumes:
-  db_data:
-    name: shopfeshen_db_data_deploy
-
 
 networks:
   app-network:

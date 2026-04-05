@@ -35,9 +35,12 @@ export const maintenanceMiddleware = async (
   }
 
   try {
-    const settings = await prisma.$queryRaw<any[]>`SELECT value FROM settings WHERE \`key\` = 'maintenance_mode'`;
-    
-    if (settings && settings.length > 0 && settings[0].value === 'true') {
+    const maintenanceSetting = await prisma.settings.findUnique({
+      where: { key: 'maintenance_mode' },
+      select: { value: true }
+    });
+
+    if (maintenanceSetting?.value === 'true') {
       return res.status(503).json({
         success: false,
         error: {

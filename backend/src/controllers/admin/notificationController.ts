@@ -116,10 +116,10 @@ export const getNotifications = async (req: AuthRequest, res: Response) => {
     const categoryCondition = getCategoryCondition(typeof category === 'string' ? category : undefined);
     const searchValue = typeof search === 'string' ? search.trim() : '';
     const searchCondition = searchValue
-      ? Prisma.sql`AND (title LIKE ${`%${searchValue}%`} OR message LIKE ${`%${searchValue}%`})`
+      ? Prisma.sql`AND (title ILIKE ${`%${searchValue}%`} OR message ILIKE ${`%${searchValue}%`})`
       : Prisma.empty;
     const recentCondition = Number.isFinite(recentHours) && recentHours > 0
-      ? Prisma.sql`AND created_at >= DATE_SUB(NOW(), INTERVAL ${Math.floor(recentHours)} HOUR)`
+      ? Prisma.sql`AND created_at >= NOW() - ${Math.floor(recentHours)} * INTERVAL '1 hour'`
       : Prisma.empty;
 
     const notifications = await prisma.$queryRaw<NotificationData[]>`

@@ -606,17 +606,17 @@ export const getDashboardStats = async (
     const range = req.query.range as string || '7days';
     
     let dateFilter = '';
-    let groupFormat = '%Y-%m-%d';
+    let groupFormat = 'YYYY-MM-DD';
     
     if (range === '7days') {
-      dateFilter = `AND orders.created_at >= DATE_SUB(Now(), INTERVAL 7 DAY)`;
+      dateFilter = `AND orders.created_at >= NOW() - INTERVAL '7 days'`;
     } else if (range === '30days') {
-      dateFilter = `AND orders.created_at >= DATE_SUB(Now(), INTERVAL 30 DAY)`;
+      dateFilter = `AND orders.created_at >= NOW() - INTERVAL '30 days'`;
     } else if (range === 'this_month') {
-      dateFilter = `AND MONTH(orders.created_at) = MONTH(Now()) AND YEAR(orders.created_at) = YEAR(Now())`;
+      dateFilter = `AND DATE_TRUNC('month', orders.created_at) = DATE_TRUNC('month', NOW())`;
     } else if (range === 'this_year') {
-      dateFilter = `AND YEAR(orders.created_at) = YEAR(Now())`;
-      groupFormat = '%Y-%m';
+      dateFilter = `AND DATE_TRUNC('year', orders.created_at) = DATE_TRUNC('year', NOW())`;
+      groupFormat = 'YYYY-MM';
     }
 
     const [
@@ -653,20 +653,20 @@ export const getDashboardStats = async (
       `),
       // sales over time
       prisma.$queryRawUnsafe(`
-        SELECT DATE_FORMAT(created_at, '${groupFormat}') as date, SUM(grand_total) as total
+        SELECT TO_CHAR(created_at, '${groupFormat}') as date, SUM(grand_total) as total
         FROM orders
         WHERE status IN ('paid', 'completed')
         ${dateFilter}
-        GROUP BY DATE_FORMAT(created_at, '${groupFormat}')
+        GROUP BY TO_CHAR(created_at, '${groupFormat}')
         ORDER BY date ASC
       `),
       // orders this week equivalent
       prisma.$queryRawUnsafe(`
-        SELECT DATE_FORMAT(created_at, '%Y-%m-%d') as day, COUNT(*) as count
+        SELECT TO_CHAR(created_at, 'YYYY-MM-DD') as day, COUNT(*) as count
         FROM orders
         WHERE status IN ('paid', 'completed', 'pending', 'processing', 'shipped')
         ${dateFilter}
-        GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+        GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD')
         ORDER BY day ASC
       `)
     ]);
@@ -1481,23 +1481,23 @@ export const getAnalytics = async (
     // Note: SQLite/Postgres/MySQL differences exist. Prisma groupBy is safer but doesn't support date truncation easily without raw query.
     // Using simple Raw Query for best performance on date grouping.
     const revenueOverTime: any[] = await prisma.$queryRaw`
-        SELECT DATE_FORMAT(created_at, '%Y-%m-%d') as date, 
+        SELECT TO_CHAR(created_at, 'YYYY-MM-DD') as date, 
                SUM(grand_total) as revenue, 
                COUNT(id) as orders
         FROM orders
         WHERE created_at >= ${start} AND created_at <= ${end}
         AND status IN ('paid', 'completed')
-        GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+        GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD')
         ORDER BY date ASC
     `;
 
     const customerRegistrationsOverTime: any[] = await prisma.$queryRaw`
-        SELECT DATE_FORMAT(created_at, '%Y-%m-%d') as date,
+        SELECT TO_CHAR(created_at, 'YYYY-MM-DD') as date,
                COUNT(id) as customers
         FROM users
         WHERE created_at >= ${start} AND created_at <= ${end}
         AND role = 'customer'
-        GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+        GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD')
         ORDER BY date ASC
     `;
 

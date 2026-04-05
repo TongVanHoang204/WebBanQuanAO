@@ -685,11 +685,11 @@ export const rollbackLog = async (req: AuthRequest, res: Response, next: NextFun
         }
         await prisma.$transaction(
           settingEntries.map(([key, value]) =>
-            prisma.$executeRaw`
-              INSERT INTO settings (\`key\`, value, updated_at)
-              VALUES (${key}, ${String(value ?? '')}, NOW())
-              ON DUPLICATE KEY UPDATE value = ${String(value ?? '')}, updated_at = NOW()
-            `
+            prisma.settings.upsert({
+              where: { key },
+              update: { value: String(value ?? '') },
+              create: { key, value: String(value ?? '') }
+            })
           )
         );
         result = settingsToRestore;

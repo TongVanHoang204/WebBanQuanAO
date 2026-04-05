@@ -32,20 +32,20 @@ async function main() {
 
   // Check query logic
   const revenueStats = await prisma.$queryRaw`
-    SELECT DATE_FORMAT(created_at, '%Y-%m-%d') as date, SUM(grand_total) as total
+    SELECT TO_CHAR(created_at, 'YYYY-MM-DD') as date, SUM(grand_total) as total
     FROM orders
     WHERE status IN ('paid', 'completed')
-    AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-    GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+    AND created_at >= NOW() - INTERVAL '30 days'
+    GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD')
     ORDER BY date ASC
   `;
   console.log('Revenue Stats (Raw Query Result):', revenueStats);
 
   const weeklyStats = await prisma.$queryRaw`
-    SELECT DATE_FORMAT(created_at, '%a') as day, COUNT(*) as count
+    SELECT TO_CHAR(created_at, 'Dy') as day, COUNT(*) as count
     FROM orders
-    WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-    GROUP BY day, DATE(created_at)
+    WHERE created_at >= NOW() - INTERVAL '7 days'
+    GROUP BY TO_CHAR(created_at, 'Dy'), DATE(created_at)
     ORDER BY DATE(created_at) ASC
   `;
   console.log('Weekly Stats (Raw Query Result):', weeklyStats);

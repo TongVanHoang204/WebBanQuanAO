@@ -6,7 +6,7 @@ Hệ thống thương mại điện tử thời trang với React, Node.js, Pris
 
 ### Yêu cầu
 - Node.js 18+
-- MySQL/MariaDB
+- PostgreSQL (Supabase recommended)
 - (Optional) Ollama với model gemini-3-flash-preview:cloud cho AI chatbot và tích hợp tính năng
 
 ### Cài đặt
@@ -30,9 +30,11 @@ cp backend/.env.example backend/.env
 # Chỉnh sửa DATABASE_URL và JWT_SECRET
 ```
 
-3. **Import database:**
+3. **Prepare database schema:**
 ```bash
-mysql -u root -p fashion_store < fashion_store.sql
+cd backend
+npx prisma migrate deploy
+node dist/prisma/seed_permissions.js
 ```
 
 4. **Chạy ứng dụng:**
@@ -132,7 +134,7 @@ ShopFeshen/
 
 - **Frontend:** React 18, TypeScript, Tailwind CSS, Vite, React Router, Lucide Icons
 - **Backend:** Node.js, Express, TypeScript, Prisma ORM
-- **Database:** MySQL / MariaDB
+- **Database:** PostgreSQL / Supabase
 - **AI / ML:** Ollama (gemini-3-flash-preview:cloud / Mistral) phân tích hình ảnh và NLP
 - **Xử lý Ảnh:** `sharp` (dành cho thuật toán tìm kiếm dự phòng và tương tác hình ảnh)
 - **Triển khai (Deployment):** Docker, Docker Compose, Nginx

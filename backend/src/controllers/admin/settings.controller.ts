@@ -78,8 +78,7 @@ export const getSettings = async (
   next: NextFunction
 ) => {
   try {
-    // Use raw query because Prisma Client might not be regenerated yet
-    const settings = await prisma.$queryRaw<any[]>`SELECT * FROM settings`;
+    const settings = await prisma.settings.findMany();
     
     // Convert array to object and merge with defaults
     const settingsObj: { [key: string]: string } = { ...DEFAULT_SETTINGS };
@@ -106,7 +105,7 @@ export const updateSettings = async (
     const updates = req.body;
     const allowedKeys = Object.keys(DEFAULT_SETTINGS);
     const results: { [key: string]: string } = {};
-    const currentRows = await prisma.$queryRaw<any[]>`SELECT * FROM settings`;
+    const currentRows = await prisma.settings.findMany();
     const currentSettings: Record<string, string> = { ...DEFAULT_SETTINGS };
     currentRows.forEach((row) => {
       currentSettings[row.key] = row.value;
@@ -114,12 +113,11 @@ export const updateSettings = async (
 
     for (const [key, value] of Object.entries(updates)) {
       if (allowedKeys.includes(key) && typeof value === 'string') {
-        // Use raw query for upsert
-        await prisma.$executeRaw`
-          INSERT INTO settings (\`key\`, value, updated_at) 
-          VALUES (${key}, ${value}, NOW()) 
-          ON DUPLICATE KEY UPDATE value = ${value}, updated_at = NOW()
-        `;
+        await prisma.settings.upsert({
+          where: { key },
+          update: { value },
+          create: { key, value }
+        });
         results[key] = value;
       }
     }
@@ -181,15 +179,17 @@ export const uploadLogo = async (
     }
 
     const logoUrl = `/uploads/${req.file.filename}`;
-    const existingLogoRows = await prisma.$queryRaw<any[]>`SELECT value FROM settings WHERE \`key\` = 'store_logo' LIMIT 1`;
-    const previousLogo = existingLogoRows[0]?.value || '';
-    
-    // Use raw query
-    await prisma.$executeRaw`
-      INSERT INTO settings (\`key\`, value, updated_at) 
-      VALUES ('store_logo', ${logoUrl}, NOW()) 
-      ON DUPLICATE KEY UPDATE value = ${logoUrl}, updated_at = NOW()
-    `;
+    const existingLogo = await prisma.settings.findUnique({
+      where: { key: 'store_logo' },
+      select: { value: true }
+    });
+    const previousLogo = existingLogo?.value || '';
+
+    await prisma.settings.upsert({
+      where: { key: 'store_logo' },
+      update: { value: logoUrl },
+      create: { key: 'store_logo', value: logoUrl }
+    });
 
     await logActivity({
       user_id: BigInt(req.user?.id || 0),
@@ -221,7 +221,7 @@ export const getPublicSettings = async (
   next: NextFunction
 ) => {
   try {
-    const settings = await prisma.$queryRaw<any[]>`SELECT * FROM settings`;
+    const settings = await prisma.settings.findMany();
     
     const settingsObj: { [key: string]: string } = { ...DEFAULT_SETTINGS };
     settings.forEach(s => {

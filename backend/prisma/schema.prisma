@@ -7,14 +7,15 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ==================== USERS & AUTH ====================
 
 model users {
-  id            BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  id            BigInt       @id @default(autoincrement())
   username      String       @unique @db.VarChar(50)
   email         String       @unique @db.VarChar(255)
   password_hash String?      @db.VarChar(255)
@@ -26,7 +27,7 @@ model users {
   status        users_status @default(active)
 
   // 2FA Fields
-  two_factor_enabled Boolean   @default(false) @db.TinyInt
+  two_factor_enabled Boolean   @default(false)
   two_factor_otp     String?   @db.VarChar(10)
   two_factor_expires DateTime?
 
@@ -67,8 +68,8 @@ enum users_status {
 // ==================== SHIPPING ADDRESSES ====================
 
 model shipping_addresses {
-  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
-  user_id       BigInt    @db.UnsignedBigInt
+  id            BigInt    @id @default(autoincrement())
+  user_id       BigInt
   full_name     String    @db.VarChar(200)
   phone         String    @db.VarChar(30)
   address_line1 String    @db.VarChar(255)
@@ -77,7 +78,7 @@ model shipping_addresses {
   province      String    @db.VarChar(120)
   country       String    @default("VN") @db.VarChar(50)
   postal_code   String?   @db.VarChar(20)
-  is_default    Boolean   @default(false) @db.TinyInt
+  is_default    Boolean   @default(false)
   type          String    @default("Nhà riêng") @db.VarChar(50) // Nhà riêng, Văn phòng
   created_at    DateTime  @default(now())
   updated_at    DateTime? @updatedAt
@@ -90,11 +91,11 @@ model shipping_addresses {
 // ==================== CATEGORIES ====================
 
 model categories {
-  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
-  parent_id  BigInt?   @db.UnsignedBigInt
+  id         BigInt    @id @default(autoincrement())
+  parent_id  BigInt?
   name       String    @db.VarChar(200)
   slug       String    @unique @db.VarChar(220)
-  is_active  Boolean   @default(true) @db.TinyInt
+  is_active  Boolean   @default(true)
   sort_order Int       @default(0)
   created_at DateTime  @default(now())
   updated_at DateTime? @updatedAt
@@ -110,16 +111,16 @@ model categories {
 // ==================== PRODUCTS ====================
 
 model products {
-  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
-  category_id      BigInt?   @db.UnsignedBigInt
+  id               BigInt    @id @default(autoincrement())
+  category_id      BigInt?
   sku              String    @unique @db.VarChar(80)
   size             String?   @db.VarChar(50)
   name             String    @db.VarChar(255)
   slug             String    @unique @db.VarChar(270)
-  description      String?   @db.LongText
+  description      String?   @db.Text
   base_price       Decimal   @default(0.00) @db.Decimal(12, 2)
   compare_at_price Decimal?  @db.Decimal(12, 2)
-  is_active        Boolean   @default(true) @db.TinyInt
+  is_active        Boolean   @default(true)
   created_at       DateTime  @default(now())
   updated_at       DateTime? @updatedAt
 
@@ -142,7 +143,7 @@ model products {
   tax_rate   Decimal? @default(0.00) @db.Decimal(5, 2)
 
   // Organization
-  brand_id BigInt? @db.UnsignedBigInt
+  brand_id BigInt?
   tags     String? @db.Text // JSON or comma separated
 
   product_variants    product_variants[]
@@ -159,8 +160,8 @@ model products {
 }
 
 model product_variants {
-  id               BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  product_id       BigInt   @db.UnsignedBigInt
+  id               BigInt   @id @default(autoincrement())
+  product_id       BigInt
   variant_sku      String   @unique @db.VarChar(120)
   price            Decimal  @default(0.00) @db.Decimal(12, 2)
   compare_at_price Decimal? @db.Decimal(12, 2)
@@ -176,7 +177,7 @@ model product_variants {
   // Media
   image_url String? @db.VarChar(1000)
 
-  is_active  Boolean   @default(true) @db.TinyInt
+  is_active  Boolean   @default(true)
   created_at DateTime  @default(now())
   updated_at DateTime? @updatedAt
 
@@ -191,12 +192,12 @@ model product_variants {
 }
 
 model product_images {
-  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  product_id BigInt   @db.UnsignedBigInt
-  variant_id BigInt?  @db.UnsignedBigInt // Optional link to specific variant (e.g. Color Red)
+  id         BigInt   @id @default(autoincrement())
+  product_id BigInt
+  variant_id BigInt? // Optional link to specific variant (e.g. Color Red)
   url        String   @db.VarChar(1000)
   alt_text   String?  @db.VarChar(255)
-  is_primary Boolean  @default(false) @db.TinyInt
+  is_primary Boolean  @default(false)
   sort_order Int      @default(0)
   created_at DateTime @default(now())
 
@@ -208,9 +209,9 @@ model product_images {
 }
 
 model product_attributes {
-  product_id      BigInt   @db.UnsignedBigInt
-  option_id       BigInt   @db.UnsignedBigInt
-  option_value_id BigInt   @db.UnsignedBigInt
+  product_id      BigInt
+  option_id       BigInt
+  option_value_id BigInt
   created_at      DateTime @default(now())
 
   product      products      @relation(fields: [product_id], references: [id], onDelete: Cascade)
@@ -225,12 +226,12 @@ model product_attributes {
 // ==================== BRANDS & COLLECTIONS ====================
 
 model brands {
-  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id          BigInt    @id @default(autoincrement())
   name        String    @db.VarChar(200)
   slug        String    @unique @db.VarChar(220)
   logo        String?   @db.VarChar(1000)
   description String?   @db.Text
-  is_active   Boolean   @default(true) @db.TinyInt
+  is_active   Boolean   @default(true)
   created_at  DateTime  @default(now())
   updated_at  DateTime? @updatedAt
 
@@ -238,13 +239,13 @@ model brands {
 }
 
 model collections {
-  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id          BigInt    @id @default(autoincrement())
   name        String    @db.VarChar(200)
   slug        String    @unique @db.VarChar(220)
   image       String?   @db.VarChar(1000)
   description String?   @db.Text
-  is_active   Boolean   @default(true) @db.TinyInt
-  is_featured Boolean   @default(false) @db.TinyInt
+  is_active   Boolean   @default(true)
+  is_featured Boolean   @default(false)
   featured_sort_order Int @default(0)
   created_at  DateTime  @default(now())
   updated_at  DateTime? @updatedAt
@@ -253,8 +254,8 @@ model collections {
 }
 
 model product_collections {
-  product_id    BigInt @db.UnsignedBigInt
-  collection_id BigInt @db.UnsignedBigInt
+  product_id    BigInt
+  collection_id BigInt
 
   product    products    @relation(fields: [product_id], references: [id], onDelete: Cascade)
   collection collections @relation(fields: [collection_id], references: [id], onDelete: Cascade)
@@ -266,7 +267,7 @@ model product_collections {
 // ==================== OPTIONS (Color, Size, etc.) ====================
 
 model options {
-  id   BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  id   BigInt @id @default(autoincrement())
   name String @db.VarChar(100)
   code String @unique @db.VarChar(50)
 
@@ -276,8 +277,8 @@ model options {
 }
 
 model option_values {
-  id         BigInt @id @default(autoincrement()) @db.UnsignedBigInt
-  option_id  BigInt @db.UnsignedBigInt
+  id         BigInt @id @default(autoincrement())
+  option_id  BigInt
   value      String @db.VarChar(100)
   sort_order Int    @default(0)
 
@@ -290,8 +291,8 @@ model option_values {
 }
 
 model variant_option_values {
-  variant_id      BigInt @db.UnsignedBigInt
-  option_value_id BigInt @db.UnsignedBigInt
+  variant_id      BigInt
+  option_value_id BigInt
 
   variant      product_variants @relation(fields: [variant_id], references: [id], onDelete: Cascade)
   option_value option_values    @relation(fields: [option_value_id], references: [id], onDelete: Cascade)
@@ -301,9 +302,9 @@ model variant_option_values {
 }
 
 model category_options {
-  category_id BigInt  @db.UnsignedBigInt
-  option_id   BigInt  @db.UnsignedBigInt
-  is_required Boolean @default(false) @db.TinyInt
+  category_id BigInt
+  option_id   BigInt
+  is_required Boolean @default(false)
   sort_order  Int     @default(0)
 
   category categories @relation(fields: [category_id], references: [id], onDelete: Cascade)
@@ -316,8 +317,8 @@ model category_options {
 // ==================== CART ====================
 
 model carts {
-  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
-  user_id    BigInt?   @db.UnsignedBigInt
+  id         BigInt    @id @default(autoincrement())
+  user_id    BigInt?
   session_id String?   @db.VarChar(128)
   created_at DateTime  @default(now())
   updated_at DateTime? @updatedAt
@@ -330,9 +331,9 @@ model carts {
 }
 
 model cart_items {
-  id           BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  cart_id      BigInt   @db.UnsignedBigInt
-  variant_id   BigInt   @db.UnsignedBigInt
+  id           BigInt   @id @default(autoincrement())
+  cart_id      BigInt
+  variant_id   BigInt
   qty          Int
   price_at_add Decimal  @db.Decimal(12, 2)
   created_at   DateTime @default(now())
@@ -348,9 +349,9 @@ model cart_items {
 // ==================== ORDERS ====================
 
 model orders {
-  id                 BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  id                 BigInt        @id @default(autoincrement())
   order_code         String        @unique @db.VarChar(30)
-  user_id            BigInt?       @db.UnsignedBigInt
+  user_id            BigInt?
   status             orders_status @default(pending)
   subtotal           Decimal       @default(0.00) @db.Decimal(12, 2)
   discount_total     Decimal       @default(0.00) @db.Decimal(12, 2)
@@ -391,10 +392,10 @@ enum orders_status {
 }
 
 model order_items {
-  id           BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
-  order_id     BigInt  @db.UnsignedBigInt
-  product_id   BigInt  @db.UnsignedBigInt
-  variant_id   BigInt  @db.UnsignedBigInt
+  id           BigInt  @id @default(autoincrement())
+  order_id     BigInt
+  product_id   BigInt
+  variant_id   BigInt
   sku          String  @db.VarChar(120)
   name         String  @db.VarChar(255)
   options_text String? @db.VarChar(255)
@@ -414,8 +415,8 @@ model order_items {
 // ==================== PAYMENTS ====================
 
 model payments {
-  id              BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
-  order_id        BigInt          @db.UnsignedBigInt
+  id              BigInt          @id @default(autoincrement())
+  order_id        BigInt
   method          payments_method
   status          payments_status @default(pending)
   amount          Decimal         @db.Decimal(12, 2)
@@ -448,8 +449,8 @@ enum payments_status {
 // ==================== SHIPMENTS ====================
 
 model shipments {
-  id            BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
-  order_id      BigInt           @unique @db.UnsignedBigInt
+  id            BigInt           @id @default(autoincrement())
+  order_id      BigInt           @unique
   carrier       String?          @db.VarChar(100)
   tracking_code String?          @db.VarChar(120)
   status        shipments_status @default(pending)
@@ -471,7 +472,7 @@ enum shipments_status {
 // ==================== COUPONS ====================
 
 model coupons {
-  id             BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  id             BigInt       @id @default(autoincrement())
   code           String       @unique @db.VarChar(50)
   type           coupons_type
   value          Decimal      @db.Decimal(12, 2)
@@ -481,7 +482,7 @@ model coupons {
   end_at         DateTime?
   usage_limit    Int?
   usage_per_user Int?
-  is_active      Boolean      @default(true) @db.TinyInt
+  is_active      Boolean      @default(true)
   created_at     DateTime     @default(now())
 
   coupon_redemptions coupon_redemptions[]
@@ -493,10 +494,10 @@ enum coupons_type {
 }
 
 model coupon_redemptions {
-  id              BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  coupon_id       BigInt   @db.UnsignedBigInt
-  user_id         BigInt?  @db.UnsignedBigInt
-  order_id        BigInt   @db.UnsignedBigInt
+  id              BigInt   @id @default(autoincrement())
+  coupon_id       BigInt
+  user_id         BigInt?
+  order_id        BigInt
   discount_amount Decimal  @db.Decimal(12, 2)
   created_at      DateTime @default(now())
 
@@ -512,8 +513,8 @@ model coupon_redemptions {
 // ==================== INVENTORY ====================
 
 model inventory_movements {
-  id         BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
-  variant_id BigInt                   @db.UnsignedBigInt
+  id         BigInt                   @id @default(autoincrement())
+  variant_id BigInt
   type       inventory_movements_type
   qty        Int
   note       String?                  @db.VarChar(255)
@@ -533,8 +534,8 @@ enum inventory_movements_type {
 // ==================== WISHLISTS ====================
 
 model wishlists {
-  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  user_id    BigInt   @unique @db.UnsignedBigInt
+  id         BigInt   @id @default(autoincrement())
+  user_id    BigInt   @unique
   created_at DateTime @default(now())
 
   user           users            @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -542,9 +543,9 @@ model wishlists {
 }
 
 model wishlist_items {
-  id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  wishlist_id BigInt   @db.UnsignedBigInt
-  product_id  BigInt   @db.UnsignedBigInt
+  id          BigInt   @id @default(autoincrement())
+  wishlist_id BigInt
+  product_id  BigInt
   created_at  DateTime @default(now())
 
   wishlist wishlists @relation(fields: [wishlist_id], references: [id], onDelete: Cascade)
@@ -565,13 +566,13 @@ model settings {
 // ==================== NOTIFICATIONS ====================
 
 model notifications {
-  id         BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
-  user_id    BigInt?            @db.UnsignedBigInt
+  id         BigInt             @id @default(autoincrement())
+  user_id    BigInt?
   type       notifications_type
   title      String             @db.VarChar(255)
   message    String             @db.VarChar(500)
   link       String?            @db.VarChar(255) // Admin route to navigate to
-  is_read    Boolean            @default(false) @db.TinyInt
+  is_read    Boolean            @default(false)
   created_at DateTime           @default(now())
 
   user users? @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -603,15 +604,15 @@ model permissions {
 // ==================== PRODUCT REVIEWS ====================
 
 model product_reviews {
-  id            BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
-  product_id    BigInt        @db.UnsignedBigInt
-  user_id       BigInt?       @db.UnsignedBigInt
-  rating        Int           @default(5) @db.TinyInt // 1-5 stars
+  id            BigInt        @id @default(autoincrement())
+  product_id    BigInt
+  user_id       BigInt?
+  rating        Int           @default(5) // 1-5 stars
   title         String?       @db.VarChar(255)
   content       String?       @db.Text
   author_name   String?       @db.VarChar(200) // For guest reviews
   status        review_status @default(pending)
-  is_verified   Boolean       @default(false) @db.TinyInt // Verified purchase
+  is_verified   Boolean       @default(false) // Verified purchase
   helpful_count Int           @default(0)
   created_at    DateTime      @default(now())
   updated_at    DateTime?     @updatedAt
@@ -626,8 +627,8 @@ model product_reviews {
 }
 
 model review_images {
-  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  review_id  BigInt   @db.UnsignedBigInt
+  id         BigInt   @id @default(autoincrement())
+  review_id  BigInt
   image_url  String   @db.VarChar(1000)
   created_at DateTime @default(now())
 
@@ -646,7 +647,7 @@ enum review_status {
 // ==================== SHIPPING METHODS ====================
 
 model shipping_methods {
-  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id          BigInt    @id @default(autoincrement())
   name        String    @db.VarChar(200)
   code        String    @unique @db.VarChar(50)
   description String?   @db.Text
@@ -655,7 +656,7 @@ model shipping_methods {
   min_days    Int       @default(1) // Estimated delivery min days
   max_days    Int       @default(3) // Estimated delivery max days
   provinces   String?   @db.Text // JSON array of supported provinces, null = all
-  is_active   Boolean   @default(true) @db.TinyInt
+  is_active   Boolean   @default(true)
   sort_order  Int       @default(0)
   created_at  DateTime  @default(now())
   updated_at  DateTime? @updatedAt
@@ -666,7 +667,7 @@ model shipping_methods {
 // ==================== BANNERS ====================
 
 model banners {
-  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  id          BigInt    @id @default(autoincrement())
   title       String    @db.VarChar(255)
   subtitle    String?   @db.VarChar(500)
   image_url   String    @db.VarChar(1000)
@@ -674,7 +675,7 @@ model banners {
   button_text String?   @db.VarChar(100)
   position    String    @default("home_hero") @db.VarChar(50) // home_hero, home_promo, category_top
   sort_order  Int       @default(0)
-  is_active   Boolean   @default(true) @db.TinyInt
+  is_active   Boolean   @default(true)
   start_date  DateTime? // Schedule start
   end_date    DateTime? // Schedule end
   created_at  DateTime  @default(now())
@@ -686,8 +687,8 @@ model banners {
 }
 
 model banner_images {
-  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  banner_id  BigInt   @db.UnsignedBigInt
+  id         BigInt   @id @default(autoincrement())
+  banner_id  BigInt
   image_url  String   @db.VarChar(1000)
   sort_order Int      @default(0)
   created_at DateTime @default(now())
@@ -700,15 +701,15 @@ model banner_images {
 // ==================== ACTIVITY LOGS ====================
 
 model activity_logs {
-  id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  user_id     BigInt?  @db.UnsignedBigInt
+  id          BigInt   @id @default(autoincrement())
+  user_id     BigInt?
   action      String   @db.VarChar(100) // create, update, delete, login, export
   entity_type String?  @db.VarChar(100) // product, order, user, system, auth
   entity_id   String?  @db.VarChar(100)
   details     String?  @db.Text // JSON details of change
   ip_address  String?  @db.VarChar(45)
   user_agent  String?  @db.VarChar(500)
-  created_at  DateTime @default(now()) @db.DateTime(3)
+  created_at  DateTime @default(now())
 
   user users? @relation(fields: [user_id], references: [id], onDelete: SetNull)
 
@@ -721,12 +722,12 @@ model activity_logs {
 // ==================== SUPPORT CHAT ====================
 
 model conversations {
-  id          BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
-  user_id     BigInt?             @db.UnsignedBigInt
+  id          BigInt              @id @default(autoincrement())
+  user_id     BigInt?
   guest_name  String?             @db.VarChar(200) // For guest users
   guest_email String?             @db.VarChar(255)
   status      conversation_status @default(waiting)
-  assigned_to BigInt?             @db.UnsignedBigInt // Admin/Staff handling this
+  assigned_to BigInt? // Admin/Staff handling this
   created_at  DateTime            @default(now())
   updated_at  DateTime?           @updatedAt
   closed_at   DateTime?
@@ -746,12 +747,12 @@ enum conversation_status {
 }
 
 model chat_messages {
-  id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
-  conversation_id BigInt      @db.UnsignedBigInt
+  id              BigInt      @id @default(autoincrement())
+  conversation_id BigInt
   sender_type     sender_type @default(user)
-  sender_id       BigInt?     @db.UnsignedBigInt // user_id or admin_id
+  sender_id       BigInt? // user_id or admin_id
   content         String      @db.Text
-  is_read         Boolean     @default(false) @db.TinyInt
+  is_read         Boolean     @default(false)
   created_at      DateTime    @default(now())
 
   conversation conversations @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
@@ -769,9 +770,9 @@ enum sender_type {
 // ==================== PERSONALIZATION ====================
 
 model user_views {
-  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  user_id    BigInt   @db.UnsignedBigInt
-  product_id BigInt   @db.UnsignedBigInt
+  id         BigInt   @id @default(autoincrement())
+  user_id    BigInt
+  product_id BigInt
   viewed_at  DateTime @default(now())
 
   user       users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -782,8 +783,8 @@ model user_views {
 }
 
 model user_profiles {
-  id               BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  user_id          BigInt   @unique @db.UnsignedBigInt
+  id               BigInt   @id @default(autoincrement())
+  user_id          BigInt   @unique
   gender           String?  @db.VarChar(50)
   height           Int?     // cm
   weight           Int?     // kg
@@ -791,3 +792,4 @@ model user_profiles {
   
   user             users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
+
