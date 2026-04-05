@@ -54,7 +54,9 @@ export { prisma };
 const app = express();
 const httpServer = http.createServer(app);
 const PORT = process.env.PORT || 4000;
-const enableAIRoutes = String(process.env.ENABLE_AI_ROUTES || '').toLowerCase() === 'true';
+import chatRoutesRouter from './routes/user/chat.routes.js';
+import aiRoutesRouter from './routes/user/ai.routes.js';
+const enableAIRoutes = true; // explicitly enable
 const createUnavailableRouter = (featureName) => {
     const fallbackRouter = express.Router();
     fallbackRouter.use((_req, res) => {
@@ -65,23 +67,17 @@ const createUnavailableRouter = (featureName) => {
     });
     return fallbackRouter;
 };
-const loadOptionalRoutes = async (importPath, featureName) => {
-    try {
-        const { default: routes } = await import(importPath);
-        logger.info(`${featureName} routes loaded successfully`);
-        return routes;
-    }
-    catch (error) {
-        logger.warn(`${featureName} routes disabled because optional dependencies failed to load`, { error });
-        return createUnavailableRouter(featureName);
-    }
-};
-const chatRoutes = enableAIRoutes
-    ? await loadOptionalRoutes('./routes/user/chat.routes.js', 'Chat')
-    : createUnavailableRouter('Chat');
-const aiRoutes = enableAIRoutes
-    ? await loadOptionalRoutes('./routes/user/ai.routes.js', 'AI')
-    : createUnavailableRouter('AI');
+let chatRoutes, aiRoutes;
+try {
+    chatRoutes = enableAIRoutes ? chatRoutesRouter : createUnavailableRouter('Chat');
+    aiRoutes = enableAIRoutes ? aiRoutesRouter : createUnavailableRouter('AI');
+    logger.info('AI/Chat routes loaded successfully');
+}
+catch (error) {
+    logger.warn('AI/Chat routes disabled because optional dependencies failed to load', { error });
+    chatRoutes = createUnavailableRouter('Chat');
+    aiRoutes = createUnavailableRouter('AI');
+}
 BigInt.prototype.toJSON = function () {
     const int = Number.parseInt(this.toString());
     return int ?? this.toString();

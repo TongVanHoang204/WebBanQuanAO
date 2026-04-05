@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { prisma } from '../../server.js';
+import { prisma } from '../../lib/prisma.js';
 import { ApiError } from '../../middlewares/error.middleware.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
 import { registerSchema, loginSchema } from '../../validators/auth.validator.js';

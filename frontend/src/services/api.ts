@@ -398,6 +398,40 @@ export const adminAPI = {
   createUser: (data: any) => api.post('/admin/users', data),
   updateUser: (id: string, data: any) => api.put(`/admin/users/${id}`, data),
   deleteUser: (id: string) => api.delete(`/admin/users/${id}`),
+
+  // Activity Logs
+  getLogs: (
+    params?: {
+      page?: number;
+      limit?: number;
+      action?: string;
+      entity_type?: string;
+      role?: string;
+      user_id?: string;
+      search?: string;
+      start_date?: string;
+      end_date?: string;
+    },
+    signal?: AbortSignal
+  ) => api.get('/admin/logs', { params, signal }),
+  getLogStats: () => api.get('/admin/logs/stats'),
+  exportLogsCsv: (params?: {
+    action?: string;
+    entity_type?: string;
+    role?: string;
+    user_id?: string;
+    search?: string;
+    start_date?: string;
+    end_date?: string;
+  }) =>
+    api.get('/admin/logs/export', {
+      params,
+      responseType: 'blob'
+    }),
+  deleteLogEntry: (id: string) => api.delete(`/admin/logs/${id}`),
+  bulkDeleteLogs: (ids: string[]) => api.post('/admin/logs/bulk-delete', { ids }),
+  deleteOldLogs: (days = 90) => api.post('/admin/logs/delete-old', { days }),
+  rollbackLog: (id: string) => api.post(`/admin/logs/${id}/rollback`),
   
   // Analytics
   getAnalytics: (params?: { startDate?: string; endDate?: string }) =>

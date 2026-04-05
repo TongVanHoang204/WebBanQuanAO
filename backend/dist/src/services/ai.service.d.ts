@@ -1,3 +1,6 @@
+export declare const ACTIVE_AI_PROVIDER: string;
+export declare const ACTIVE_AI_MODEL: string;
+export declare const ACTIVE_AI_VISION_MODEL: string;
 interface ChatMessage {
     role: 'system' | 'user' | 'assistant' | 'tool';
     content: string;

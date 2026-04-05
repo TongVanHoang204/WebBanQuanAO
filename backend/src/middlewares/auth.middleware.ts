@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../server.js';
+import { prisma } from '../lib/prisma.js';
 import { ApiError } from './error.middleware.js';
 import { getJwtSecret, getTokenFromRequest } from '../utils/auth-session.js';
 

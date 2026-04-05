@@ -39,7 +39,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { resolveApiUrl } from '../../../services/api';
+import { adminAPI } from '../../../services/api';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmModal from '../../../components/common/ConfirmModal';
 
@@ -151,6 +151,12 @@ const LogSkeleton = () => (
   </div>
 );
 
+const isRequestCanceled = (error: any) =>
+  error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError';
+
+const getErrorMessage = (error: any, fallback: string) =>
+  error?.response?.data?.error?.message || error?.response?.data?.message || fallback;
+
 export default function ActivityLogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialAction = searchParams.get('action') || '';
@@ -227,6 +233,40 @@ export default function ActivityLogPage() {
     return { startDate, endDate };
   }, [datePreset, dateFrom, dateTo]);
 
+  const buildLogParams = useCallback(
+    (includePagination = false) => {
+      const params: {
+        page?: number;
+        limit?: number;
+        action?: string;
+        entity_type?: string;
+        role?: string;
+        user_id?: string;
+        search?: string;
+        start_date?: string;
+        end_date?: string;
+      } = {};
+
+      if (actionFilter) params.action = actionFilter;
+      if (entityFilter) params.entity_type = entityFilter;
+      if (roleFilter) params.role = roleFilter;
+      if (userFilter) params.user_id = userFilter;
+      if (searchQuery) params.search = searchQuery;
+
+      if (includePagination) {
+        params.page = page;
+        params.limit = 20;
+      }
+
+      const { startDate, endDate } = getDateRange();
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+
+      return params;
+    },
+    [actionFilter, entityFilter, roleFilter, userFilter, searchQuery, page, getDateRange]
+  );
+
   const fetchLogs = useCallback(async () => {
     // Cancel previous request if still pending
     if (abortControllerRef.current) {
@@ -237,81 +277,46 @@ export default function ActivityLogPage() {
 
     try {
       setLoading(true);
-      const params: Record<string, string> = {};
-      if (actionFilter) params.action = actionFilter;
-      if (entityFilter) params.entity_type = entityFilter;
-      if (roleFilter) params.role = roleFilter;
-      if (userFilter) params.user_id = userFilter;
-      if (searchQuery) params.search = searchQuery;
-      params.page = page.toString();
-      params.limit = '20';
+      const response = await adminAPI.getLogs(buildLogParams(true), abortController.signal);
+      const payload = response.data?.data;
 
-      const { startDate, endDate } = getDateRange();
-      if (startDate) params.start_date = startDate;
-      if (endDate) params.end_date = endDate;
-
-      const res = await fetch(resolveApiUrl(`/api/admin/logs?${new URLSearchParams(params)}`), {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        signal: abortController.signal
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setLogs(data.data.logs);
-        if (data.data.pagination) {
-          setTotalPages(data.data.pagination.totalPages);
-          setTotalLogs(data.data.pagination.total || 0);
+      if (payload) {
+        setLogs(payload.logs || []);
+        if (payload.pagination) {
+          setTotalPages(payload.pagination.totalPages);
+          setTotalLogs(payload.pagination.total || 0);
         }
       }
     } catch (error: any) {
-      if (error.name === 'AbortError') return; // Ignore cancelled requests
+      if (isRequestCanceled(error)) return;
       toast.error('Không thể tải nhật ký');
     } finally {
       if (abortControllerRef.current === abortController) {
         setLoading(false);
       }
     }
-  }, [actionFilter, entityFilter, roleFilter, userFilter, searchQuery, page, getDateRange]);
+  }, [buildLogParams]);
 
   const fetchStats = useCallback(async () => {
     try {
       setStatsLoading(true);
-      const res = await fetch(resolveApiUrl('/api/admin/logs/stats'), {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setStats(data.data);
+      const response = await adminAPI.getLogStats();
+      if (response.data?.success) {
+        setStats(response.data.data);
       }
-    } catch (error) {
-      console.error('Failed to load stats:', error);
+    } catch (error: any) {
+      console.error('Failed to load stats:', getErrorMessage(error, 'Unknown error'));
     } finally {
       setStatsLoading(false);
     }
-  }, []);
+  }, [getErrorMessage]);
 
   // Export CSV
   const handleExport = async () => {
     try {
       setExporting(true);
-      const params: Record<string, string> = {};
-      if (actionFilter) params.action = actionFilter;
-      if (entityFilter) params.entity_type = entityFilter;
-      if (roleFilter) params.role = roleFilter;
-      if (userFilter) params.user_id = userFilter;
-      if (searchQuery) params.search = searchQuery;
-
-      const { startDate, endDate } = getDateRange();
-      if (startDate) params.start_date = startDate;
-      if (endDate) params.end_date = endDate;
-
-      const res = await fetch(resolveApiUrl(`/api/admin/logs/export?${new URLSearchParams(params)}`), {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-
-      if (!res.ok) throw new Error('Export failed');
-
-      const blob = await res.blob();
+      const response = await adminAPI.exportLogsCsv(buildLogParams());
+      const blob = response.data as Blob;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -321,7 +326,7 @@ export default function ActivityLogPage() {
       window.URL.revokeObjectURL(url);
       a.remove();
       toast.success('Xuất nhật ký thành công');
-    } catch (error) {
+    } catch (error: any) {
       toast.error('Không thể xuất nhật ký');
     } finally {
       setExporting(false);
@@ -334,15 +339,8 @@ export default function ActivityLogPage() {
       setIsDeleting(true);
       if (deleteModal.isBulk) {
         if (selectedIds.size === 0) return;
-        const res = await fetch(resolveApiUrl('/api/admin/logs/bulk-delete'), {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}` 
-          },
-          body: JSON.stringify({ ids: Array.from(selectedIds) })
-        });
-        const data = await res.json();
+        const response = await adminAPI.bulkDeleteLogs(Array.from(selectedIds));
+        const data = response.data;
         if (data.success) {
           toast.success(data.message || 'Xóa thành công');
           setSelectedIds(new Set());
@@ -353,11 +351,8 @@ export default function ActivityLogPage() {
         }
       } else {
         if (!deleteModal.idToDelete) return;
-        const res = await fetch(resolveApiUrl(`/api/admin/logs/${deleteModal.idToDelete}`), {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        const data = await res.json();
+        const response = await adminAPI.deleteLogEntry(deleteModal.idToDelete);
+        const data = response.data;
         if (data.success) {
           toast.success('Xóa nhật ký thành công');
           setSelectedIds(prev => {
@@ -371,7 +366,7 @@ export default function ActivityLogPage() {
           toast.error(data.message || 'Xóa thất bại');
         }
       }
-    } catch (err) {
+    } catch (error: any) {
       toast.error('Có lỗi xảy ra khi xóa');
     } finally {
       setIsDeleting(false);
@@ -382,15 +377,8 @@ export default function ActivityLogPage() {
   const handleDeleteOldLogs = async () => {
     try {
       setDeletingOld(true);
-      const res = await fetch(resolveApiUrl('/api/admin/logs/delete-old'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ days: 90 })
-      });
-      const data = await res.json();
+      const response = await adminAPI.deleteOldLogs(90);
+      const data = response.data;
       if (data.success) {
         toast.success(data.message || 'Đã xóa log cũ');
         fetchLogs();
@@ -398,7 +386,7 @@ export default function ActivityLogPage() {
       } else {
         toast.error(data.error?.message || data.message || 'Không thể xóa log cũ');
       }
-    } catch {
+    } catch (error: any) {
       toast.error('Không thể xóa log cũ');
     } finally {
       setDeletingOld(false);
@@ -446,12 +434,10 @@ export default function ActivityLogPage() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await fetch(resolveApiUrl('/api/admin/users?limit=200'), {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        const data = await res.json();
-        if (data.success && data.data) {
-          const users = Array.isArray(data.data) ? data.data : (data.data.users || []);
+        const response = await adminAPI.getUsers({ limit: 200 });
+        const payload = response.data?.data;
+        if (response.data?.success && payload) {
+          const users = Array.isArray(payload) ? payload : (payload.users || []);
           setUsersList(users.map((u: any) => ({
             id: u.id?.toString(),
             username: u.username,
@@ -459,12 +445,12 @@ export default function ActivityLogPage() {
             role: u.role
           })));
         }
-      } catch (err) {
-        console.error('Failed to fetch users:', err);
+      } catch (error: any) {
+        console.error('Failed to fetch users:', getErrorMessage(error, 'Unknown error'));
       }
     };
     fetchUsers();
-  }, []);
+  }, [getErrorMessage]);
 
   // Auto-refresh
   useEffect(() => {
@@ -1099,11 +1085,8 @@ export default function ActivityLogPage() {
     setRollbackModal({ isOpen: false, logId: null, action: '' });
     setRollbackingIds(prev => new Set([...prev, logId]));
     try {
-      const res = await fetch(resolveApiUrl(`/api/admin/logs/${logId}/rollback`), {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      const data = await res.json();
+      const response = await adminAPI.rollbackLog(logId);
+      const data = response.data;
       if (data.success) {
         toast.success('Khôi phục dữ liệu thành công');
         fetchLogs();
@@ -1111,7 +1094,7 @@ export default function ActivityLogPage() {
       } else {
         toast.error(data.error?.message || 'Khôi phục thất bại');
       }
-    } catch {
+    } catch (error: any) {
       toast.error('Có lỗi xảy ra khi khôi phục');
     } finally {
       setRollbackingIds(prev => { const next = new Set(prev); next.delete(logId); return next; });

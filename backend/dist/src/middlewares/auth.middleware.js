@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { prisma } from '../server.js';
+import { prisma } from '../lib/prisma.js';
 import { ApiError } from './error.middleware.js';
 import { getJwtSecret, getTokenFromRequest } from '../utils/auth-session.js';
 export const verifyToken = async (req, res, next) => {

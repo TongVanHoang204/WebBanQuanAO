@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { prisma } from '../../server.js';
+import { prisma } from '../../lib/prisma.js';
 import { logActivity } from '../../services/logger.service.js';
 
 // Helper to convert BigInt to string for JSON serialization

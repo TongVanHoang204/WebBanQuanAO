@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { prisma } from '../../server.js';
+import { prisma } from '../../lib/prisma.js';
 import { ApiError } from '../../middlewares/error.middleware.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
 import { addToCartSchema, updateCartItemSchema } from '../../validators/cart.validator.js';
