@@ -7,10 +7,12 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "npx prisma generate && tsc && npx tsc prisma/seed_permissions.ts --outDir dist/prisma --esModuleInterop --module NodeNext --moduleResolution NodeNext",
-    "start": "npx prisma db push && node dist/prisma/seed_permissions.js && node dist/src/server.js",
+    "start": "node dist/prisma/seed_permissions.js && node dist/src/server.js",
+    "start:bootstrap": "npx prisma db push && node dist/prisma/seed_permissions.js && node dist/src/server.js",
     "seed": "tsx prisma/seed.ts",
     "seed:permissions": "tsx prisma/seed_permissions.ts",
     "prisma:generate": "npx prisma generate",
+    "prisma:deploy": "npx prisma migrate deploy",
     "prisma:push": "npx prisma db push",
     "prisma:studio": "npx prisma studio"
   },
