@@ -15,6 +15,7 @@
     "prisma:studio": "npx prisma studio"
   },
   "dependencies": {
+    "@google/genai": "^1.48.0",
     "@prisma/client": "^5.22.0",
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^7.0.5",

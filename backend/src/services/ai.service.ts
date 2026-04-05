@@ -1,6 +1,12 @@
+import { GoogleGenAI } from '@google/genai';
 import { Ollama } from 'ollama';
 
 const DEFAULT_OLLAMA_HOST = 'http://127.0.0.1:11434';
+const DEFAULT_GEMINI_MODEL = 'gemini-3-flash-preview';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY?.trim();
+const ACTIVE_GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
+const ACTIVE_GEMINI_VISION_MODEL = process.env.GEMINI_VISION_MODEL?.trim() || ACTIVE_GEMINI_MODEL;
+const gemini = GEMINI_API_KEY ? new GoogleGenAI({ apiKey: GEMINI_API_KEY }) : null;
 
 const normalizeOllamaHost = (rawHost?: string): string => {
   const value = rawHost?.trim();
@@ -39,6 +45,14 @@ const localOllama = new Ollama({ host: DEFAULT_OLLAMA_HOST });
 const REMOTE_HOST_COOLDOWN_MS = Number(process.env.OLLAMA_REMOTE_COOLDOWN_MS || 5 * 60 * 1000);
 let remoteHostBlockedUntil = 0;
 
+export const ACTIVE_AI_PROVIDER = gemini ? 'gemini' : 'ollama';
+export const ACTIVE_AI_MODEL = gemini
+  ? ACTIVE_GEMINI_MODEL
+  : process.env.OLLAMA_MODEL || 'gemini-3-flash-preview:cloud';
+export const ACTIVE_AI_VISION_MODEL = gemini
+  ? ACTIVE_GEMINI_VISION_MODEL
+  : process.env.OLLAMA_VISION_MODEL || ACTIVE_AI_MODEL;
+
 const isRetryableOllamaNetworkError = (error: any): boolean => {
   const message = String(error?.message || error?.error || '').toLowerCase();
   return (
@@ -60,7 +74,144 @@ const markRemoteHostFailed = () => {
   }
 };
 
+const extractGeminiText = (response: any): string => {
+  if (typeof response?.text === 'string' && response.text.trim()) {
+    return response.text.trim();
+  }
+
+  const parts = (response?.candidates || [])
+    .flatMap((candidate: any) => candidate?.content?.parts || [])
+    .map((part: any) => (typeof part?.text === 'string' ? part.text : ''))
+    .filter(Boolean);
+
+  return parts.join('\n').trim();
+};
+
+const mapMessageRoleToGemini = (role: string): 'user' | 'model' => {
+  if (role === 'assistant') {
+    return 'model';
+  }
+
+  return 'user';
+};
+
+const buildGeminiContentsFromMessages = (messages: any[] = []) => {
+  let systemInstruction = '';
+  const contents = messages.reduce<any[]>((acc, message) => {
+    const content = String(message?.content || '').trim();
+    if (!content) {
+      return acc;
+    }
+
+    if (message?.role === 'system') {
+      if (!systemInstruction) {
+        systemInstruction = content;
+      }
+      return acc;
+    }
+
+    acc.push({
+      role: mapMessageRoleToGemini(String(message?.role || 'user')),
+      parts: [{ text: content }]
+    });
+    return acc;
+  }, []);
+
+  return { systemInstruction, contents };
+};
+
+const parseInlineImage = (rawImage: string) => {
+  const value = rawImage.trim();
+  const dataUrlMatch = value.match(/^data:([^;]+);base64,(.+)$/);
+
+  if (dataUrlMatch) {
+    return {
+      mimeType: dataUrlMatch[1],
+      data: dataUrlMatch[2]
+    };
+  }
+
+  return {
+    mimeType: 'image/jpeg',
+    data: value
+  };
+};
+
+const chatWithGemini = async (payload: any): Promise<any> => {
+  if (!gemini) {
+    throw new Error('Gemini client is not configured');
+  }
+
+  const { systemInstruction, contents } = buildGeminiContentsFromMessages(payload?.messages || []);
+  if (contents.length === 0) {
+    throw new Error('Gemini chat payload is missing messages');
+  }
+
+  const response = await gemini.models.generateContent({
+    model: payload?.model || ACTIVE_GEMINI_MODEL,
+    contents,
+    config: {
+      ...(systemInstruction ? { systemInstruction } : {}),
+      ...(typeof payload?.options?.temperature === 'number'
+        ? { temperature: payload.options.temperature }
+        : {})
+    }
+  });
+
+  return {
+    message: {
+      content: extractGeminiText(response)
+    }
+  };
+};
+
+const generateWithGemini = async (payload: any): Promise<any> => {
+  if (!gemini) {
+    throw new Error('Gemini client is not configured');
+  }
+
+  const imageParts = Array.isArray(payload?.images)
+    ? payload.images.map((image: string) => {
+        const { mimeType, data } = parseInlineImage(image);
+        return {
+          inlineData: {
+            mimeType,
+            data
+          }
+        };
+      })
+    : [];
+
+  const prompt = String(payload?.prompt || '').trim();
+  const contents = [
+    ...imageParts,
+    ...(prompt ? [{ text: prompt }] : [])
+  ];
+
+  if (contents.length === 0) {
+    throw new Error('Gemini generate payload is empty');
+  }
+
+  const response = await gemini.models.generateContent({
+    model: payload?.model || ACTIVE_GEMINI_VISION_MODEL,
+    contents,
+    config: {
+      ...(typeof payload?.options?.temperature === 'number'
+        ? { temperature: payload.options.temperature }
+        : {})
+    }
+  });
+
+  return {
+    response: extractGeminiText(response)
+  };
+};
+
 const chatWithFallback = async (payload: any): Promise<any> => {
+  if (gemini) {
+    return await chatWithGemini(payload);
+  }
+
   if (shouldSkipRemoteHost()) {
     return await localOllama.chat(payload);
   }
@@ -80,6 +231,10 @@ const chatWithFallback = async (payload: any): Promise<any> => {
 };
 
 const generateWithFallback = async (payload: any): Promise<any> => {
+  if (gemini) {
+    return await generateWithGemini(payload);
+  }
+
   if (shouldSkipRemoteHost()) {
     return await localOllama.generate(payload);
   }
@@ -118,7 +273,7 @@ interface ToolDef {
 }
 
 export class AIService {
-  public static readonly MODEL = process.env.OLLAMA_MODEL || 'gemini-3-flash-preview:cloud'; 
+  public static readonly MODEL = ACTIVE_AI_MODEL; 
   private static readonly prisma = prisma;
 
   // --- LOGGING ---
@@ -440,7 +595,7 @@ KHI CẦN DÙNG CÔNG CỤ, trả về JSON như sau (không thêm text):
     gender: string;
     search_phrases: string[];
   }> {
-    const visionModel = process.env.OLLAMA_VISION_MODEL || this.MODEL;
+    const visionModel = ACTIVE_AI_VISION_MODEL || this.MODEL;
 
     const prompt = `Bạn là chuyên gia thời trang Việt Nam. Phân tích hình ảnh này và xác định món đồ thời trang CHÍNH NHẤT (CHỈ MỘT MÓN) trong ảnh.
 

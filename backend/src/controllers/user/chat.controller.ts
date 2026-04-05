@@ -1,12 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import { prisma } from '../../server.js';
+import { prisma } from '../../lib/prisma.js';
 import { ApiError } from '../../middlewares/error.middleware.js';
 
-import { AIService } from '../../services/ai.service.js';
+import { ACTIVE_AI_MODEL, ACTIVE_AI_PROVIDER, AIService } from '../../services/ai.service.js';
 
 // AI Service for RAG (Retrieval Augmented Generation)
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'gemini-3-flash-preview:cloud';
 
 // Serialize BigInt for JSON
 const serializeProducts = (products: any[]) => {
@@ -71,6 +70,18 @@ export const checkAIHealth = async (
   next: NextFunction
 ) => {
   try {
+    if (ACTIVE_AI_PROVIDER === 'gemini') {
+      res.json({
+        success: true,
+        data: {
+          status: 'available',
+          provider: 'gemini',
+          models: [ACTIVE_AI_MODEL]
+        }
+      });
+      return;
+    }
+
     const response = await fetch(`${OLLAMA_URL}/api/tags`, {
       method: 'GET'
     });
@@ -81,6 +92,7 @@ export const checkAIHealth = async (
         success: true,
         data: {
           status: 'available',
+          provider: 'ollama',
           models: data.models?.map((m) => m.name) || []
         }
       });
