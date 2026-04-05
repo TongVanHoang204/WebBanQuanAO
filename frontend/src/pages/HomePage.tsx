@@ -13,6 +13,14 @@ import { Product, Category, Banner, Collection } from '../types';
 import { productsAPI, bannersAPI, personalizationAPI, publicCollectionsAPI, toMediaUrl } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
+const unwrapData = <T,>(payload: any, fallback: T): T => {
+  if (payload?.data !== undefined) {
+    return payload.data as T;
+  }
+
+  return (payload ?? fallback) as T;
+};
+
 export default function HomePage() {
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
@@ -44,16 +52,30 @@ export default function HomePage() {
           featuredCollectionsRes
         ] = results;
 
-        if (newArrivalsRes.status === 'fulfilled') setNewArrivals(newArrivalsRes.value.data.data);
-        if (bestSellersRes.status === 'fulfilled') setBestSellers(bestSellersRes.value.data.data.products);
-        if (flashSaleRes.status === 'fulfilled') setFlashSale(flashSaleRes.value.data.data.products);
-        if (bannersRes.status === 'fulfilled' && bannersRes.value.data.success) setBanners(bannersRes.value.data.data);
+        if (newArrivalsRes.status === 'fulfilled') {
+          const payload = unwrapData<Product[]>(newArrivalsRes.value.data, []);
+          setNewArrivals(Array.isArray(payload) ? payload : []);
+        }
+        if (bestSellersRes.status === 'fulfilled') {
+          const payload = unwrapData<any>(bestSellersRes.value.data, {});
+          setBestSellers(Array.isArray(payload?.products) ? payload.products : []);
+        }
+        if (flashSaleRes.status === 'fulfilled') {
+          const payload = unwrapData<any>(flashSaleRes.value.data, {});
+          setFlashSale(Array.isArray(payload?.products) ? payload.products : []);
+        }
+        if (bannersRes.status === 'fulfilled' && bannersRes.value.data?.success) {
+          const payload = unwrapData<Banner[]>(bannersRes.value.data, []);
+          setBanners(Array.isArray(payload) ? payload : []);
+        }
         if (recommendationsRes.status === 'fulfilled' && recommendationsRes.value?.data?.success) {
-          setRecommendations(recommendationsRes.value.data.data);
+          const payload = unwrapData<Product[]>(recommendationsRes.value.data, []);
+          setRecommendations(Array.isArray(payload) ? payload : []);
         }
         if (featuredCollectionsRes.status === 'fulfilled' && featuredCollectionsRes.value.data.success) {
+          const payload = unwrapData<Collection[]>(featuredCollectionsRes.value.data, []);
           setFeaturedCollections(
-            (featuredCollectionsRes.value.data.data || []).map((collection: Collection) => ({
+            (Array.isArray(payload) ? payload : []).map((collection: Collection) => ({
               ...collection,
               image: toMediaUrl(collection.image),
               preview_images: (collection.preview_images || []).map((image) => toMediaUrl(image))

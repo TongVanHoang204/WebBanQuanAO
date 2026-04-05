@@ -2,6 +2,40 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Product, Category, ProductsResponse } from '../types';
 import { productsAPI, categoriesAPI, brandsAPI } from '../services/api';
 
+const unwrapResponseData = <T>(payload: any, fallback: T): T => {
+  if (payload?.data !== undefined) {
+    return payload.data as T;
+  }
+
+  return (payload ?? fallback) as T;
+};
+
+const normalizeProductsPayload = (payload: any): ProductsResponse => {
+  const data = unwrapResponseData<any>(payload, {});
+
+  if (Array.isArray(data)) {
+    return {
+      products: data,
+      pagination: {
+        page: 1,
+        limit: data.length,
+        total: data.length,
+        totalPages: 1
+      }
+    };
+  }
+
+  return {
+    products: Array.isArray(data?.products) ? data.products : [],
+    pagination: data?.pagination || {
+      page: 1,
+      limit: 0,
+      total: 0,
+      totalPages: 0
+    }
+  };
+};
+
 interface UseShopReturn {
   products: Product[];
   categories: Category[];
@@ -82,8 +116,8 @@ export function useShop(): UseShopReturn {
     setError(null);
     try {
       const response = await productsAPI.getAll(params, controller.signal);
-      const data = response.data.data as ProductsResponse;
-      setProducts(data.products || []);
+      const data = normalizeProductsPayload(response.data);
+      setProducts(data.products);
       setPagination(data.pagination || null);
     } catch (err: any) {
       if (err.name !== 'CanceledError' && err.code !== 'ERR_CANCELED') {
@@ -103,7 +137,7 @@ export function useShop(): UseShopReturn {
     setError(null);
     try {
       const response = await productsAPI.getBySlug(slug);
-      return response.data.data;
+      return unwrapResponseData<Product | null>(response.data, null);
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Product not found');
       return null;
@@ -115,7 +149,8 @@ export function useShop(): UseShopReturn {
   const fetchCategories = useCallback(async () => {
     try {
       const response = await categoriesAPI.getAll();
-      setCategories(response.data.data || []);
+      const data = unwrapResponseData<any[]>(response.data, []);
+      setCategories(Array.isArray(data) ? data : []);
     } catch (err: any) {
       console.error('Failed to fetch categories:', err);
     }
@@ -124,7 +159,8 @@ export function useShop(): UseShopReturn {
   const fetchBrands = useCallback(async () => {
     try {
       const response = await brandsAPI.getPublic();
-      setBrands(response.data.data.brands || []);
+      const data = unwrapResponseData<any>(response.data, {});
+      setBrands(Array.isArray(data?.brands) ? data.brands : Array.isArray(data) ? data : []);
     } catch (err: any) {
       console.error('Failed to fetch brands:', err);
     }
@@ -143,7 +179,8 @@ export function useShop(): UseShopReturn {
     setIsSearching(true);
     try {
       const response = await productsAPI.search(query, controller.signal);
-      return response.data.data || [];
+      const data = unwrapResponseData<any[]>(response.data, []);
+      return Array.isArray(data) ? data : [];
     } catch (err: any) {
       if (err.name !== 'CanceledError' && err.code !== 'ERR_CANCELED') {
           console.error('Search failed:', err);

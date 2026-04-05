@@ -2,16 +2,31 @@ import { createContext, useContext, useEffect, useState, useCallback, ReactNode,
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
-import { getSessionId } from '../services/api';
+import { getApiOrigin, getSessionId } from '../services/api';
 
-const SOCKET_URL = (() => {
-  try {
-    const url = new URL(import.meta.env.VITE_API_URL || 'http://localhost:4000');
-    return url.origin; // e.g. "http://localhost:4000"
-  } catch {
-    return 'http://localhost:4000';
+const getSocketUrl = (): string | null => {
+  const apiOrigin = getApiOrigin();
+
+  if (apiOrigin) {
+    const isLocalApiOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(apiOrigin);
+    const isHostedApp =
+      typeof window !== 'undefined' &&
+      !['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+    if (isHostedApp && isLocalApiOrigin) {
+      return null;
+    }
+
+    return apiOrigin;
   }
-})();
+
+  if (typeof window !== 'undefined') {
+    const isLocalApp = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    return isLocalApp ? 'http://localhost:4000' : null;
+  }
+
+  return null;
+};
 
 const CHAT_CONVERSATION_KEY = 'chat_conversation_id';
 const CHAT_GUEST_TOKEN_KEY = 'chat_guest_token';
@@ -128,7 +143,15 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io(SOCKET_URL, {
+    const socketUrl = getSocketUrl();
+    if (!socketUrl) {
+      console.warn('[Socket] Disabled because API origin is not configured for this environment.');
+      setSocket(null);
+      setIsConnected(false);
+      return;
+    }
+
+    const newSocket = io(socketUrl, {
       withCredentials: true,
       transports: ['websocket', 'polling'],
       reconnection: true,

@@ -29,13 +29,17 @@ export default function ShopPage() {
   const currentMaxPrice = searchParams.get('max_price') || '';
 
   useEffect(() => {
-    categoriesAPI.getAll().then(res => setCategories(res.data.data));
+    categoriesAPI.getAll().then(res => {
+      const payload = res.data?.data ?? [];
+      setCategories(Array.isArray(payload) ? payload : []);
+    });
     fetchBrands();
 
     // Fetch Shop Banner
     bannersAPI.getAll({ position: 'shop_hero' }).then(res => {
-        if (res.data.success && res.data.data.length > 0) {
-            setBanner(res.data.data[0]);
+        const payload = res.data?.data ?? [];
+        if (res.data?.success && Array.isArray(payload) && payload.length > 0) {
+            setBanner(payload[0]);
         }
     }).catch(err => console.error('Failed to fetch shop banner', err));
   }, [fetchBrands]);
