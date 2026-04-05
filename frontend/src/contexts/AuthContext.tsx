@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      const sessionId = localStorage.getItem('sessionId');
      if (sessionId) {
         try {
-           await cartAPI.merge(sessionId);
+           await cartAPI.merge(sessionId, { skipAuthRedirect: true });
         } catch (error) {
            console.error("Failed to merge cart", error);
         }

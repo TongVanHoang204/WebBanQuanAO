@@ -25,7 +25,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const refreshCart = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await cartAPI.get();
+      const response = await cartAPI.get({ skipAuthRedirect: true });
       setCart(response.data.data);
     } catch (error) {
       console.error('Failed to fetch cart:', error);

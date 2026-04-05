@@ -257,7 +257,7 @@ export const brandsAPI = {
 
 // Cart API
 export const cartAPI = {
-  get: () => api.get('/cart'),
+  get: (config?: any) => api.get('/cart', config),
   
   add: (variant_id: number, quantity: number) =>
     api.post('/cart/add', { variant_id, quantity }),
@@ -269,7 +269,7 @@ export const cartAPI = {
   
   clear: () => api.delete('/cart/clear'),
   
-  merge: (sessionId: string) => api.post('/cart/merge', { sessionId })
+  merge: (sessionId: string, config?: any) => api.post('/cart/merge', { sessionId }, config)
 };
 
 // Orders API

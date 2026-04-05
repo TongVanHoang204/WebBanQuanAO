@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+import type { Request, Response, CookieOptions } from 'express';
 import type { Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 
@@ -18,6 +18,7 @@ const AUTH_COOKIE_NAME = process.env.AUTH_COOKIE_NAME || 'shopfeshen_auth';
 const AUTH_TOKEN_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 const AUTH_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const GUEST_CHAT_TOKEN_EXPIRES_IN: jwt.SignOptions['expiresIn'] = '30d';
+type SupportedSameSite = NonNullable<CookieOptions['sameSite']>;
 
 const parseCookieHeader = (cookieHeader?: string): Record<string, string> => {
   if (!cookieHeader) {
@@ -41,13 +42,27 @@ const parseCookieHeader = (cookieHeader?: string): Record<string, string> => {
     }, {});
 };
 
-const getCookieOptions = () => ({
-  httpOnly: true,
-  sameSite: 'lax' as const,
-  secure: process.env.NODE_ENV === 'production',
-  path: '/',
-  maxAge: AUTH_COOKIE_MAX_AGE_MS
-});
+const getCookieSameSite = (): SupportedSameSite => {
+  const configuredValue = process.env.AUTH_COOKIE_SAME_SITE?.trim().toLowerCase();
+  if (configuredValue === 'strict' || configuredValue === 'lax' || configuredValue === 'none') {
+    return configuredValue;
+  }
+
+  // Cross-site frontend/backend deployments like Vercel + Render require SameSite=None.
+  return process.env.NODE_ENV === 'production' ? 'none' : 'lax';
+};
+
+const getCookieOptions = (): CookieOptions => {
+  const sameSite = getCookieSameSite();
+
+  return {
+    httpOnly: true,
+    sameSite,
+    secure: sameSite === 'none' || process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: AUTH_COOKIE_MAX_AGE_MS
+  };
+};
 
 export const getJwtSecret = (): string => {
   const secret = process.env.JWT_SECRET;
