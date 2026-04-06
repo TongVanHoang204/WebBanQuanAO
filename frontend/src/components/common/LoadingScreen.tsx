@@ -44,9 +44,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
         {message}
       </p>
 
-      <div className="mt-2 text-xs tracking-[0.22em] text-secondary-400 dark:text-secondary-500">
-        MÈO MODE
-      </div>
+
 
       <div className="mt-4 h-1 w-48 overflow-hidden rounded-full bg-secondary-100 dark:bg-secondary-800">
         <div 
