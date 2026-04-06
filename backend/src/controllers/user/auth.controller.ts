@@ -23,7 +23,8 @@ const serializeUser = (user: any) => ({
   status: user.status,
   avatar_url: user.avatar_url,
   created_at: user.created_at,
-  two_factor_enabled: user.two_factor_enabled || false
+  two_factor_enabled: user.two_factor_enabled || false,
+  has_password: !!user.password_hash
 });
 
 const createAuthResponseData = (res: Response, user: any) => {

@@ -133,14 +133,14 @@ export interface Order {
   shipments?: Shipment[];
 }
 
-export type OrderStatus = 
-  | 'pending' 
+export type OrderStatus =
+  | 'pending'
   | 'confirmed'
-  | 'paid' 
-  | 'processing' 
-  | 'shipped' 
-  | 'completed' 
-  | 'cancelled' 
+  | 'paid'
+  | 'processing'
+  | 'shipped'
+  | 'completed'
+  | 'cancelled'
   | 'refunded';
 
 export interface OrderItem {
@@ -191,6 +191,7 @@ export interface User {
   role: 'customer' | 'staff' | 'manager' | 'admin';
   status: 'active' | 'blocked';
   two_factor_enabled?: boolean;
+  has_password?: boolean;
   created_at: string;
 }
 
@@ -243,7 +244,7 @@ export interface ChatProduct {
 export interface ChatOrder {
   code: string;
   status: string;
-  total: string; // Formatted price
+  total: string;
   date: string;
   items: string;
 }

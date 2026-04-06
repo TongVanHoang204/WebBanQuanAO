@@ -707,84 +707,97 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-secondary-200 dark:border-secondary-700"></div>
+                {user?.has_password === false ? (
+                  <div className="p-5 rounded-2xl bg-secondary-50 dark:bg-secondary-900 border border-secondary-100 dark:border-secondary-700 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-10 h-10 rounded-full bg-secondary-100 dark:bg-secondary-800 flex items-center justify-center">
+                        <svg viewBox="0 0 48 48" className="w-6 h-6"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.33 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.93 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.67 14.62 48 24 48z"/></svg>
+                      </div>
+                      <p className="text-sm font-bold text-secondary-700 dark:text-secondary-300">Tài khoản Google</p>
+                      <p className="text-xs text-secondary-400 dark:text-secondary-500">Tài khoản của bạn được quản lý bởi Google. Vui lòng thay đổi mật khẩu trực tiếp tại Google Account.</p>
                     </div>
-                    <div className="relative flex justify-center text-xs">
-                        <span className="px-2 bg-white dark:bg-secondary-800 text-secondary-500 uppercase tracking-widest font-bold">Đổi mật khẩu</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-secondary-200 dark:border-secondary-700"></div>
+                        </div>
+                        <div className="relative flex justify-center text-xs">
+                            <span className="px-2 bg-white dark:bg-secondary-800 text-secondary-500 uppercase tracking-widest font-bold">Đổi mật khẩu</span>
+                        </div>
                     </div>
-                </div>
 
-                <form onSubmit={handleChangePassword} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-secondary-400">Mật khẩu hiện tại</label>
-                <input 
-                  type="password" required
-                  value={passwordForm.current_password}
-                  onChange={(e) => setPasswordForm({...passwordForm, current_password: e.target.value})}
-                  className="w-full px-5 py-3 rounded-2xl bg-secondary-50 dark:bg-secondary-900 border border-secondary-100 dark:border-secondary-700 outline-none"
-                />
-              </div>
+                    <form onSubmit={handleChangePassword} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-secondary-400">Mật khẩu hiện tại</label>
+                    <input 
+                      type="password" required
+                      value={passwordForm.current_password}
+                      onChange={(e) => setPasswordForm({...passwordForm, current_password: e.target.value})}
+                      className="w-full px-5 py-3 rounded-2xl bg-secondary-50 dark:bg-secondary-900 border border-secondary-100 dark:border-secondary-700 outline-none"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-secondary-400">Mật khẩu mới</label>
-                <input 
-                  type="password" required minLength={6}
-                  value={passwordForm.new_password}
-                  onChange={(e) => setPasswordForm({...passwordForm, new_password: e.target.value})}
-                  className="w-full px-5 py-3 rounded-2xl bg-secondary-50 dark:bg-secondary-900 border border-secondary-100 dark:border-secondary-700 outline-none"
-                />
-              </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-secondary-400">Mật khẩu mới</label>
+                    <input 
+                      type="password" required minLength={6}
+                      value={passwordForm.new_password}
+                      onChange={(e) => setPasswordForm({...passwordForm, new_password: e.target.value})}
+                      className="w-full px-5 py-3 rounded-2xl bg-secondary-50 dark:bg-secondary-900 border border-secondary-100 dark:border-secondary-700 outline-none"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-secondary-400">Xác nhận mật khẩu mới</label>
-                <input 
-                  type="password" required minLength={6}
-                  value={passwordForm.confirm_password}
-                  onChange={(e) => setPasswordForm({...passwordForm, confirm_password: e.target.value})}
-                  className="w-full px-5 py-3 rounded-2xl bg-secondary-50 dark:bg-secondary-900 border border-secondary-100 dark:border-secondary-700 outline-none"
-                />
-              </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-secondary-400">Xác nhận mật khẩu mới</label>
+                    <input 
+                      type="password" required minLength={6}
+                      value={passwordForm.confirm_password}
+                      onChange={(e) => setPasswordForm({...passwordForm, confirm_password: e.target.value})}
+                      className="w-full px-5 py-3 rounded-2xl bg-secondary-50 dark:bg-secondary-900 border border-secondary-100 dark:border-secondary-700 outline-none"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-secondary-400">Mã xác nhận (OTP)</label>
-                <div className="flex gap-2">
-                  <input 
-                    type="text" required
-                    placeholder="Nhập mã 6 số"
-                    value={passwordForm.otp}
-                    onChange={(e) => setPasswordForm({...passwordForm, otp: e.target.value.replace(/\D/g, '').substring(0, 6)})}
-                    className="flex-1 px-5 py-3 rounded-2xl bg-secondary-50 dark:bg-secondary-900 border border-secondary-100 dark:border-secondary-700 outline-none font-bold"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSendPasswordOTP}
-                    disabled={isSendingOtp || otpCountdown > 0}
-                    className="px-4 py-3 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-2xl text-xs font-bold whitespace-nowrap disabled:opacity-50 transition-all border border-primary-100 dark:border-primary-800"
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-secondary-400">Mã xác nhận (OTP)</label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" required
+                        placeholder="Nhập mã 6 số"
+                        value={passwordForm.otp}
+                        onChange={(e) => setPasswordForm({...passwordForm, otp: e.target.value.replace(/\D/g, '').substring(0, 6)})}
+                        className="flex-1 px-5 py-3 rounded-2xl bg-secondary-50 dark:bg-secondary-900 border border-secondary-100 dark:border-secondary-700 outline-none font-bold"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSendPasswordOTP}
+                        disabled={isSendingOtp || otpCountdown > 0}
+                        className="px-4 py-3 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-2xl text-xs font-bold whitespace-nowrap disabled:opacity-50 transition-all border border-primary-100 dark:border-primary-800"
+                      >
+                        {isSendingOtp ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : otpCountdown > 0 ? (
+                          `Gửi lại (${otpCountdown}s)`
+                        ) : (
+                          'Gửi mã'
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-secondary-400 italic">Mã xác nhận sẽ được gửi đến email đăng ký của bạn.</p>
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    disabled={loading}
+                    className="w-full py-4 bg-secondary-900 dark:bg-white hover:bg-black dark:hover:bg-secondary-200 text-white dark:text-secondary-900 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-secondary-200 dark:shadow-none flex items-center justify-center gap-2"
                   >
-                    {isSendingOtp ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : otpCountdown > 0 ? (
-                      `Gửi lại (${otpCountdown}s)`
-                    ) : (
-                      'Gửi mã'
-                    )}
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                    Cập nhật mật khẩu
                   </button>
-                </div>
-                <p className="text-[10px] text-secondary-400 italic">Mã xác nhận sẽ được gửi đến email đăng ký của bạn.</p>
-              </div>
-
-
-              <button 
-                type="submit" 
-                disabled={loading}
-                className="w-full py-4 bg-secondary-900 dark:bg-white hover:bg-black dark:hover:bg-secondary-200 text-white dark:text-secondary-900 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-secondary-200 dark:shadow-none flex items-center justify-center gap-2"
-              >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                Cập nhật mật khẩu
-              </button>
-            </form>
+                </form>
+                  </>
+                )}
             </div>
           </div>
         </div>
