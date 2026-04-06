@@ -16,6 +16,7 @@ import {
   setDefaultAddress,
   verify2FA,
   toggle2FA,
+  sendPasswordChangeOTP,
   logout
 } from '../../controllers/user/auth.controller.js';
 import { verifyToken } from '../../middlewares/auth.middleware.js';
@@ -110,6 +111,7 @@ router.post('/reset-password', resetPassword);
  */
 router.get('/me', verifyToken, getMe);
 router.put('/profile', verifyToken, updateProfile);
+router.post('/password-otp', verifyToken, sendPasswordChangeOTP);
 router.put('/change-password', verifyToken, changePassword);
 router.get('/activity', verifyToken, getMyActivity);
 

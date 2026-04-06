@@ -195,12 +195,12 @@ export const authAPI = {
   updateProfile: (data: { full_name?: string; phone?: string; address_line1?: string; city?: string; province?: string; avatar_url?: string }) =>
     api.put('/auth/profile', data),
 
-  changePassword: (data: { current_password: string; new_password: string }) =>
+  sendPasswordOTP: () => api.post('/auth/password-otp'),
+
+  changePassword: (data: { current_password: string; new_password: string; otp: string }) =>
     api.put('/auth/change-password', data),
 
   getActivity: () => api.get('/auth/activity'),
-
-  // Address
   // Address
   getAddresses: () => api.get('/auth/addresses'),
   addAddress: (data: any) => api.post('/auth/addresses', data),

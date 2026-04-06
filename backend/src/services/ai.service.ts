@@ -1061,21 +1061,21 @@ QUY TẮC BẮT BUỘC:
         const todayStr = today.toLocaleDateString('vi-VN');
 
         const [ordersCount, productsCount, todayOrdersCount, customersCount] = await Promise.all([
-          this.prisma.orders.count({ where: { status: { in: ['paid', 'completed', 'pending', 'processing', 'shipped'] } } }),
+          this.prisma.orders.count({ where: { status: { in: ['paid', 'completed'] } } }),
           this.prisma.products.count({ where: { is_active: true } }),
-          this.prisma.orders.count({ where: { created_at: { gte: today } } }),
+          this.prisma.orders.count({ where: { created_at: { gte: today }, status: { in: ['paid', 'completed'] } } }),
           this.prisma.users.count({ where: { role: 'customer' } })
         ]);
 
         const revenueResult = await this.prisma.orders.aggregate({
-          where: { status: { in: ['paid', 'completed', 'pending', 'processing', 'shipped'] } }, 
+          where: { status: { in: ['paid', 'completed'] } }, 
           _sum: { grand_total: true }
         });
 
         const todayRevenueResult = await this.prisma.orders.aggregate({
           where: { 
             created_at: { gte: today },
-            status: { in: ['paid', 'completed', 'pending', 'processing', 'shipped'] }
+            status: { in: ['paid', 'completed'] }
           },
           _sum: { grand_total: true }
         });
@@ -1318,7 +1318,7 @@ QUY TẮC BẮT BUỘC:
         const orderStats = await this.prisma.orders.aggregate({
           where: { 
             user_id: customerId,
-            status: { in: ['paid', 'completed', 'pending', 'processing', 'shipped'] }
+            status: { in: ['paid', 'completed'] }
           },
           _sum: { grand_total: true },
           _count: { id: true }
@@ -1381,7 +1381,7 @@ QUY TẮC BẮT BUỘC:
         const result = await this.prisma.orders.aggregate({
           where: {
             created_at: { gte: startDate, lte: endDate },
-            status: { in: ['paid', 'completed', 'pending', 'processing', 'shipped'] }
+            status: { in: ['paid', 'completed'] }
           },
           _sum: { grand_total: true },
           _count: { id: true }
@@ -1405,7 +1405,7 @@ QUY TẮC BẮT BUỘC:
         const topProducts = await this.prisma.order_items.groupBy({
           by: ['product_id'],
           where: {
-            order: { status: { in: ['paid', 'completed', 'pending', 'processing', 'shipped'] } }
+            order: { status: { in: ['paid', 'completed'] } }
           },
           _sum: { qty: true, line_total: true },
           orderBy: { _sum: { qty: 'desc' } },

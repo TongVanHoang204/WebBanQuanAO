@@ -68,8 +68,11 @@ export default function ProfilePage() {
   const [passwordForm, setPasswordForm] = useState({
     current_password: '',
     new_password: '',
-    confirm_password: ''
+    confirm_password: '',
+    otp: ''
   });
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [otpCountdown, setOtpCountdown] = useState(0);
 
   // Address Form
   const [addressForm, setAddressForm] = useState<Partial<Address>>({
@@ -83,6 +86,16 @@ export default function ProfilePage() {
   });
 
   const [addresses, setAddresses] = useState<Address[]>([]);
+
+  useEffect(() => {
+    let timer: any;
+    if (otpCountdown > 0) {
+      timer = setInterval(() => {
+        setOtpCountdown(prev => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [otpCountdown]);
 
   useEffect(() => {
     if (user) {
@@ -194,9 +207,23 @@ export default function ProfilePage() {
       }
     } catch (error: any) {
       toast.error('Lỗi khi cập nhật trạng thái 2FA');
-      // Revert is automatic if we rely on user state, but simpler to just catch
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSendPasswordOTP = async () => {
+    if (otpCountdown > 0) return;
+    
+    setIsSendingOtp(true);
+    try {
+      await authAPI.sendPasswordOTP();
+      toast.success('Mã xác nhận đã được gửi đến email của bạn');
+      setOtpCountdown(60);
+    } catch (error: any) {
+      toast.error(error.response?.data?.error?.message || 'Không thể gửi mã xác nhận');
+    } finally {
+      setIsSendingOtp(false);
     }
   };
 
@@ -206,15 +233,20 @@ export default function ProfilePage() {
       toast.error('Mật khẩu mới không khớp');
       return;
     }
+    if (!passwordForm.otp) {
+      toast.error('Vui lòng nhập mã OTP đã gửi đến email');
+      return;
+    }
     setLoading(true);
     try {
       await authAPI.changePassword({
         current_password: passwordForm.current_password,
-        new_password: passwordForm.new_password
+        new_password: passwordForm.new_password,
+        otp: passwordForm.otp
       });
       toast.success('Đổi mật khẩu thành công');
       setIsPasswordModalOpen(false);
-      setPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
+      setPasswordForm({ current_password: '', new_password: '', confirm_password: '', otp: '' });
     } catch (error: any) {
       toast.error(error.response?.data?.error?.message || 'Lỗi đổi mật khẩu');
     } finally {
@@ -713,6 +745,34 @@ export default function ProfilePage() {
                   onChange={(e) => setPasswordForm({...passwordForm, confirm_password: e.target.value})}
                   className="w-full px-5 py-3 rounded-2xl bg-secondary-50 dark:bg-secondary-900 border border-secondary-100 dark:border-secondary-700 outline-none"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-secondary-400">Mã xác nhận (OTP)</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" required
+                    placeholder="Nhập mã 6 số"
+                    value={passwordForm.otp}
+                    onChange={(e) => setPasswordForm({...passwordForm, otp: e.target.value.replace(/\D/g, '').substring(0, 6)})}
+                    className="flex-1 px-5 py-3 rounded-2xl bg-secondary-50 dark:bg-secondary-900 border border-secondary-100 dark:border-secondary-700 outline-none font-bold"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendPasswordOTP}
+                    disabled={isSendingOtp || otpCountdown > 0}
+                    className="px-4 py-3 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-2xl text-xs font-bold whitespace-nowrap disabled:opacity-50 transition-all border border-primary-100 dark:border-primary-800"
+                  >
+                    {isSendingOtp ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : otpCountdown > 0 ? (
+                      `Gửi lại (${otpCountdown}s)`
+                    ) : (
+                      'Gửi mã'
+                    )}
+                  </button>
+                </div>
+                <p className="text-[10px] text-secondary-400 italic">Mã xác nhận sẽ được gửi đến email đăng ký của bạn.</p>
               </div>
 
 

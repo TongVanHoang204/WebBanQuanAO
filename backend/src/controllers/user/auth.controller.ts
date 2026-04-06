@@ -564,7 +564,7 @@ export const getMyActivity = async (
   }
 };
 
-export const changePassword = async (
+export const sendPasswordChangeOTP = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
@@ -572,20 +572,6 @@ export const changePassword = async (
   try {
     if (!req.user) {
       throw new ApiError(401, 'Not authenticated');
-    }
-
-    const { current_password, new_password } = req.body;
-
-    if (!current_password || !new_password) {
-      throw new ApiError(400, 'Please provide current and new password');
-    }
-
-    if (new_password.length < 6) {
-      throw new ApiError(400, 'New password must be at least 6 characters');
-    }
-
-    if (new_password.length > 100) {
-      throw new ApiError(400, 'Password too long');
     }
 
     const user = await prisma.users.findUnique({
@@ -596,12 +582,73 @@ export const changePassword = async (
       throw new ApiError(404, 'User not found');
     }
 
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+    await prisma.users.update({
+      where: { id: user.id },
+      data: {
+        two_factor_otp: otp,
+        two_factor_expires: otpExpires
+      } as any
+    });
+
+    // Send email
+    await sendOTP(user.email, otp);
+
+    res.json({
+      success: true,
+      message: 'Mã xác nhận đã được gửi đến email của bạn'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const changePassword = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      throw new ApiError(401, 'Not authenticated');
+    }
+
+    const { current_password, new_password, otp } = req.body;
+
+    if (!current_password || !new_password || !otp) {
+      throw new ApiError(400, 'Vui lòng nhập đầy đủ thông tin: mật khẩu hiện tại, mật khẩu mới và mã OTP');
+    }
+
+    if (new_password.length < 6) {
+      throw new ApiError(400, 'Mật khẩu mới phải có ít nhất 6 ký tự');
+    }
+
+    const user = await prisma.users.findUnique({
+      where: { id: req.user.id }
+    }) as any;
+
+    if (!user) {
+      throw new ApiError(404, 'Người dùng không tồn tại');
+    }
+
+    // Verify OTP first
+    if (!user.two_factor_otp || user.two_factor_otp !== otp) {
+      throw new ApiError(400, 'Mã xác nhận không đúng');
+    }
+
+    if (!user.two_factor_expires || new Date() > new Date(user.two_factor_expires)) {
+      throw new ApiError(400, 'Mã xác nhận đã hết hạn');
+    }
+
     if (!user.password_hash) {
-      throw new ApiError(400, 'Current account has no password set');
+      throw new ApiError(400, 'Tài khoản hiện tại chưa có mật khẩu');
     }
     const isValidPassword = await bcrypt.compare(current_password, user.password_hash);
     if (!isValidPassword) {
-      throw new ApiError(400, 'Incorrect current password');
+      throw new ApiError(400, 'Mật khẩu hiện tại không chính xác');
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -609,7 +656,11 @@ export const changePassword = async (
 
     await prisma.users.update({
       where: { id: req.user.id },
-      data: { password_hash }
+      data: { 
+        password_hash,
+        two_factor_otp: null,
+        two_factor_expires: null
+      } as any
     });
 
     // Audit: Log password change
@@ -624,7 +675,7 @@ export const changePassword = async (
 
     res.json({
       success: true,
-      message: 'Password updated successfully'
+      message: 'Mật khẩu đã được thay đổi thành công'
     });
   } catch (error) {
     next(error);
