@@ -458,7 +458,8 @@ export const getMe = async (
         status: true,
         avatar_url: true,
         created_at: true,
-        two_factor_enabled: true
+        two_factor_enabled: true,
+        password_hash: true
       }
     });
 
