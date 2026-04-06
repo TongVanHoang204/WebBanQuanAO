@@ -70,12 +70,12 @@ export const checkAIHealth = async (
   next: NextFunction
 ) => {
   try {
-    if (ACTIVE_AI_PROVIDER === 'gemini') {
+    if (ACTIVE_AI_PROVIDER === 'huggingface') {
       res.json({
         success: true,
         data: {
           status: 'available',
-          provider: 'gemini',
+          provider: 'huggingface',
           models: [ACTIVE_AI_MODEL]
         }
       });

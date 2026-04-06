@@ -12,7 +12,7 @@ export default function SalePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { products, isLoading, pagination, fetchProducts } = useShop();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
   const [gridCols, setGridCols] = useState<3 | 4>(4);
 
   // Get current filters from URL

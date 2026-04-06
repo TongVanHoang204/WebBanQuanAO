@@ -1,12 +1,13 @@
-import { GoogleGenAI } from '@google/genai';
+import { HfInference } from '@huggingface/inference';
 import { Ollama } from 'ollama';
 
 const DEFAULT_OLLAMA_HOST = 'http://127.0.0.1:11434';
-const DEFAULT_GEMINI_MODEL = 'gemini-3-flash-preview';
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY?.trim();
-const ACTIVE_GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
-const ACTIVE_GEMINI_VISION_MODEL = process.env.GEMINI_VISION_MODEL?.trim() || ACTIVE_GEMINI_MODEL;
-const gemini = GEMINI_API_KEY ? new GoogleGenAI({ apiKey: GEMINI_API_KEY }) : null;
+const DEFAULT_HF_CHAT_MODEL = 'Qwen/Qwen2.5-72B-Instruct';
+const DEFAULT_HF_VISION_MODEL = 'meta-llama/Llama-3.2-11B-Vision-Instruct';
+const HF_API_KEY = process.env.HUGGINGFACE_API_KEY?.trim();
+const ACTIVE_HF_CHAT_MODEL = process.env.HUGGINGFACE_CHAT_MODEL?.trim() || DEFAULT_HF_CHAT_MODEL;
+const ACTIVE_HF_VISION_MODEL = process.env.HUGGINGFACE_VISION_MODEL?.trim() || DEFAULT_HF_VISION_MODEL;
+const hf = HF_API_KEY ? new HfInference(HF_API_KEY) : null;
 
 const normalizeOllamaHost = (rawHost?: string): string => {
   const value = rawHost?.trim();
@@ -45,12 +46,12 @@ const localOllama = new Ollama({ host: DEFAULT_OLLAMA_HOST });
 const REMOTE_HOST_COOLDOWN_MS = Number(process.env.OLLAMA_REMOTE_COOLDOWN_MS || 5 * 60 * 1000);
 let remoteHostBlockedUntil = 0;
 
-export const ACTIVE_AI_PROVIDER = gemini ? 'gemini' : 'ollama';
-export const ACTIVE_AI_MODEL = gemini
-  ? ACTIVE_GEMINI_MODEL
-  : process.env.OLLAMA_MODEL || 'gemini-3-flash-preview:cloud';
-export const ACTIVE_AI_VISION_MODEL = gemini
-  ? ACTIVE_GEMINI_VISION_MODEL
+export const ACTIVE_AI_PROVIDER = hf ? 'huggingface' : 'ollama';
+export const ACTIVE_AI_MODEL = hf
+  ? ACTIVE_HF_CHAT_MODEL
+  : process.env.OLLAMA_MODEL || 'llama3:latest';
+export const ACTIVE_AI_VISION_MODEL = hf
+  ? ACTIVE_HF_VISION_MODEL
   : process.env.OLLAMA_VISION_MODEL || ACTIVE_AI_MODEL;
 
 const isRetryableOllamaNetworkError = (error: any): boolean => {
@@ -74,142 +75,73 @@ const markRemoteHostFailed = () => {
   }
 };
 
-const extractGeminiText = (response: any): string => {
-  if (typeof response?.text === 'string' && response.text.trim()) {
-    return response.text.trim();
+const chatWithHF = async (payload: any): Promise<any> => {
+  if (!hf) {
+    throw new Error('Hugging Face client is not configured');
   }
 
-  const parts = (response?.candidates || [])
-    .flatMap((candidate: any) => candidate?.content?.parts || [])
-    .map((part: any) => (typeof part?.text === 'string' ? part.text : ''))
-    .filter(Boolean);
-
-  return parts.join('\n').trim();
-};
-
-const mapMessageRoleToGemini = (role: string): 'user' | 'model' => {
-  if (role === 'assistant') {
-    return 'model';
+  const model = payload?.model || ACTIVE_HF_CHAT_MODEL;
+  const messages = payload?.messages || [];
+  
+  if (messages.length === 0) {
+    throw new Error('HF chat payload is missing messages');
   }
 
-  return 'user';
-};
-
-const buildGeminiContentsFromMessages = (messages: any[] = []) => {
-  let systemInstruction = '';
-  const contents = messages.reduce<any[]>((acc, message) => {
-    const content = String(message?.content || '').trim();
-    if (!content) {
-      return acc;
-    }
-
-    if (message?.role === 'system') {
-      if (!systemInstruction) {
-        systemInstruction = content;
-      }
-      return acc;
-    }
-
-    acc.push({
-      role: mapMessageRoleToGemini(String(message?.role || 'user')),
-      parts: [{ text: content }]
-    });
-    return acc;
-  }, []);
-
-  return { systemInstruction, contents };
-};
-
-const parseInlineImage = (rawImage: string) => {
-  const value = rawImage.trim();
-  const dataUrlMatch = value.match(/^data:([^;]+);base64,(.+)$/);
-
-  if (dataUrlMatch) {
-    return {
-      mimeType: dataUrlMatch[1],
-      data: dataUrlMatch[2]
-    };
-  }
-
-  return {
-    mimeType: 'image/jpeg',
-    data: value
-  };
-};
-
-const chatWithGemini = async (payload: any): Promise<any> => {
-  if (!gemini) {
-    throw new Error('Gemini client is not configured');
-  }
-
-  const { systemInstruction, contents } = buildGeminiContentsFromMessages(payload?.messages || []);
-  if (contents.length === 0) {
-    throw new Error('Gemini chat payload is missing messages');
-  }
-
-  const response = await gemini.models.generateContent({
-    model: payload?.model || ACTIVE_GEMINI_MODEL,
-    contents,
-    config: {
-      ...(systemInstruction ? { systemInstruction } : {}),
-      ...(typeof payload?.options?.temperature === 'number'
-        ? { temperature: payload.options.temperature }
-        : {})
-    }
+  const response = await hf.chatCompletion({
+    model,
+    messages,
+    temperature: typeof payload?.options?.temperature === 'number' ? payload.options.temperature : 0.7,
+    max_tokens: 1024,
   });
 
   return {
     message: {
-      content: extractGeminiText(response)
+      content: response.choices[0]?.message?.content?.trim() || ''
     }
   };
 };
 
-const generateWithGemini = async (payload: any): Promise<any> => {
-  if (!gemini) {
-    throw new Error('Gemini client is not configured');
+const generateWithHF = async (payload: any): Promise<any> => {
+  if (!hf) {
+    throw new Error('Hugging Face client is not configured');
   }
 
-  const imageParts = Array.isArray(payload?.images)
-    ? payload.images.map((image: string) => {
-        const { mimeType, data } = parseInlineImage(image);
-        return {
-          inlineData: {
-            mimeType,
-            data
-          }
-        };
-      })
-    : [];
-
+  const model = payload?.model || ACTIVE_HF_VISION_MODEL;
   const prompt = String(payload?.prompt || '').trim();
-  const contents = [
-    ...imageParts,
-    ...(prompt ? [{ text: prompt }] : [])
-  ];
-
-  if (contents.length === 0) {
-    throw new Error('Gemini generate payload is empty');
+  
+  const content: any[] = [];
+  if (Array.isArray(payload?.images)) {
+    payload.images.forEach((image: string) => {
+      content.push({
+        type: 'image_url',
+        image_url: { url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}` }
+      });
+    });
+  }
+  if (prompt) {
+    content.push({ type: 'text', text: prompt });
   }
 
-  const response = await gemini.models.generateContent({
-    model: payload?.model || ACTIVE_GEMINI_VISION_MODEL,
-    contents,
-    config: {
-      ...(typeof payload?.options?.temperature === 'number'
-        ? { temperature: payload.options.temperature }
-        : {})
-    }
+  if (content.length === 0) {
+    throw new Error('HF generate payload is empty');
+  }
+
+  const response = await hf.chatCompletion({
+    model,
+    messages: [
+      { role: 'user', content: content as any }
+    ],
+    max_tokens: 1024,
   });
 
   return {
-    response: extractGeminiText(response)
+    response: response.choices[0]?.message?.content?.trim() || ''
   };
 };
 
 const chatWithFallback = async (payload: any): Promise<any> => {
-  if (gemini) {
-    return await chatWithGemini(payload);
+  if (hf) {
+    return await chatWithHF(payload);
   }
 
   if (shouldSkipRemoteHost()) {
@@ -231,8 +163,8 @@ const chatWithFallback = async (payload: any): Promise<any> => {
 };
 
 const generateWithFallback = async (payload: any): Promise<any> => {
-  if (gemini) {
-    return await generateWithGemini(payload);
+  if (hf) {
+    return await generateWithHF(payload);
   }
 
   if (shouldSkipRemoteHost()) {
